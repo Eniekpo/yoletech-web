@@ -3,7 +3,7 @@ title: "Designing Executive Power BI & Tableau Dashboards That Drive Institution
 date: "2026-10-15"
 category: "Data Analytics & BI"
 readTime: "6 min read"
-author: "John Oruebi Eniekpo, B.Sc."
+author: "John Oruebi Eniekpo"
 coverImage: "/assets/dashboard-preview.jpg"
 summary: "How structured data validation, SQL modeling, and KPI hierarchy transform raw multi-departmental spreadsheets into actionable executive Business Intelligence dashboards."
 tags: ["Power BI", "Tableau", "SQL", "Business Intelligence", "Data Governance"]

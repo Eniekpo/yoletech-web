@@ -35,14 +35,14 @@ window.YOLETECH_COMPONENTS = {
     return icons[name] || icons.code;
   },
 
-  // 1. Portrait Hero Widget (Matches 850cf543.png)
+  // 1. Portrait Hero Widget
   renderPortraitHeroWidget() {
     return `
       <div class="portrait-orbit-card">
-        <img src="/assets/john-portrait.png" alt="John Oruebi Eniekpo, B.Sc. — YOLETECH" />
+        <img src="/assets/john-portrait.png" alt="John Oruebi Eniekpo — YOLETECH" />
         <div class="portrait-floating-badge">
           <div>
-            <div style="font-weight:800;font-size:14px;color:#FFFFFF;">John Oruebi Eniekpo, B.Sc.</div>
+            <div style="font-weight:800;font-size:14px;color:#FFFFFF;">John Oruebi Eniekpo</div>
             <div style="font-size:12px;color:#C8E61E;font-weight:600;">Data Analyst • BI Specialist • Full-Stack Dev</div>
           </div>
           <span class="tech-pill orange" style="font-size:11px;">5+ Yrs Exp</span>

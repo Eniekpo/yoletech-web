@@ -1,17 +1,16 @@
 // ============================================================================
 // YOLETECH — STRUCTURED CV, BRAND & SERVICES DATA
-// Owner: John Oruebi Eniekpo, B.Sc.
 // ============================================================================
 
 window.YOLETECH_DATA = {
   owner: {
-    name: "John Oruebi Eniekpo, B.Sc.",
+    name: "John Oruebi Eniekpo",
     roles: ["Data Analyst", "Business Intelligence Specialist", "Full-Stack Web Developer"],
-    location: "Yenagoa, Bayelsa State, Nigeria (Available for Global Remote)",
+    location: "Yenagoa, Bayelsa State, Nigeria",
     phone: "+234 802 552 6389",
     whatsappUrl: "https://wa.me/2348025526389",
     email: "yoletech@yolestica.com",
-    workingHours: "Mon - Fri, 9 AM - 6 PM (GMT+1) / Fully Remote Worldwide",
+    workingHours: "Mon - Fri, 9 AM - 6 PM (GMT+1)",
     socials: {
       linkedin: "https://linkedin.com/in/yolestica",
       github: "https://github.com/Eniekpo",
@@ -29,31 +28,28 @@ window.YOLETECH_DATA = {
     {
       id: "brand-partner",
       eyebrow: "YOUR TECH PARTNER",
-      badge: "01 / 06 • Full-Spectrum Digital & Data Partner",
       titleHtml: `Build better.<br/>Work smarter.<br/><span class="accent-lime">Grow your skills.</span>`,
       subtitle:
-        "Practical digital services for businesses, professionals and learners—led by John Oruebi Eniekpo, B.Sc. (Data Analyst, Business Intelligence Specialist & Full-Stack Web Developer).",
+        "Practical digital services for businesses, professionals, and learners—delivering full-stack web applications, executive business intelligence, and automated workflows.",
       tags: ["React.js", "Python & Pandas", "Power BI & Tableau", "SQL Databases", "Excel VBA", "AI Automation"],
       primaryCta: { label: "View Services →", page: "services" },
-      secondaryCta: { label: "Contact Me", page: "contact" },
+      secondaryCta: { label: "Contact Us", page: "contact" },
       visualType: "portrait"
     },
     {
       id: "data-bi",
       eyebrow: "DATA ANALYSIS & BUSINESS INTELLIGENCE",
-      badge: "02 / 06 • Executive Dashboards & Statistical Auditing",
       titleHtml: `Turn Complex Datasets Into <span class="accent-lime">Executive Clarity.</span>`,
       subtitle:
         "End-to-end data cleaning, statistical auditing, and interactive Power BI & Tableau dashboards that empower leadership to make fast, high-confidence decisions.",
       tags: ["Power BI", "Tableau", "Python (Pandas)", "R & SPSS", "SQL Server & MySQL", "Statistical Auditing"],
       primaryCta: { label: "Explore BI Services →", page: "services" },
-      secondaryCta: { label: "View Data Portfolio", page: "portfolio" },
+      secondaryCta: { label: "View Portfolio", page: "portfolio" },
       visualType: "dashboard"
     },
     {
       id: "web-dev",
       eyebrow: "FULL-STACK WEB DEVELOPMENT",
-      badge: "03 / 06 • High-Performance Digital Platforms",
       titleHtml: `Modern Full-Stack <span class="accent-lime">Web Applications</span> &amp; Portals.`,
       subtitle:
         "Responsive frontend and backend systems built with React.js, modern JavaScript, HTML/CSS, WordPress, and relational SQL databases—engineered for speed, security, and scalability.",
@@ -65,37 +61,34 @@ window.YOLETECH_DATA = {
     {
       id: "ai-automation",
       eyebrow: "AI, MACHINE LEARNING & WORKFLOW AUTOMATION",
-      badge: "04 / 06 • Predictive Modeling & VBA/Python Pipelines",
       titleHtml: `Eliminate Bottlenecks With <span class="accent-lime">AI &amp; Automation.</span>`,
       subtitle:
         "Predictive machine learning models for forecasting outcomes, automated Excel VBA macros, and custom Python scripts that cut manual reporting time from hours to seconds.",
       tags: ["Predictive Modeling", "Machine Learning", "Excel VBA Macros", "Python Automation", "AI Ethics", "Reinforcement Learning"],
       primaryCta: { label: "Automate Your Workflow →", page: "contact" },
-      secondaryCta: { label: "Explore Architecture", page: "services" },
+      secondaryCta: { label: "Explore Services", page: "services" },
       visualType: "workflow"
     },
     {
       id: "tech-tutorials",
       eyebrow: "TECH TUTORIALS, TRAINING & MENTORSHIP",
-      badge: "05 / 06 • 200+ Analytics Interns Trained & Mentored",
       titleHtml: `Practical Training in <span class="accent-lime">Python, SQL &amp; Data Analytics.</span>`,
       subtitle:
         "Backed by proven experience training and mentoring over 200 interns and corporate staff in Python programming, SQL database querying, Power BI, and data governance standards.",
       tags: ["Python Bootcamps", "SQL Mastery", "Power BI & Excel", "Corporate Staff Training", "200+ Interns Mentored"],
-      primaryCta: { label: "Book Training / Mentorship →", page: "contact" },
-      secondaryCta: { label: "Read Tutorials Blog", page: "blog" },
+      primaryCta: { label: "Book Training →", page: "contact" },
+      secondaryCta: { label: "Read Blog", page: "blog" },
       visualType: "portrait"
     },
     {
       id: "creative-it-support",
       eyebrow: "GRAPHIC DESIGN, VIDEO EDITING & IT SUPPORT",
-      badge: "06 / 06 • Complete Creative & Technical Operations",
       titleHtml: `Visual Branding, Media &amp; <span class="accent-lime">Reliable IT Support.</span>`,
       subtitle:
         "From cohesive brand visuals and video editing to database administration, system setup, troubleshooting, and responsive customer support that keeps your organization running.",
       tags: ["Graphic Design", "Video Editing", "IT Systems Setup", "Database Administration", "Customer Support"],
       primaryCta: { label: "Request Support →", page: "contact" },
-      secondaryCta: { label: "View All 8 Services", page: "services" },
+      secondaryCta: { label: "View All Services", page: "services" },
       visualType: "dashboard"
     }
   ],
@@ -286,10 +279,10 @@ window.YOLETECH_DATA = {
   // CV Education
   education: [
     {
-      degree: "M.Sc. in Information Technology (In-View)",
+      degree: "M.Sc. in Information Technology",
       institution: "National Open University of Nigeria (NOUN)",
       period: "2025 – Present",
-      badge: "Postgraduate (In-View)"
+      badge: "Postgraduate"
     },
     {
       degree: "B.Sc. in Computer Science",

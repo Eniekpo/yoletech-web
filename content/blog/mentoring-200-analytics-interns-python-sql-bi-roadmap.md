@@ -3,7 +3,7 @@ title: "Mentoring 200+ Analytics Interns: A Practical Roadmap for Learning Pytho
 date: "2026-09-04"
 category: "Tech Tutorials & Mentorship"
 readTime: "5 min read"
-author: "John Oruebi Eniekpo, B.Sc."
+author: "John Oruebi Eniekpo"
 coverImage: "/assets/code-sync-preview.jpg"
 summary: "Lessons learned from training and mentoring over 200 interns in Python, SQL, Power BI, and real-world technical workflows—and how beginners can build job-ready skills."
 tags: ["Tech Tutorials", "Python", "SQL", "Mentorship", "Data Analytics"]

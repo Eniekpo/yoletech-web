@@ -144,7 +144,7 @@ function seedDatabase() {
 
     // Master Admin Account (John Oruebi Eniekpo)
     insertUser.run(
-      'John Oruebi Eniekpo, B.Sc.',
+      'John Oruebi Eniekpo',
       'yoletech@yolestica.com',
       hashPassword('YoleTech@2026#Admin'),
       '+234 802 552 6389',
@@ -156,21 +156,7 @@ function seedDatabase() {
       '2026-01-10 09:00:00'
     );
 
-    // Demo Client Account (for testing client portal)
-    insertUser.run(
-      'Dr. Tarila Okoro',
-      'client@example.com',
-      hashPassword('Client@2026'),
-      '+234 803 441 9201',
-      'Niger Delta Academic Research Consortium',
-      'Data Analytics & BI',
-      'CLIENT',
-      'ACTIVE',
-      'Executive Power BI & SPSS research dataset validation project active.',
-      '2026-08-14 11:30:00'
-    );
-
-    // Additional realistic registered clients
+    // Registered clients
     insertUser.run(
       'Engr. Ebiowei Dickson',
       'ebiowei@bayelsatechventures.ng',
@@ -231,20 +217,6 @@ function seedDatabase() {
       INSERT INTO inquiries (user_id, name, email, phone, service_category, budget, message, status, project_progress, admin_response, created_at)
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `);
-
-    insertInquiry.run(
-      2,
-      'Dr. Tarila Okoro',
-      'client@example.com',
-      '+234 803 441 9201',
-      'Data Analytics & Dashboards',
-      '$1,500 - $5,000',
-      'We need an interactive Power BI dashboard and statistical auditing in Python/SPSS for our multi-institution student performance dataset (45,000+ rows).',
-      'IN_PROGRESS',
-      75,
-      'SQL schema validation and Python Pandas cleaning completed. Power BI executive views are 75% ready for stakeholder review.',
-      '2026-10-12 10:15:00'
-    );
 
     insertInquiry.run(
       3,
@@ -344,7 +316,7 @@ function seedDatabase() {
       'Full-Stack Web',
       'YOLETECH Digital Solutions',
       '2024 – Present',
-      'Full-stack web application built with React.js, modern JavaScript, HTML/CSS, and relational SQL backend featuring role-based client portals, live analytics, and Decap CMS integration.',
+      'Full-stack web application built with React.js, modern JavaScript, HTML/CSS, and relational SQL backend featuring role-based client portals, live analytics, and content management.',
       'Sub-1.5s load time, JWT security, and real-time client CRM management',
       JSON.stringify(['React.js', 'JavaScript', 'HTML5/CSS3', 'Node.js', 'SQL']),
       '/assets/code-sync-preview.jpg',
@@ -434,7 +406,7 @@ function parseMarkdownFile(filePath) {
     date: '2026-10-15',
     category: 'Data Analytics & BI',
     readTime: '5 min read',
-    author: 'John Oruebi Eniekpo, B.Sc.',
+    author: 'John Oruebi Eniekpo',
     coverImage: '/assets/dashboard-preview.jpg',
     summary: '',
     tags: ['Python', 'SQL', 'Power BI'],
@@ -493,7 +465,7 @@ title: "${String(data.title || 'Untitled Article').replace(/"/g, '\\"')}"
 date: "${data.date || new Date().toISOString().slice(0, 10)}"
 category: "${data.category || 'Data Analytics & BI'}"
 readTime: "${data.readTime || '5 min read'}"
-author: "${data.author || 'John Oruebi Eniekpo, B.Sc.'}"
+author: "${data.author || 'John Oruebi Eniekpo'}"
 coverImage: "${data.coverImage || '/assets/dashboard-preview.jpg'}"
 summary: "${String(data.summary || '').replace(/"/g, '\\"')}"
 tags: ${JSON.stringify(tagsArray)}
@@ -1123,7 +1095,7 @@ const server = http.createServer(async (req, res) => {
               path: rel,
               label: null,
               id: rel,
-              author: 'John Oruebi Eniekpo, B.Sc.',
+              author: 'John Oruebi Eniekpo',
               updatedOn: stat.mtime.toISOString()
             }
           };
@@ -1144,7 +1116,7 @@ const server = http.createServer(async (req, res) => {
                 path: f.path,
                 label: f.label || null,
                 id: f.path,
-                author: 'John Oruebi Eniekpo, B.Sc.',
+                author: 'John Oruebi Eniekpo',
                 updatedOn: stat.mtime.toISOString()
               }
             };
@@ -1165,7 +1137,7 @@ const server = http.createServer(async (req, res) => {
             path: params.path,
             label: null,
             id: params.path,
-            author: 'John Oruebi Eniekpo, B.Sc.',
+            author: 'John Oruebi Eniekpo',
             updatedOn: stat.mtime.toISOString()
           }
         });

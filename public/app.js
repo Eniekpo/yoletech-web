@@ -376,7 +376,6 @@ class YoletechApp {
         <div class="container">
           <div class="footer-cta-banner">
             <div>
-              <span class="eyebrow"><span class="eyebrow-dot"></span> GLOBAL REMOTE READY • YENAGOA, NIGERIA (GMT+1)</span>
               <h2 style="font-size:clamp(24px,3vw,34px);font-weight:900;">Ready to build your next digital engine?</h2>
               <p style="color:var(--yole-text-muted);max-width:560px;margin-top:6px;">
                 From React.js &amp; WordPress platforms to interactive Power BI/Tableau dashboards and Python/VBA automation pipelines—let's make your business run faster.
@@ -396,7 +395,7 @@ class YoletechApp {
             <div>
               ${C.renderBrandLogo()}
               <p style="color:var(--yole-text-muted);font-size:14px;margin-top:14px;max-width:340px;">
-                <strong>${D.name}</strong> — Data Analyst, Business Intelligence Specialist &amp; Full-Stack Web Developer bridging high-performance web platforms, statistical insights, and automated backend systems.
+                Data analytics, business intelligence, workflow automation, and full-stack web development solutions engineered for clarity and scale.
               </p>
               <div class="social-icon-row">
                 <a href="${D.socials.github}" target="_blank" rel="noopener" class="social-btn">GitHub</a>
@@ -421,51 +420,45 @@ class YoletechApp {
             </div>
 
             <div>
-              <div class="footer-col-title"><span class="eyebrow-dot"></span> NAVIGATION &amp; PORTALS</div>
+              <div class="footer-col-title"><span class="eyebrow-dot"></span> NAVIGATION</div>
               <ul class="footer-links">
-                <li><a onclick="window.app.navigate('about')">About John Eniekpo (CV)</a></li>
+                <li><a onclick="window.app.navigate('about')">About</a></li>
                 <li><a onclick="window.app.navigate('portfolio')">Portfolio &amp; Case Studies</a></li>
-                <li><a onclick="window.app.navigate('testimonials')">Client &amp; Mentee Testimonials</a></li>
-                <li><a onclick="window.app.navigate('blog')">Blog &amp; Tech Tutorials</a></li>
-                <li><a onclick="window.app.navigate('login')">Client &amp; Admin Login Portal</a></li>
-                <li><a href="/admin/" target="_blank">Decap Bridge CMS (/admin)</a></li>
-                <li><a href="/cv.html" target="_blank">Printable Official CV (PDF)</a></li>
+                <li><a onclick="window.app.navigate('testimonials')">Testimonials</a></li>
+                <li><a onclick="window.app.navigate('blog')">Blog &amp; Tutorials</a></li>
+                <li><a onclick="window.app.navigate('login')">Client Portal</a></li>
+                <li><a href="/cv.html" target="_blank">Curriculum Vitae</a></li>
               </ul>
             </div>
 
             <div>
-              <div class="footer-col-title"><span class="eyebrow-dot"></span> CONNECT &amp; STATUS</div>
+              <div class="footer-col-title"><span class="eyebrow-dot"></span> CONTACT</div>
               <div style="font-size:13.5px;color:var(--yole-text-muted);margin-bottom:8px;">
-                <strong style="color:#FFFFFF;">Direct Email:</strong><br/>
+                <strong style="color:#FFFFFF;">Email:</strong><br/>
                 <a href="mailto:${D.email}" style="color:#C8E61E;">${D.email}</a>
               </div>
-              <div style="font-size:13.5px;color:var(--yole-text-muted);margin-bottom:12px;">
+              <div style="font-size:13.5px;color:var(--yole-text-muted);margin-bottom:8px;">
                 <strong style="color:#FFFFFF;">WhatsApp / Phone:</strong><br/>
                 <a href="${D.whatsappUrl}" target="_blank" style="color:#FFFFFF;">${D.phone}</a>
               </div>
-
-              <div class="status-badge-card">
-                <span><span class="pulse-dot"></span>All Systems Operational</span>
-                <span style="color:#C8E61E;">99.9%</span>
-              </div>
-              <div class="status-badge-card" style="background:rgba(47,43,115,0.45);border-color:rgba(255,255,255,0.18);margin-top:8px;">
-                <span>⚡ Site &amp; SQLite Engine</span>
-                <span style="color:#F7941D;">&lt; 1.5s Load</span>
+              <div style="font-size:13.5px;color:var(--yole-text-muted);">
+                <strong style="color:#FFFFFF;">Hours:</strong><br/>
+                ${D.workingHours}
               </div>
             </div>
           </div>
 
           <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;padding-top:24px;font-size:13px;color:var(--yole-text-subtle);">
-            <div>© 2026 YOLETECH — John Oruebi Eniekpo, B.Sc. All rights reserved.</div>
-            <div>Yenagoa, Bayelsa State, Nigeria • Available for Global Remote</div>
+            <div>© 2026 YOLETECH. All rights reserved.</div>
+            <div>${D.location}</div>
           </div>
         </div>
       </footer>
 
       <!-- FLOATING WHATSAPP QUICK CONNECT -->
-      <a href="${D.whatsappUrl}" target="_blank" rel="noopener" title="Chat with John Oruebi Eniekpo on WhatsApp" style="position:fixed;bottom:22px;left:22px;z-index:990;background:#19164B;border:2px solid #C8E61E;color:#FFFFFF;padding:10px 16px;border-radius:999px;box-shadow:0 12px 30px rgba(0,0,0,0.55);display:inline-flex;align-items:center;gap:8px;font-size:13px;font-weight:800;">
+      <a href="${D.whatsappUrl}" target="_blank" rel="noopener" title="Chat on WhatsApp" style="position:fixed;bottom:22px;left:22px;z-index:990;background:#19164B;border:2px solid #C8E61E;color:#FFFFFF;padding:10px 16px;border-radius:999px;box-shadow:0 12px 30px rgba(0,0,0,0.55);display:inline-flex;align-items:center;gap:8px;font-size:13px;font-weight:800;">
         <span style="width:9px;height:9px;border-radius:50%;background:#C8E61E;box-shadow:0 0 8px #C8E61E;"></span>
-        <span>WhatsApp John</span>
+        <span>Chat on WhatsApp</span>
       </a>
     `;
   }
@@ -495,7 +488,6 @@ class YoletechApp {
           <div class="eyebrow">
             <span class="eyebrow-dot"></span> ${slide.eyebrow}
           </div>
-          <div class="hero-slide-badge">${slide.badge}</div>
           <h1 class="hero-title">${slide.titleHtml}</h1>
           <p class="hero-subtitle">${slide.subtitle}</p>
           <div class="hero-tags-row">
@@ -555,7 +547,7 @@ class YoletechApp {
           ${this.renderHeroSlideInner()}
         </div>
 
-        <!-- 8-Service Feature Strip (Exact Match to Hero Banner Reference) -->
+        <!-- 8-Service Feature Strip -->
         <div class="service-strip-bar">
           <div class="container">
             <div class="service-strip-grid">
@@ -577,7 +569,7 @@ class YoletechApp {
         </div>
       </section>
 
-      <!-- CV IMPACT METRICS & 3 CORE VALUE PILLARS -->
+      <!-- IMPACT METRICS & 3 CORE VALUE PILLARS -->
       <section class="section">
         <div class="container">
           <div class="metrics-strip">
@@ -595,21 +587,21 @@ class YoletechApp {
             </div>
             <div class="metric-cell">
               <div class="metric-number">100%</div>
-              <div class="metric-label">Data Integrity &amp;<br/>Global Remote Ready</div>
+              <div class="metric-label">Data Integrity &amp;<br/>Quality Commitment</div>
             </div>
           </div>
 
           <div class="section-header">
-            <div class="eyebrow"><span class="eyebrow-dot"></span> HOW I BRING VALUE TO YOUR BUSINESS</div>
+            <div class="eyebrow"><span class="eyebrow-dot"></span> CORE CAPABILITIES</div>
             <h2 class="section-title">Bridging Full-Stack Web Platforms, Executive BI &amp; Automated Workflows</h2>
             <p class="section-desc">
-              Led by <strong>John Oruebi Eniekpo, B.Sc.</strong> — combining Computer Science engineering with statistical analysis, database governance, and modern web architecture.
+              Combining software engineering with statistical analysis, database governance, and modern web architecture.
             </p>
           </div>
 
           <div class="grid-3">
             <div class="glass-card">
-              <span class="tech-pill lime" style="margin-bottom:14px;">01. Web &amp; Digital Platforms</span>
+              <span class="tech-pill lime" style="margin-bottom:14px;">Web &amp; Digital Platforms</span>
               <h3 style="font-size:21px;font-weight:800;margin-bottom:10px;">Full-Stack Web Development</h3>
               <p style="font-size:14px;color:var(--yole-text-muted);margin-bottom:18px;">
                 Frontend and backend system implementation using React.js, JavaScript, HTML/CSS, WordPress, and relational SQL databases—built without bloat.
@@ -623,7 +615,7 @@ class YoletechApp {
             </div>
 
             <div class="glass-card">
-              <span class="tech-pill orange" style="margin-bottom:14px;">02. Data Analytics &amp; BI</span>
+              <span class="tech-pill orange" style="margin-bottom:14px;">Data Analytics &amp; BI</span>
               <h3 style="font-size:21px;font-weight:800;margin-bottom:10px;">Data Analytics &amp; Business Intelligence</h3>
               <p style="font-size:14px;color:var(--yole-text-muted);margin-bottom:18px;">
                 Transforming complex multi-departmental datasets into validated insights and interactive Power BI &amp; Tableau dashboards for executive decision-making.
@@ -638,7 +630,7 @@ class YoletechApp {
             </div>
 
             <div class="glass-card">
-              <span class="tech-pill lime" style="margin-bottom:14px;">03. AI &amp; Automation</span>
+              <span class="tech-pill lime" style="margin-bottom:14px;">AI &amp; Automation</span>
               <h3 style="font-size:21px;font-weight:800;margin-bottom:10px;">Predictive ML &amp; Workflow Automation</h3>
               <p style="font-size:14px;color:var(--yole-text-muted);margin-bottom:18px;">
                 Forecasting outcomes with Machine Learning and automating repetitive reporting bottlenecks via Advanced Microsoft Excel VBA macros and Python scripts.
@@ -658,11 +650,8 @@ class YoletechApp {
       <section class="section section-alt">
         <div class="container">
           <div class="section-header">
-            <div class="eyebrow"><span class="eyebrow-dot"></span> LIVE ARCHITECTURE &amp; BI PREVIEW</div>
+            <div class="eyebrow"><span class="eyebrow-dot"></span> INTERACTIVE PREVIEW</div>
             <h2 class="section-title">Explore How Your Data &amp; Web Systems Operate</h2>
-            <p class="section-desc">
-              Switch between our interactive Business Intelligence overview, full-stack API code synchronization, and automated Python/VBA pipeline architecture.
-            </p>
             <div style="display:flex;justify-content:center;gap:10px;flex-wrap:wrap;margin-top:22px;">
               <button class="selector-pill ${this.showcaseTab === 'dashboard' ? 'active' : ''}" onclick="window.app.showcaseTab='dashboard';window.app.render();">
                 📊 Executive BI Dashboard
@@ -697,7 +686,7 @@ class YoletechApp {
               <h2 class="section-title" style="margin-bottom:0;">Featured Portfolio &amp; Case Studies</h2>
             </div>
             <button class="btn btn-outline" onclick="window.app.navigate('portfolio')">
-              View All ${this.portfolio.length} Projects →
+              View All Projects →
             </button>
           </div>
 
@@ -733,13 +722,13 @@ class YoletechApp {
         </div>
       </section>
 
-      <!-- LATEST BLOG ARTICLES (DECAP CMS) -->
+      <!-- LATEST BLOG ARTICLES -->
       <section class="section section-alt">
         <div class="container">
           <div style="display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:16px;margin-bottom:36px;">
             <div>
-              <div class="eyebrow"><span class="eyebrow-dot"></span> INSIGHTS &amp; TUTORIALS (DECAP BRIDGE CMS)</div>
-              <h2 class="section-title" style="margin-bottom:0;">Latest Articles by John Eniekpo</h2>
+              <div class="eyebrow"><span class="eyebrow-dot"></span> INSIGHTS &amp; TUTORIALS</div>
+              <h2 class="section-title" style="margin-bottom:0;">Latest Articles &amp; Guides</h2>
             </div>
             <button class="btn btn-outline" onclick="window.app.navigate('blog')">
               Read All Articles →
@@ -774,7 +763,7 @@ class YoletechApp {
   }
 
   // ==========================================================================
-  // PAGE 2: ABOUT (100% CV DATA + SAMPLE 88a21eec.jpg LAYOUT)
+  // PAGE 2: ABOUT
   // ==========================================================================
   renderAboutPage() {
     const D = window.YOLETECH_DATA;
@@ -785,23 +774,19 @@ class YoletechApp {
         <div class="container">
           <div class="hero-slide-grid" style="margin-bottom:56px;">
             <div>
-              <div class="eyebrow"><span class="eyebrow-dot"></span> ABOUT JOHN ORUEBI ENIEKPO, B.Sc.</div>
+              <div class="eyebrow"><span class="eyebrow-dot"></span> ABOUT YOLETECH</div>
               <h1 class="hero-title" style="font-size:clamp(32px,4vw,48px);">
                 The Developer, Analyst &amp; <span class="accent-lime">Automator Behind Your Project</span>
               </h1>
-              <p style="font-size:16px;color:var(--yole-text-muted);margin-bottom:20px;">
+              <p style="font-size:16px;color:var(--yole-text-muted);margin-bottom:26px;">
                 ${D.owner.summary}
               </p>
-              <div style="display:flex;flex-wrap:wrap;gap:10px;margin-bottom:26px;">
-                <span class="tech-pill lime">📍 ${D.owner.location}</span>
-                <span class="tech-pill orange">🎓 M.Sc. IT (In-View) • B.Sc. Computer Science</span>
-              </div>
               <div class="hero-cta-row">
                 <button class="btn btn-lime" onclick="window.app.navigate('contact')">
                   Let's Discuss Your Project →
                 </button>
                 <a href="/cv.html" target="_blank" class="btn btn-outline">
-                  View / Download Official CV (PDF)
+                  View Curriculum Vitae
                 </a>
               </div>
             </div>
@@ -981,7 +966,7 @@ class YoletechApp {
 
           <div class="section-header">
             <div class="eyebrow"><span class="eyebrow-dot"></span> OUR SERVICES</div>
-            <h2 class="section-title">8 Complete Service Tracks Under One Roof</h2>
+            <h2 class="section-title">Complete Service Tracks Under One Roof</h2>
             <p class="section-desc">Select any service track below to start a tailored project inquiry.</p>
           </div>
 
@@ -993,9 +978,9 @@ class YoletechApp {
                 <div>
                   <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
                     <div class="service-strip-icon">${C.getIcon(srv.icon)}</div>
-                    <span class="tech-pill ${idx % 2 === 0 ? 'lime' : 'orange'}">0${idx + 1} • ${srv.category}</span>
+                    <span class="tech-pill ${idx % 2 === 0 ? 'lime' : 'orange'}">${srv.category}</span>
                   </div>
-                  <h3 style="font-size:22px;font-weight:900;margin-bottom:6px;">0${idx + 1}. ${srv.title}</h3>
+                  <h3 style="font-size:22px;font-weight:900;margin-bottom:6px;">${srv.title}</h3>
                   <div style="font-size:13px;font-weight:700;color:#C8E61E;margin-bottom:12px;">${srv.sub}</div>
                   <p style="font-size:14px;color:var(--yole-text-muted);margin-bottom:16px;">${srv.description}</p>
                 </div>
@@ -1123,7 +1108,7 @@ class YoletechApp {
             <div class="eyebrow"><span class="eyebrow-dot"></span> PORTFOLIO &amp; CASE STUDIES</div>
             <h1 class="section-title">Proven Data, BI, Automation &amp; Full-Stack Projects</h1>
             <p class="section-desc">
-              Real-world deliverables across SulPhil Tech Hub, Feasibility Giant Company, and YOLETECH client engagements.
+              Selected projects across data analytics, business intelligence, workflow automation, and full-stack web development.
             </p>
             <div style="display:flex;justify-content:center;flex-wrap:wrap;gap:8px;margin-top:24px;">
               ${categories
@@ -1229,25 +1214,25 @@ class YoletechApp {
 
           <!-- SUBMIT A TESTIMONIAL CARD -->
           <div class="glass-card" style="max-width:740px;margin:0 auto;">
-            <div class="eyebrow"><span class="eyebrow-dot"></span> WORKED WITH JOHN OR JOINED A COHORT?</div>
+            <div class="eyebrow"><span class="eyebrow-dot"></span> SHARE YOUR FEEDBACK</div>
             <h3 style="font-size:24px;font-weight:900;margin-bottom:16px;">Share Your Experience with YOLETECH</h3>
             <form onsubmit="window.app.handleTestimonialSubmit(event)">
               <div class="grid-2" style="gap:16px;">
                 <div class="form-group">
                   <label class="form-label">Your Full Name *</label>
-                  <input type="text" name="author_name" required class="form-control" placeholder="e.g. Engr. Tariye Peters" value="${
+                  <input type="text" name="author_name" required class="form-control" placeholder="Your full name" value="${
                     this.user ? this.user.name : ''
                   }" />
                 </div>
                 <div class="form-group">
                   <label class="form-label">Your Role / Title</label>
-                  <input type="text" name="author_role" class="form-control" placeholder="e.g. Operations Manager / Analytics Mentee" />
+                  <input type="text" name="author_role" class="form-control" placeholder="Your role or title" />
                 </div>
               </div>
               <div class="grid-2" style="gap:16px;">
                 <div class="form-group">
                   <label class="form-label">Organization / Cohort</label>
-                  <input type="text" name="company" class="form-control" placeholder="e.g. SulPhil Tech Hub / Company Name" value="${
+                  <input type="text" name="company" class="form-control" placeholder="Company or organization" value="${
                     this.user ? this.user.company : ''
                   }" />
                 </div>
@@ -1300,7 +1285,7 @@ class YoletechApp {
   }
 
   // ==========================================================================
-  // PAGE 6: BLOG & ARTICLE READER (POWERED BY DECAP CMS / DECAP BRIDGE)
+  // PAGE 6: BLOG & ARTICLE READER
   // ==========================================================================
   renderBlogPage() {
     const categories = [
@@ -1321,21 +1306,18 @@ class YoletechApp {
       <section class="section">
         <div class="container">
           <div class="section-header">
-            <div class="eyebrow"><span class="eyebrow-dot"></span> YOLETECH TECHNICAL BLOG • POWERED BY DECAP BRIDGE</div>
+            <div class="eyebrow"><span class="eyebrow-dot"></span> INSIGHTS &amp; TUTORIALS</div>
             <h1 class="section-title">Articles on Data Analytics, BI, Python &amp; Web Engineering</h1>
             <p class="section-desc">
-              Practical guides, SQL/Python code walkthroughs, and architectural insights written by <strong>John Oruebi Eniekpo, B.Sc.</strong>
+              Practical guides, technical walkthroughs, and architectural insights.
             </p>
-            <div style="display:flex;justify-content:center;gap:10px;flex-wrap:wrap;margin-top:16px;">
-              <a href="/admin/" target="_blank" class="btn btn-outline btn-sm">
-                Open Decap CMS (/admin) ↗
-              </a>
-              ${
-                this.user?.role === 'ADMIN'
-                  ? `<button class="btn btn-lime btn-sm" onclick="window.app.adminTab='blog';window.app.navigate('admin-dashboard')">+ Write New Article in Admin Studio</button>`
-                  : ''
-              }
-            </div>
+            ${
+              this.user?.role === 'ADMIN'
+                ? `<div style="display:flex;justify-content:center;gap:10px;flex-wrap:wrap;margin-top:16px;">
+                    <button class="btn btn-lime btn-sm" onclick="window.app.adminTab='blog';window.app.navigate('admin-dashboard')">+ Write New Article</button>
+                  </div>`
+                : ''
+            }
 
             <div style="display:flex;justify-content:center;flex-wrap:wrap;gap:8px;margin-top:24px;">
               ${categories
@@ -1669,7 +1651,7 @@ class YoletechApp {
                     <span class="tech-pill lime" style="margin-bottom:8px;">Instant Discovery Call</span>
                     <h3 style="font-size:21px;font-weight:900;">Book a 15-Minute Discovery Call</h3>
                     <p style="font-size:13.5px;color:var(--yole-text-muted);margin-top:4px;">
-                      Connect directly with John Oruebi Eniekpo on WhatsApp or Zoom to scope your project.
+                      Connect directly on WhatsApp to scope your project requirements.
                     </p>
                   </div>
                   <a href="${D.owner.whatsappUrl}" target="_blank" rel="noopener" class="btn btn-lime">
@@ -1754,7 +1736,7 @@ class YoletechApp {
         body: JSON.stringify(payload)
       });
       form.reset();
-      this.showToast('Project inquiry sent! Saved to YOLETECH database.');
+      this.showToast('Thank you! Your inquiry has been received. We will respond within 24 hours.');
     } catch (err) {
       this.showToast(err.message, 'error');
     }
@@ -1771,15 +1753,15 @@ class YoletechApp {
         <div class="container" style="max-width:540px;">
           <div class="glass-card" style="border-color:#C8E61E;padding:36px;">
             <div style="text-align:center;margin-bottom:24px;">
-              <div class="eyebrow" style="justify-content:center;"><span class="eyebrow-dot"></span> YOLETECH SECURE PORTAL</div>
+              <div class="eyebrow" style="justify-content:center;"><span class="eyebrow-dot"></span> CLIENT PORTAL</div>
               <h1 style="font-size:28px;font-weight:900;">
                 ${isLogin ? 'Sign In to Your Portal' : 'Create a Client Account'}
               </h1>
               <p style="font-size:14px;color:var(--yole-text-muted);margin-top:6px;">
                 ${
                   isLogin
-                    ? 'Access your Client Project Portal or the Master Admin CRM Dashboard.'
-                    : 'Register to request projects, track deliverables, and collaborate with John Oruebi Eniekpo.'
+                    ? 'Sign in to track your project deliverables and manage service requests.'
+                    : 'Register to request projects, track deliverables, and manage your account.'
                 }
               </p>
             </div>
@@ -1803,7 +1785,7 @@ class YoletechApp {
               <form onsubmit="window.app.handleLoginSubmit(event)">
                 <div class="form-group">
                   <label class="form-label">Email Address *</label>
-                  <input type="email" id="login-email" name="email" required class="form-control" placeholder="yoletech@yolestica.com" />
+                  <input type="email" id="login-email" name="email" required class="form-control" placeholder="you@company.com" />
                 </div>
                 <div class="form-group">
                   <label class="form-label">Password *</label>
@@ -1813,26 +1795,12 @@ class YoletechApp {
                   Sign In to Portal →
                 </button>
               </form>
-
-              <div style="margin-top:24px;padding-top:18px;border-top:1px solid rgba(255,255,255,0.12);">
-                <div style="font-size:12px;font-weight:800;color:#C8E61E;text-transform:uppercase;margin-bottom:10px;">
-                  Quick Credentials Fill (Admin &amp; Demo Client)
-                </div>
-                <div style="display:flex;gap:10px;flex-wrap:wrap;">
-                  <button type="button" class="btn btn-outline btn-sm" style="flex:1;" onclick="document.getElementById('login-email').value='yoletech@yolestica.com';document.getElementById('login-password').value='YoleTech@2026#Admin';">
-                    🔑 Fill Admin Login
-                  </button>
-                  <button type="button" class="btn btn-outline btn-sm" style="flex:1;" onclick="document.getElementById('login-email').value='client@example.com';document.getElementById('login-password').value='Client@2026';">
-                    👤 Fill Demo Client
-                  </button>
-                </div>
-              </div>
             `
                 : `
               <form onsubmit="window.app.handleRegisterSubmit(event)">
                 <div class="form-group">
                   <label class="form-label">Full Name *</label>
-                  <input type="text" name="name" required class="form-control" placeholder="e.g. Dr. Tarila Okoro" />
+                  <input type="text" name="name" required class="form-control" placeholder="Your full name" />
                 </div>
                 <div class="grid-2" style="gap:12px;">
                   <div class="form-group">
@@ -2170,12 +2138,12 @@ class YoletechApp {
 
         <div class="glass-card" style="padding:20px;display:flex;flex-direction:column;justify-content:space-between;">
           <div>
-            <div style="font-size:12px;font-weight:800;color:#C8E61E;text-transform:uppercase;">SQLite &amp; Decap Bridge Health</div>
-            <div style="font-size:20px;font-weight:900;margin-top:6px;">All Pipelines Synced</div>
-            <div style="font-size:12.5px;color:var(--yole-text-muted);margin-top:2px;">Database: <code>server/yoletech.db</code></div>
+            <div style="font-size:12px;font-weight:800;color:#C8E61E;text-transform:uppercase;">Data Export</div>
+            <div style="font-size:20px;font-weight:900;margin-top:6px;">CRM Records Ready</div>
+            <div style="font-size:12.5px;color:var(--yole-text-muted);margin-top:2px;">Export client directory for reporting</div>
           </div>
           <button class="btn btn-outline btn-sm" style="margin-top:12px;" onclick="window.app.exportClientsToCSV()">
-            ⬇ Export Clients to CSV (Excel / Power BI)
+            ⬇ Export Clients to CSV
           </button>
         </div>
       </div>
@@ -2190,9 +2158,9 @@ class YoletechApp {
             <div class="glass-card">
               <h2 style="font-size:24px;font-weight:900;margin-bottom:10px;">Admin Access Required</h2>
               <p style="color:var(--yole-text-muted);margin-bottom:20px;">
-                Please sign in with the master administrator credentials (<strong>yoletech@yolestica.com</strong>) to manage registered clients, inquiries, and Decap Bridge blog articles.
+                Please sign in with an administrator account to access the management dashboard.
               </p>
-              <button class="btn btn-lime" onclick="window.app.navigate('login')">Go to Admin Login →</button>
+              <button class="btn btn-lime" onclick="window.app.navigate('login')">Go to Sign In →</button>
             </div>
           </div>
         </section>
@@ -2224,23 +2192,20 @@ class YoletechApp {
           <!-- ADMIN HEADER BAR -->
           <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px;margin-bottom:28px;">
             <div>
-              <div class="eyebrow"><span class="eyebrow-dot"></span> YOLETECH COMMAND CENTER • SQLITE BACKEND</div>
-              <h1 style="font-size:30px;font-weight:900;">Client CRM &amp; Platform Dashboard</h1>
+              <div class="eyebrow"><span class="eyebrow-dot"></span> ADMIN DASHBOARD</div>
+              <h1 style="font-size:30px;font-weight:900;">Client CRM &amp; Platform Management</h1>
             </div>
             <div style="display:flex;gap:10px;flex-wrap:wrap;">
               <button class="btn btn-outline btn-sm" onclick="window.app.exportClientsToCSV()">
                 ⬇ Export Clients CSV
               </button>
-              <a href="/admin/" target="_blank" class="btn btn-outline btn-sm">
-                Open Decap Bridge CMS (/admin) ↗
-              </a>
               <button class="btn btn-lime btn-sm" onclick="window.app.loadAdminData().then(() => window.app.render())">
-                ↻ Refresh Live Data
+                ↻ Refresh Data
               </button>
             </div>
           </div>
 
-          <!-- DATA OVERVIEW KPI ROW (Matches Sample f2e39467.jpg) -->
+          <!-- DATA OVERVIEW KPI ROW -->
           <div class="metrics-strip" style="margin-bottom:24px;">
             <div class="metric-cell">
               <div class="metric-number">${totalClients}</div>
@@ -2256,7 +2221,7 @@ class YoletechApp {
             </div>
             <div class="metric-cell">
               <div class="metric-number" style="color:#F7941D;">${this.blogPosts.length}</div>
-              <div class="metric-label">Decap Markdown<br/>Blog Posts</div>
+              <div class="metric-label">Published<br/>Blog Posts</div>
             </div>
           </div>
 
@@ -2265,19 +2230,19 @@ class YoletechApp {
           <!-- ADMIN NAVIGATION TABS -->
           <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:28px;">
             <button class="selector-pill ${this.adminTab === 'clients' ? 'active' : ''}" onclick="window.app.adminTab='clients';window.app.render();">
-              👥 Registered Clients CRM (${totalClients})
+              👥 Clients (${totalClients})
             </button>
             <button class="selector-pill ${this.adminTab === 'inquiries' ? 'active' : ''}" onclick="window.app.adminTab='inquiries';window.app.render();">
-              📩 Project Inquiries (${this.inquiries.length})
+              📩 Inquiries (${this.inquiries.length})
             </button>
             <button class="selector-pill ${this.adminTab === 'blog' ? 'active' : ''}" onclick="window.app.adminTab='blog';window.app.render();">
-              ✍️ Decap Bridge Blog Publisher (${this.blogPosts.length})
+              ✍️ Blog Articles (${this.blogPosts.length})
             </button>
             <button class="selector-pill ${this.adminTab === 'portfolio' ? 'active' : ''}" onclick="window.app.adminTab='portfolio';window.app.render();">
-              🚀 Portfolio Manager (${this.portfolio.length})
+              🚀 Portfolio (${this.portfolio.length})
             </button>
             <button class="selector-pill ${this.adminTab === 'testimonials' ? 'active' : ''}" onclick="window.app.adminTab='testimonials';window.app.render();">
-              💬 Testimonials Manager (${this.testimonials.length})
+              💬 Testimonials (${this.testimonials.length})
             </button>
           </div>
 
@@ -2435,7 +2400,7 @@ class YoletechApp {
         body: JSON.stringify(updates)
       });
       await this.loadAdminData();
-      this.showToast('Client record updated in SQLite.');
+      this.showToast('Client record updated.');
       this.render();
     } catch (err) {
       this.showToast(err.message, 'error');
@@ -2568,13 +2533,10 @@ class YoletechApp {
     return `
       <div class="grid-2" style="align-items:start;">
         <div class="glass-card">
-          <div class="eyebrow"><span class="eyebrow-dot"></span> DECAP BRIDGE MARKDOWN STUDIO</div>
-          <h3 style="font-size:21px;font-weight:900;margin-bottom:8px;">
-            ${editing ? `Edit Article: ${editing.slug}.md` : 'Publish New Blog Article (.md)'}
+          <div class="eyebrow"><span class="eyebrow-dot"></span> BLOG PUBLISHER</div>
+          <h3 style="font-size:21px;font-weight:900;margin-bottom:14px;">
+            ${editing ? `Edit Article: ${editing.title}` : 'Publish New Blog Article'}
           </h3>
-          <p style="font-size:13px;color:var(--yole-text-muted);margin-bottom:18px;">
-            Writes standard YAML-frontmatter Markdown files directly to <code>/content/blog/*.md</code>—100% compatible with Decap CMS &amp; Decap Bridge.
-          </p>
 
           <form onsubmit="window.app.handleAdminBlogPublish(event)">
             <div class="form-group">
@@ -2630,8 +2592,7 @@ class YoletechApp {
 
         <div class="glass-card">
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
-            <h3 style="font-size:20px;font-weight:900;">Published Decap CMS Articles</h3>
-            <a href="/admin/" target="_blank" class="btn btn-outline btn-sm">Launch /admin ↗</a>
+            <h3 style="font-size:20px;font-weight:900;">Published Articles</h3>
           </div>
           <div style="display:flex;flex-direction:column;gap:12px;">
             ${this.blogPosts
@@ -2640,7 +2601,7 @@ class YoletechApp {
               <div style="padding:14px;background:rgba(15,13,44,0.75);border:1px solid rgba(255,255,255,0.12);border-radius:12px;display:flex;justify-content:space-between;align-items:center;gap:12px;">
                 <div>
                   <div style="font-weight:800;font-size:15px;">${p.title}</div>
-                  <div style="font-size:12px;color:#C8E61E;">/content/blog/${p.slug}.md • ${p.date}</div>
+                  <div style="font-size:12px;color:#C8E61E;">${p.category} • ${p.date}</div>
                 </div>
                 <div style="display:flex;gap:6px;">
                   <button class="btn btn-outline btn-sm" onclick="window.app.startEditBlogPost('${p.slug}')">Edit</button>
@@ -2863,7 +2824,7 @@ class YoletechApp {
           <form onsubmit="window.app.handleTestimonialSubmit(event)">
             <div class="form-group">
               <label class="form-label">Client / Mentee Full Name *</label>
-              <input type="text" name="author_name" required class="form-control" placeholder="e.g. Dr. Tarila Okoro" />
+              <input type="text" name="author_name" required class="form-control" placeholder="Client or mentee full name" />
             </div>
             <div class="grid-2" style="gap:12px;">
               <div class="form-group">

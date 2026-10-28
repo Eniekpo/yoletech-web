@@ -3,7 +3,7 @@ title: "Predictive Modeling for Student Performance & Institutional Resource All
 date: "2026-09-18"
 category: "Python & Machine Learning"
 readTime: "8 min read"
-author: "John Oruebi Eniekpo, B.Sc."
+author: "John Oruebi Eniekpo"
 coverImage: "/assets/dashboard-preview.jpg"
 summary: "Applying machine learning, statistical auditing in R/SPSS, and ethical AI principles to forecast academic outcomes and optimize institutional resource planning."
 tags: ["Machine Learning", "Python", "R", "SPSS", "Predictive Modeling", "AI Ethics"]

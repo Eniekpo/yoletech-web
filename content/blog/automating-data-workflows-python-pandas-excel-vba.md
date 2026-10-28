@@ -3,7 +3,7 @@ title: "Automating Repetitive Data Workflows with Python, Pandas & Excel VBA"
 date: "2026-10-02"
 category: "AI & Workflow Automation"
 readTime: "7 min read"
-author: "John Oruebi Eniekpo, B.Sc."
+author: "John Oruebi Eniekpo"
 coverImage: "/assets/workflow-diagram.jpg"
 summary: "A practical engineering blueprint for eliminating manual spreadsheet bottlenecks using custom Excel VBA macros, Python Pandas pipelines, and SQL database synchronization."
 tags: ["Python", "Pandas", "Excel VBA", "Workflow Automation", "SQL"]
