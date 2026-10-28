@@ -5,7 +5,7 @@
 window.YOLETECH_COMPONENTS = {
   renderBrandLogo() {
     return `
-      <div class="brand-logo" onclick="window.app.navigate('home')">
+      <a href="/" class="brand-logo" title="Go to Home Page" onclick="event.preventDefault(); window.app.navigate('home')">
         <span class="brand-icon-box">
           <span class="y">Y</span><span class="t">T</span>
         </span>
@@ -16,7 +16,7 @@ window.YOLETECH_COMPONENTS = {
             </svg>
           </span>
         </span>
-      </div>
+      </a>
     `;
   },
 

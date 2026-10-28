@@ -446,7 +446,6 @@ class YoletechApp {
   renderHeader() {
     const C = window.YOLETECH_COMPONENTS;
     const navItems = [
-      { id: 'home', label: 'Home' },
       { id: 'about', label: 'About' },
       { id: 'services', label: 'Services' },
       { id: 'portfolio', label: 'Portfolio' },
