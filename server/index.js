@@ -119,7 +119,7 @@ db.exec(`
     email TEXT NOT NULL,
     phone TEXT DEFAULT '',
     service_category TEXT NOT NULL,
-    budget TEXT DEFAULT '$1,500 - $5,000',
+    budget TEXT DEFAULT '',
     message TEXT NOT NULL,
     status TEXT DEFAULT 'NEW',
     project_progress INTEGER DEFAULT 15,
@@ -247,7 +247,7 @@ function seedDatabase() {
       'ebiowei@bayelsatechventures.ng',
       '+234 806 118 3340',
       'Web Development',
-      '$1,500 - $5,000',
+      'Web Development',
       'Looking to build a custom React.js full-stack web platform with role-based dashboards and automated SQL reporting.',
       'IN_PROGRESS',
       60,
@@ -261,7 +261,7 @@ function seedDatabase() {
       'a.nwosu@primelogistics.com',
       '+234 812 904 5512',
       'AI & Automation',
-      '$500 - $1,500',
+      'AI Automation',
       'Our operations team spends 18 hours every week compiling 6 departmental Excel sheets. We want Excel VBA macros + Python SQL automation.',
       'NEW',
       20,
@@ -886,7 +886,7 @@ const requestHandler = async (req, res) => {
           email.trim().toLowerCase(),
           (phone || '').trim(),
           service_category || 'Data Analytics & Dashboards',
-          budget || '$1,500 - $5,000',
+          budget || service_category || 'Data Analysis & Analytics',
           message.trim()
         );
       const inquiry = db.prepare('SELECT * FROM inquiries WHERE id = ?').get(info.lastInsertRowid);

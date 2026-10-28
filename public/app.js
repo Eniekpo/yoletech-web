@@ -12,11 +12,12 @@ class YoletechApp {
     this.blogFilter = 'ALL';
     this.activeBlogPost = null;
     this.showcaseTab = 'dashboard';
+    this.serviceScopeTab = 0;
     this.authMode = 'login';
     this.adminTab = 'clients';
     this.clientSearch = '';
     this.clientStatusFilter = 'ALL';
-    this.contactServiceSelected = 'Data Analytics & Dashboards';
+    this.contactServiceSelected = 'Data Analysis & Analytics';
     this.mobileMenuOpen = false;
     this.editingBlogPost = null;
     this.editingPortfolioProject = null;
@@ -326,25 +327,25 @@ class YoletechApp {
       'Web Development': 'Web Development',
       'Full-Stack Web': 'Web Development',
       'Full-Stack Web Development': 'Web Development',
-      'Data Analysis & Analytics': 'Data Analytics & Dashboards',
-      'Data Analytics & BI': 'Data Analytics & Dashboards',
-      'Data Analytics & Dashboards': 'Data Analytics & Dashboards',
-      'AI Automation': 'AI & Automation',
-      'AI & Machine Learning': 'AI & Automation',
-      'AI & Workflow Automation': 'AI & Automation',
-      'AI & Automation': 'AI & Automation',
-      'Tech Tutorials': 'Tech Tutorials & Training',
-      'Tech Tutorials & Mentorship': 'Tech Tutorials & Training',
-      'Tech Tutorials & Training': 'Tech Tutorials & Training',
-      'Graphic Design': 'Graphic Design & Video',
-      'Video Editing': 'Graphic Design & Video',
-      'Graphic Design & Video': 'Graphic Design & Video',
-      'Customer Support': 'IT & Customer Support',
-      'IT Support': 'IT & Customer Support',
-      'IT & Database Support': 'IT & Customer Support',
-      'IT & Customer Support': 'IT & Customer Support'
+      'Data Analysis & Analytics': 'Data Analysis & Analytics',
+      'Data Analytics & BI': 'Data Analysis & Analytics',
+      'Data Analytics & Dashboards': 'Data Analysis & Analytics',
+      'AI Automation': 'AI Automation',
+      'AI & Machine Learning': 'AI Automation',
+      'AI & Workflow Automation': 'AI Automation',
+      'AI & Automation': 'AI Automation',
+      'Tech Tutorials': 'Tech Tutorials',
+      'Tech Tutorials & Mentorship': 'Tech Tutorials',
+      'Tech Tutorials & Training': 'Tech Tutorials',
+      'Graphic Design': 'Graphic Design',
+      'Graphic Design & Video': 'Graphic Design',
+      'Video Editing': 'Video Editing',
+      'Customer Support': 'Customer Support',
+      'IT Support': 'IT Support',
+      'IT & Database Support': 'IT Support',
+      'IT & Customer Support': 'IT Support'
     };
-    this.contactServiceSelected = map[rawService] || rawService || 'Data Analytics & Dashboards';
+    this.contactServiceSelected = map[rawService] || rawService || 'Data Analysis & Analytics';
     this.navigate('contact');
   }
 
@@ -1169,41 +1170,109 @@ class YoletechApp {
               .join('')}
           </div>
 
-          <!-- SERVICE OVERVIEW & DELIVERY SCOPE TABLE (Sample 6584d141.jpg) -->
+          <!-- SERVICE OVERVIEW & DELIVERY SCOPE (INTERACTIVE TABS) -->
           <div class="section-header">
             <div class="eyebrow"><span class="eyebrow-dot"></span> TRANSPARENT EXECUTION</div>
             <h2 class="section-title">Service Overview &amp; Delivery Scope</h2>
+            <p class="section-desc">Select a service track tab below to view its core tech stack, timeline, and delivery standards.</p>
           </div>
 
-          <div class="table-wrapper section-block-gap">
-            <table class="yole-table">
-              <thead>
-                <tr>
-                  <th>Service Track</th>
-                  <th>Core Tech Stack</th>
-                  <th>Typical Timeline</th>
-                  <th>Deliverables &amp; Standards</th>
-                </tr>
-              </thead>
-              <tbody>
-                ${D.serviceScopeTable
-                  .map(
-                    (row) => `
-                  <tr>
-                    <td style="font-weight:800;color:#FFFFFF;">${row.track}</td>
-                    <td>
-                      <div style="display:flex;flex-wrap:wrap;gap:6px;">
-                        ${row.stack.map((s) => `<span class="tech-pill lime" style="font-size:11px;">${s}</span>`).join('')}
+          <div class="scope-tabs-container section-block-gap">
+            <div class="scope-tabs-nav" role="tablist">
+              ${D.serviceScopeTable
+                .map((row, idx) => {
+                  const shortNames = [
+                    'Web Development',
+                    'Data Analytics & BI',
+                    'AI & Automation',
+                    'Database Governance',
+                    'Tutorials & Training',
+                    'Design, Video & IT'
+                  ];
+                  const isActive = (this.serviceScopeTab || 0) === idx;
+                  return `
+                    <button
+                      type="button"
+                      role="tab"
+                      aria-selected="${isActive}"
+                      class="scope-tab-btn ${isActive ? 'active' : ''}"
+                      onclick="window.app.serviceScopeTab = ${idx}; window.app.render();"
+                    >
+                      <span class="scope-tab-num">0${idx + 1}</span>
+                      <span class="scope-tab-label">${shortNames[idx] || row.track}</span>
+                    </button>
+                  `;
+                })
+                .join('')}
+            </div>
+
+            ${(() => {
+              const activeIdx = this.serviceScopeTab || 0;
+              const activeRow = D.serviceScopeTable[activeIdx] || D.serviceScopeTable[0];
+              const totalTracks = D.serviceScopeTable.length;
+              const prevIdx = (activeIdx - 1 + totalTracks) % totalTracks;
+              const nextIdx = (activeIdx + 1) % totalTracks;
+              const deliverableItems = String(activeRow.deliverables || '')
+                .split(',')
+                .map((s) => s.trim())
+                .filter(Boolean);
+
+              return `
+                <div class="glass-card scope-tab-panel">
+                  <div class="scope-panel-header">
+                    <div>
+                      <div class="scope-track-step">SERVICE TRACK 0${activeIdx + 1} OF 0${totalTracks}</div>
+                      <h3 class="scope-track-title">${activeRow.track}</h3>
+                    </div>
+                    <div class="scope-timeline-box">
+                      <span class="scope-timeline-label">Typical Timeline</span>
+                      <span class="tech-pill orange scope-timeline-pill">⏱ ${activeRow.timeline}</span>
+                    </div>
+                  </div>
+
+                  <div class="scope-panel-grid">
+                    <div class="scope-subcard">
+                      <div class="scope-subcard-title">Core Tech Stack</div>
+                      <div class="scope-stack-pills">
+                        ${activeRow.stack
+                          .map((s) => `<span class="tech-pill lime">${s}</span>`)
+                          .join('')}
                       </div>
-                    </td>
-                    <td><span class="tech-pill orange">${row.timeline}</span></td>
-                    <td style="color:var(--yole-text-muted);">${row.deliverables}</td>
-                  </tr>
-                `
-                  )
-                  .join('')}
-              </tbody>
-            </table>
+                    </div>
+
+                    <div class="scope-subcard">
+                      <div class="scope-subcard-title">Deliverables &amp; Execution Standards</div>
+                      <ul class="scope-deliverables-list">
+                        ${deliverableItems
+                          .map(
+                            (item) => `
+                          <li>
+                            <span class="scope-check">✓</span>
+                            <span>${item.charAt(0).toUpperCase() + item.slice(1)}</span>
+                          </li>
+                        `
+                          )
+                          .join('')}
+                      </ul>
+                    </div>
+                  </div>
+
+                  <div class="scope-panel-footer">
+                    <div class="scope-step-nav">
+                      <button type="button" class="btn btn-outline btn-sm" onclick="window.app.serviceScopeTab = ${prevIdx}; window.app.render();">
+                        ← Prev
+                      </button>
+                      <button type="button" class="btn btn-outline btn-sm" onclick="window.app.serviceScopeTab = ${nextIdx}; window.app.render();">
+                        Next →
+                      </button>
+                    </div>
+                    <button type="button" class="btn btn-lime btn-sm scope-request-btn" onclick="window.app.selectContactService('${activeRow.track}')">
+                      Request ${activeRow.track} →
+                    </button>
+                  </div>
+                </div>
+              `;
+            })()}
           </div>
 
           <!-- HOW WE WORK 4-STEP PROCESS -->
@@ -1734,13 +1803,15 @@ class YoletechApp {
   // ==========================================================================
   renderContactPage() {
     const D = window.YOLETECH_DATA;
-    const servicePills = [
+    const serviceCategories = [
       'Web Development',
-      'Data Analytics & Dashboards',
-      'AI & Automation',
-      'Tech Tutorials & Training',
-      'Graphic Design & Video',
-      'IT & Customer Support'
+      'Data Analysis & Analytics',
+      'AI Automation',
+      'Tech Tutorials',
+      'Graphic Design',
+      'Video Editing',
+      'Customer Support',
+      'IT Support'
     ];
 
     return `
@@ -1761,7 +1832,7 @@ class YoletechApp {
             <div class="glass-card" style="border-color:rgba(200,230,30,0.45);">
               <h3 style="font-size:18px;font-weight:800;margin-bottom:12px;">What are we building?</h3>
               <div class="service-selector-pills">
-                ${servicePills
+                ${serviceCategories
                   .map(
                     (pill) => `
                   <button type="button" class="selector-pill ${
@@ -1775,7 +1846,6 @@ class YoletechApp {
               </div>
 
               <form onsubmit="window.app.handleContactSubmit(event)">
-                <input type="hidden" name="service_category" value="${this.contactServiceSelected}" />
                 <div class="form-group">
                   <label class="form-label">Your Full Name *</label>
                   <input type="text" name="name" required class="form-control" placeholder="Your Name" value="${
@@ -1799,12 +1869,15 @@ class YoletechApp {
                 </div>
 
                 <div class="form-group">
-                  <label class="form-label">Estimated Budget</label>
-                  <select name="budget" class="form-control">
-                    <option value="$500 - $1,500">$500 – $1,500 (Standard Dashboard / Web / Automation)</option>
-                    <option value="$1,500 - $5,000" selected>$1,500 – $5,000 (Full-Stack Platform / Enterprise BI)</option>
-                    <option value="$5,000+">$5,000+ (Multi-Departmental System / Retainer)</option>
-                    <option value="Under $500 / Consultation">Under $500 / Training / Quick Audit</option>
+                  <label class="form-label">Project Category *</label>
+                  <select name="service_category" class="form-control" onchange="window.app.contactServiceSelected=this.value;">
+                    ${serviceCategories
+                      .map(
+                        (cat) => `
+                      <option value="${cat}" ${this.contactServiceSelected === cat ? 'selected' : ''}>${cat}</option>
+                    `
+                      )
+                      .join('')}
                   </select>
                 </div>
 
@@ -1898,12 +1971,12 @@ class YoletechApp {
   async handleContactSubmit(e) {
     e.preventDefault();
     const form = e.target;
+    const selectedCategory = form.service_category ? form.service_category.value : this.contactServiceSelected;
     const payload = {
       name: form.name.value,
       email: form.email.value,
       phone: form.phone.value,
-      service_category: form.service_category.value,
-      budget: form.budget.value,
+      service_category: selectedCategory,
       message: form.message.value
     };
     try {
@@ -2155,22 +2228,16 @@ class YoletechApp {
                 <h3 style="font-size:20px;font-weight:900;margin-bottom:16px;">Request a New Service / Project</h3>
                 <form onsubmit="window.app.handleClientPortalInquiry(event)">
                   <div class="form-group">
-                    <label class="form-label">Service Track</label>
+                    <label class="form-label">Project Category *</label>
                     <select name="service_category" class="form-control">
-                      <option value="Data Analytics & Dashboards">Data Analytics &amp; BI Dashboards</option>
-                      <option value="Web Development">Full-Stack Web Development</option>
-                      <option value="AI & Automation">AI, ML &amp; Excel VBA Automation</option>
-                      <option value="Tech Tutorials & Training">Tech Tutorials &amp; Staff Training</option>
-                      <option value="Graphic Design & Video">Graphic Design &amp; Video Editing</option>
-                      <option value="IT & Customer Support">IT &amp; Database Support</option>
-                    </select>
-                  </div>
-                  <div class="form-group">
-                    <label class="form-label">Estimated Budget</label>
-                    <select name="budget" class="form-control">
-                      <option value="$500 - $1,500">$500 – $1,500</option>
-                      <option value="$1,500 - $5,000" selected>$1,500 – $5,000</option>
-                      <option value="$5,000+">$5,000+</option>
+                      <option value="Web Development">Web Development</option>
+                      <option value="Data Analysis & Analytics" selected>Data Analysis &amp; Analytics</option>
+                      <option value="AI Automation">AI Automation</option>
+                      <option value="Tech Tutorials">Tech Tutorials</option>
+                      <option value="Graphic Design">Graphic Design</option>
+                      <option value="Video Editing">Video Editing</option>
+                      <option value="Customer Support">Customer Support</option>
+                      <option value="IT Support">IT Support</option>
                     </select>
                   </div>
                   <div class="form-group">
@@ -2255,7 +2322,6 @@ class YoletechApp {
           email: this.user.email,
           phone: this.user.phone,
           service_category: form.service_category.value,
-          budget: form.budget.value,
           message: form.message.value
         })
       });
@@ -2628,7 +2694,7 @@ class YoletechApp {
           <div class="glass-card">
             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
               <span class="tech-pill lime">${inq.service_category}</span>
-              <span class="tech-pill orange">${inq.budget}</span>
+              <span class="tech-pill orange">${inq.status || 'NEW'}</span>
             </div>
             <h3 style="font-size:19px;font-weight:800;">${inq.name}</h3>
             <div style="font-size:13px;color:#C8E61E;margin-bottom:10px;">
