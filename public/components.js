@@ -104,7 +104,7 @@ window.YOLETECH_COMPONENTS = {
             </div>
           </div>
 
-          <div style="display:grid;grid-template-columns:1.25fr 0.75fr;gap:14px;">
+          <div class="dashboard-charts-row">
             <div class="mini-kpi-card">
               <div class="mini-kpi-title">Real-Time SQL Database &amp; Departmental Activity</div>
               <svg viewBox="0 0 280 90" style="width:100%;height:84px;">
@@ -199,15 +199,15 @@ window.YOLETECH_COMPONENTS = {
   // 4. API-to-Python Workflow Architecture Widget (Matches Sample f27d7828.jpg)
   renderWorkflowDiagramWidget() {
     return `
-      <div class="ui-mockup-frame" style="padding:24px;background:linear-gradient(145deg,#171442 0%,#0E0C28 100%);">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;">
+      <div class="ui-mockup-frame workflow-diagram-frame">
+        <div class="workflow-diagram-header">
           <span class="eyebrow" style="margin:0;font-size:11.5px;">
             <span class="eyebrow-dot"></span> AUTOMATED DATA &amp; ML PIPELINE ARCHITECTURE
           </span>
           <span class="tech-pill orange" style="font-size:11px;">Excel VBA • SQL • Python</span>
         </div>
 
-        <div style="display:grid;grid-template-columns:1fr 1.2fr 1fr;gap:16px;align-items:center;">
+        <div class="workflow-diagram-grid">
           <div class="glass-card" style="padding:18px;text-align:center;border-color:#C8E61E;">
             <div style="font-size:24px;margin-bottom:6px;color:#C8E61E;">⚙️</div>
             <div style="font-weight:900;font-size:16px;">APIs &amp; SQL</div>

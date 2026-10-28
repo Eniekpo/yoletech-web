@@ -168,7 +168,7 @@ class YoletechApp {
     }
     const isErr = this.toastMessage.type === 'error';
     container.innerHTML = `
-      <div style="position:fixed;bottom:24px;right:24px;z-index:9999;background:${
+      <div class="toast-banner" style="position:fixed;bottom:24px;right:24px;z-index:9999;background:${
         isErr ? '#7f1d1d' : '#1E1B54'
       };border:2px solid ${
       isErr ? '#F7941D' : '#C8E61E'
@@ -355,9 +355,10 @@ class YoletechApp {
             `
               )
               .join('')}
+            <li class="mobile-nav-auth">${authButtons}</li>
           </ul>
           <div class="nav-actions">
-            ${authButtons}
+            <div class="nav-auth-group">${authButtons}</div>
             <button class="mobile-menu-btn" onclick="window.app.mobileMenuOpen = !window.app.mobileMenuOpen; window.app.render();">
               ☰
             </button>
@@ -456,7 +457,7 @@ class YoletechApp {
       </footer>
 
       <!-- FLOATING WHATSAPP QUICK CONNECT -->
-      <a href="${D.whatsappUrl}" target="_blank" rel="noopener" title="Chat on WhatsApp" style="position:fixed;bottom:22px;left:22px;z-index:990;background:#19164B;border:2px solid #C8E61E;color:#FFFFFF;padding:10px 16px;border-radius:999px;box-shadow:0 12px 30px rgba(0,0,0,0.55);display:inline-flex;align-items:center;gap:8px;font-size:13px;font-weight:800;">
+      <a href="${D.whatsappUrl}" target="_blank" rel="noopener" title="Chat on WhatsApp" class="floating-whatsapp-btn" style="position:fixed;bottom:22px;left:22px;z-index:990;background:#19164B;border:2px solid #C8E61E;color:#FFFFFF;padding:10px 16px;border-radius:999px;box-shadow:0 12px 30px rgba(0,0,0,0.55);display:inline-flex;align-items:center;gap:8px;font-size:13px;font-weight:800;">
         <span style="width:9px;height:9px;border-radius:50%;background:#C8E61E;box-shadow:0 0 8px #C8E61E;"></span>
         <span>Chat on WhatsApp</span>
       </a>
@@ -785,7 +786,7 @@ class YoletechApp {
     return `
       <section class="section">
         <div class="container">
-          <div class="hero-slide-grid" style="margin-bottom:56px;">
+          <div class="hero-slide-grid section-block-gap">
             <div>
               <div class="eyebrow"><span class="eyebrow-dot"></span> ABOUT YOLETECH</div>
               <h1 class="hero-title" style="font-size:clamp(32px,4vw,48px);">
@@ -814,7 +815,7 @@ class YoletechApp {
             <h2 class="section-title">Core Technical Proficiencies</h2>
           </div>
 
-          <div class="grid-3" style="margin-bottom:64px;">
+          <div class="grid-3 section-block-gap">
             ${D.coreProficiencies
               .map(
                 (prof) => `
@@ -855,7 +856,7 @@ class YoletechApp {
             <h2 class="section-title">Professional Experience</h2>
           </div>
 
-          <div class="grid-2" style="margin-bottom:64px;">
+          <div class="grid-2 section-block-gap">
             ${D.experience
               .map(
                 (exp) => `
@@ -954,7 +955,7 @@ class YoletechApp {
     return `
       <section class="section">
         <div class="container">
-          <div class="hero-slide-grid" style="margin-bottom:56px;">
+          <div class="hero-slide-grid section-block-gap">
             <div>
               <div class="eyebrow"><span class="eyebrow-dot"></span> YOLETECH DIGITAL &amp; DATA SERVICES</div>
               <h1 class="hero-title" style="font-size:clamp(32px,4vw,46px);">
@@ -983,7 +984,7 @@ class YoletechApp {
             <p class="section-desc">Select any service track below to start a tailored project inquiry.</p>
           </div>
 
-          <div class="grid-2" style="margin-bottom:68px;">
+          <div class="grid-2 section-block-gap">
             ${D.eightServicesStrip
               .map(
                 (srv, idx) => `
@@ -1003,7 +1004,7 @@ class YoletechApp {
                     <div style="font-size:12px;font-weight:800;color:var(--yole-text-muted);text-transform:uppercase;margin-bottom:8px;">
                       Key Deliverables:
                     </div>
-                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">
+                    <div class="deliverables-grid">
                       ${srv.deliverables
                         .map(
                           (del) => `
@@ -1031,7 +1032,7 @@ class YoletechApp {
             <h2 class="section-title">Service Overview &amp; Delivery Scope</h2>
           </div>
 
-          <div class="table-wrapper" style="margin-bottom:68px;">
+          <div class="table-wrapper section-block-gap">
             <table class="yole-table">
               <thead>
                 <tr>
@@ -1213,7 +1214,7 @@ class YoletechApp {
             </p>
           </div>
 
-          <div class="grid-2" style="margin-bottom:64px;">
+          <div class="grid-2 section-block-gap">
             ${this.testimonials
               .map(
                 (t) => `
@@ -1544,7 +1545,7 @@ class YoletechApp {
             ← Back to All Articles
           </button>
 
-          <div class="glass-card" style="padding:40px;">
+          <div class="glass-card article-detail-card">
             <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:14px;">
               <span class="tech-pill lime">${post.category}</span>
               <span class="tech-pill orange">${post.readTime}</span>
@@ -1783,7 +1784,7 @@ class YoletechApp {
     return `
       <section class="section">
         <div class="container" style="max-width:540px;">
-          <div class="glass-card" style="border-color:#C8E61E;padding:36px;">
+          <div class="glass-card auth-card" style="border-color:#C8E61E;">
             <div style="text-align:center;margin-bottom:24px;">
               <div class="eyebrow" style="justify-content:center;"><span class="eyebrow-dot"></span> CLIENT PORTAL</div>
               <h1 style="font-size:28px;font-weight:900;">

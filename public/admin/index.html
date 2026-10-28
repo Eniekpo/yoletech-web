@@ -21,13 +21,19 @@
         display: flex;
         align-items: center;
         justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 10px;
         font-size: 13px;
+      }
+      .yoletech-cms-links {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 14px;
       }
       .yoletech-cms-bar a {
         color: #c8e61e;
         text-decoration: none;
         font-weight: 600;
-        margin-left: 14px;
       }
       .yoletech-cms-bar .accent-lime {
         color: #c8e61e;
@@ -41,6 +47,15 @@
         font-size: 11px;
         font-weight: 700;
       }
+      @media (max-width: 640px) {
+        .yoletech-cms-bar {
+          padding: 10px 14px;
+          font-size: 12px;
+        }
+        .yoletech-cms-links {
+          gap: 10px;
+        }
+      }
     </style>
   </head>
   <body>
@@ -48,7 +63,7 @@
       <div>
         <strong>YOLETECH</strong> <span class="accent-lime">Content Manager</span>
       </div>
-      <div>
+      <div class="yoletech-cms-links">
         <a href="/admin-dashboard">Admin Dashboard →</a>
         <a href="/portfolio">View Live Portfolio →</a>
         <a href="/blog">View Live Blog →</a>
