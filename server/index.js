@@ -9,10 +9,15 @@ const JWT_SECRET = process.env.JWT_SECRET || 'yoletech-super-secret-jwt-key-2026
 const DB_PATH = path.join(__dirname, 'yoletech.db');
 const PUBLIC_DIR = path.join(__dirname, '..', 'public');
 const BLOG_DIR = path.join(__dirname, '..', 'content', 'blog');
+const BLOG_MEDIA_DIR = path.join(PUBLIC_DIR, 'assets', 'blog');
+const ROOT_DIR = path.join(__dirname, '..');
 
 // Ensure directories exist
 if (!fs.existsSync(BLOG_DIR)) {
   fs.mkdirSync(BLOG_DIR, { recursive: true });
+}
+if (!fs.existsSync(BLOG_MEDIA_DIR)) {
+  fs.mkdirSync(BLOG_MEDIA_DIR, { recursive: true });
 }
 
 // ============================================================================
@@ -913,7 +918,7 @@ const server = http.createServer(async (req, res) => {
 
       db.prepare(
         `UPDATE portfolio_projects
-         SET title = ?, category = ?, organization = ?, period = ?, summary = ?, impact_metrics = ?, tech_stack = ?
+         SET title = ?, category = ?, organization = ?, period = ?, summary = ?, impact_metrics = ?, tech_stack = ?, preview_image = ?, live_url = ?, github_url = ?, featured = ?
          WHERE id = ?`
       ).run(
         body.title ?? existing.title,
@@ -923,6 +928,10 @@ const server = http.createServer(async (req, res) => {
         body.summary ?? existing.summary,
         body.impact_metrics ?? existing.impact_metrics,
         techStack,
+        body.preview_image ?? existing.preview_image,
+        body.live_url ?? existing.live_url,
+        body.github_url ?? existing.github_url,
+        body.featured ?? existing.featured,
         id
       );
       const updated = db.prepare('SELECT * FROM portfolio_projects WHERE id = ?').get(id);
@@ -1018,7 +1027,7 @@ const server = http.createServer(async (req, res) => {
     }
 
     if (pathname.startsWith('/api/blog/') && req.method === 'GET') {
-      const slug = pathname.split('/').pop();
+      const slug = path.basename(decodeURIComponent(pathname.split('/').pop()));
       const filePath = path.join(BLOG_DIR, `${slug}.md`);
       if (!fs.existsSync(filePath)) {
         return sendJson(res, 404, { error: 'Article not found.' });
@@ -1045,9 +1054,16 @@ const server = http.createServer(async (req, res) => {
       if (!user || user.role !== 'ADMIN') {
         return sendJson(res, 403, { error: 'Admin access required.' });
       }
-      const slug = pathname.split('/').pop();
+      const slug = path.basename(decodeURIComponent(pathname.split('/').pop()));
+      const existingPath = path.join(BLOG_DIR, `${slug}.md`);
+      const existingData = fs.existsSync(existingPath) ? parseMarkdownFile(existingPath) : {};
       const body = await parseBody(req);
-      const post = writeMarkdownFile(slug, body);
+      const merged = {
+        ...existingData,
+        ...body,
+        featured: body.featured !== undefined ? body.featured : existingData.featured
+      };
+      const post = writeMarkdownFile(slug, merged);
       return sendJson(res, 200, { post });
     }
 
@@ -1056,7 +1072,7 @@ const server = http.createServer(async (req, res) => {
       if (!user || user.role !== 'ADMIN') {
         return sendJson(res, 403, { error: 'Admin access required.' });
       }
-      const slug = pathname.split('/').pop();
+      const slug = path.basename(decodeURIComponent(pathname.split('/').pop()));
       const filePath = path.join(BLOG_DIR, `${slug}.md`);
       if (fs.existsSync(filePath)) {
         fs.unlinkSync(filePath);
@@ -1064,15 +1080,234 @@ const server = http.createServer(async (req, res) => {
       return sendJson(res, 200, { deleted: true });
     }
 
+    // --- DECAP CMS LOCAL BACKEND PROXY API (/api/v1) ---
+    if (pathname === '/api/v1' && req.method === 'GET') {
+      return sendJson(res, 200, {
+        repo: 'Eniekpo/yoletech-web',
+        publish_modes: ['simple'],
+        type: 'local_fs'
+      });
+    }
+
+    if (pathname === '/api/v1' && req.method === 'POST') {
+      const { action, params = {} } = await parseBody(req);
+
+      const resolveSafeRepoPath = (relPath) => {
+        const resolved = path.resolve(ROOT_DIR, String(relPath || '').replace(/^\/+/, ''));
+        if (!resolved.startsWith(ROOT_DIR)) {
+          throw new Error('Invalid repository path');
+        }
+        return resolved;
+      };
+
+      if (action === 'info') {
+        return sendJson(res, 200, {
+          repo: 'Eniekpo/yoletech-web',
+          publish_modes: ['simple'],
+          type: 'local_fs'
+        });
+      }
+
+      if (action === 'entriesByFolder') {
+        const folderPath = resolveSafeRepoPath(params.folder || 'content/blog');
+        const ext = `.${params.extension || 'md'}`;
+        if (!fs.existsSync(folderPath)) return sendJson(res, 200, []);
+        const files = fs.readdirSync(folderPath).filter((f) => f.endsWith(ext));
+        const entries = files.map((fileName) => {
+          const full = path.join(folderPath, fileName);
+          const stat = fs.statSync(full);
+          const rel = path.relative(ROOT_DIR, full).split(path.sep).join('/');
+          return {
+            data: fs.readFileSync(full, 'utf8'),
+            file: {
+              path: rel,
+              label: null,
+              id: rel,
+              author: 'John Oruebi Eniekpo, B.Sc.',
+              updatedOn: stat.mtime.toISOString()
+            }
+          };
+        });
+        return sendJson(res, 200, entries);
+      }
+
+      if (action === 'entriesByFiles') {
+        const files = Array.isArray(params.files) ? params.files : [];
+        const entries = files
+          .map((f) => {
+            const full = resolveSafeRepoPath(f.path);
+            if (!fs.existsSync(full)) return null;
+            const stat = fs.statSync(full);
+            return {
+              data: fs.readFileSync(full, 'utf8'),
+              file: {
+                path: f.path,
+                label: f.label || null,
+                id: f.path,
+                author: 'John Oruebi Eniekpo, B.Sc.',
+                updatedOn: stat.mtime.toISOString()
+              }
+            };
+          })
+          .filter(Boolean);
+        return sendJson(res, 200, entries);
+      }
+
+      if (action === 'getEntry') {
+        const full = resolveSafeRepoPath(params.path);
+        if (!fs.existsSync(full)) {
+          return sendJson(res, 404, { error: 'Entry not found' });
+        }
+        const stat = fs.statSync(full);
+        return sendJson(res, 200, {
+          data: fs.readFileSync(full, 'utf8'),
+          file: {
+            path: params.path,
+            label: null,
+            id: params.path,
+            author: 'John Oruebi Eniekpo, B.Sc.',
+            updatedOn: stat.mtime.toISOString()
+          }
+        });
+      }
+
+      if (action === 'persistEntry') {
+        const dataFiles = Array.isArray(params.dataFiles)
+          ? params.dataFiles
+          : params.entry
+          ? [params.entry]
+          : [];
+        for (const df of dataFiles) {
+          if (!df || !df.path) continue;
+          const full = resolveSafeRepoPath(df.path);
+          fs.mkdirSync(path.dirname(full), { recursive: true });
+          fs.writeFileSync(full, df.raw || '', 'utf8');
+        }
+        const assets = Array.isArray(params.assets) ? params.assets : [];
+        for (const asset of assets) {
+          if (!asset || !asset.path || !asset.content) continue;
+          const full = resolveSafeRepoPath(asset.path);
+          fs.mkdirSync(path.dirname(full), { recursive: true });
+          fs.writeFileSync(full, Buffer.from(asset.content, asset.encoding || 'base64'));
+        }
+        return sendJson(res, 200, { saved: true });
+      }
+
+      if (action === 'deleteFiles' || action === 'deleteFile') {
+        const pathsToDelete = Array.isArray(params.paths)
+          ? params.paths
+          : params.path
+          ? [params.path]
+          : [];
+        for (const p of pathsToDelete) {
+          const full = resolveSafeRepoPath(p);
+          if (fs.existsSync(full) && fs.statSync(full).isFile()) {
+            fs.unlinkSync(full);
+          }
+        }
+        return sendJson(res, 200, { deleted: true });
+      }
+
+      if (action === 'getMedia') {
+        const mediaFolder = params.mediaFolder || 'public/assets/blog';
+        const publicFolder = params.publicFolder || '/assets/blog';
+        const fullDir = resolveSafeRepoPath(mediaFolder);
+        if (!fs.existsSync(fullDir)) return sendJson(res, 200, []);
+        const files = fs
+          .readdirSync(fullDir)
+          .filter((f) => !f.startsWith('.') && fs.statSync(path.join(fullDir, f)).isFile());
+        const media = files.map((name) => {
+          const full = path.join(fullDir, name);
+          const stat = fs.statSync(full);
+          const relPath = `${mediaFolder.replace(/\/$/, '')}/${name}`;
+          return {
+            id: relPath,
+            name,
+            size: stat.size,
+            displayURL: `${publicFolder.replace(/\/$/, '')}/${name}`,
+            path: relPath
+          };
+        });
+        return sendJson(res, 200, media);
+      }
+
+      if (action === 'getMediaFile') {
+        const relPath = params.path || '';
+        const full = resolveSafeRepoPath(relPath);
+        if (!fs.existsSync(full)) return sendJson(res, 404, { error: 'Media file not found' });
+        const stat = fs.statSync(full);
+        const name = path.basename(full);
+        const displayURL = relPath.startsWith('public/') ? relPath.slice('public'.length) : `/${relPath}`;
+        return sendJson(res, 200, {
+          id: relPath,
+          name,
+          size: stat.size,
+          displayURL,
+          path: relPath
+        });
+      }
+
+      if (action === 'persistMedia') {
+        const asset = params.asset || {};
+        if (!asset.path || !asset.content) {
+          return sendJson(res, 400, { error: 'Invalid media payload' });
+        }
+        const full = resolveSafeRepoPath(asset.path);
+        fs.mkdirSync(path.dirname(full), { recursive: true });
+        const buf = Buffer.from(asset.content, asset.encoding || 'base64');
+        fs.writeFileSync(full, buf);
+        const name = path.basename(full);
+        const displayURL = asset.path.startsWith('public/')
+          ? asset.path.slice('public'.length)
+          : `/assets/blog/${name}`;
+        return sendJson(res, 200, {
+          id: asset.path,
+          name,
+          size: buf.length,
+          displayURL,
+          path: asset.path
+        });
+      }
+
+      if (action === 'unpublishedEntries') {
+        return sendJson(res, 200, []);
+      }
+
+      return sendJson(res, 200, {});
+    }
+
+    // Return 404 JSON for any unknown /api/* route
+    if (pathname.startsWith('/api/')) {
+      return sendJson(res, 404, { error: 'API endpoint not found.' });
+    }
+
+    // Redirect /admin to /admin/ so Decap CMS resolves relative config.yml cleanly
+    if (pathname === '/admin') {
+      res.writeHead(302, { Location: '/admin/' });
+      res.end();
+      return;
+    }
+
     // --- STATIC FILE & SPA FALLBACK SERVING ---
-    let filePath = path.join(PUBLIC_DIR, pathname === '/' ? 'index.html' : pathname);
-    if (pathname === '/admin' || pathname === '/admin/') {
-      filePath = path.join(PUBLIC_DIR, 'admin', 'index.html');
+    let relativeTarget = pathname === '/' ? 'index.html' : pathname.replace(/^\/+/, '');
+    if (pathname === '/admin/') {
+      relativeTarget = path.join('admin', 'index.html');
+    } else if (pathname === '/config.yml') {
+      relativeTarget = path.join('admin', 'config.yml');
+    }
+
+    const filePath = path.resolve(PUBLIC_DIR, relativeTarget);
+    if (!filePath.startsWith(PUBLIC_DIR)) {
+      return sendJson(res, 403, { error: 'Forbidden' });
     }
 
     if (fs.existsSync(filePath) && fs.statSync(filePath).isFile()) {
       const ext = path.extname(filePath).toLowerCase();
       res.writeHead(200, { 'Content-Type': MIME_TYPES[ext] || 'application/octet-stream' });
+      if (req.method === 'HEAD') {
+        res.end();
+        return;
+      }
       fs.createReadStream(filePath).pipe(res);
       return;
     }
@@ -1081,6 +1316,10 @@ const server = http.createServer(async (req, res) => {
     const indexHtml = path.join(PUBLIC_DIR, 'index.html');
     if (fs.existsSync(indexHtml)) {
       res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
+      if (req.method === 'HEAD') {
+        res.end();
+        return;
+      }
       fs.createReadStream(indexHtml).pipe(res);
       return;
     }

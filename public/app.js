@@ -70,6 +70,9 @@ class YoletechApp {
     } else if (path.startsWith('blog/')) {
       this.currentPage = 'blog-detail';
       this.activeBlogSlug = path.split('/')[1];
+      if (this.blogPosts.length > 0) {
+        this.activeBlogPost = this.blogPosts.find((p) => p.slug === this.activeBlogSlug) || null;
+      }
     } else if (validPages.includes(path)) {
       if (path === 'register') {
         this.currentPage = 'login';
@@ -176,10 +179,38 @@ class YoletechApp {
     `;
   }
 
+  selectContactService(rawService) {
+    const map = {
+      'Web Development': 'Web Development',
+      'Full-Stack Web': 'Web Development',
+      'Full-Stack Web Development': 'Web Development',
+      'Data Analysis & Analytics': 'Data Analytics & Dashboards',
+      'Data Analytics & BI': 'Data Analytics & Dashboards',
+      'Data Analytics & Dashboards': 'Data Analytics & Dashboards',
+      'AI Automation': 'AI & Automation',
+      'AI & Machine Learning': 'AI & Automation',
+      'AI & Workflow Automation': 'AI & Automation',
+      'AI & Automation': 'AI & Automation',
+      'Tech Tutorials': 'Tech Tutorials & Training',
+      'Tech Tutorials & Mentorship': 'Tech Tutorials & Training',
+      'Tech Tutorials & Training': 'Tech Tutorials & Training',
+      'Graphic Design': 'Graphic Design & Video',
+      'Video Editing': 'Graphic Design & Video',
+      'Graphic Design & Video': 'Graphic Design & Video',
+      'Customer Support': 'IT & Customer Support',
+      'IT Support': 'IT & Customer Support',
+      'IT & Database Support': 'IT & Customer Support',
+      'IT & Customer Support': 'IT & Customer Support'
+    };
+    this.contactServiceSelected = map[rawService] || rawService || 'Data Analytics & Dashboards';
+    this.navigate('contact');
+  }
+
   async navigate(page, extra = null) {
     this.mobileMenuOpen = false;
     if (page === 'blog-detail' && extra) {
       this.currentPage = 'blog-detail';
+      this.activeBlogSlug = extra;
       this.activeBlogPost = this.blogPosts.find((p) => p.slug === extra) || null;
       window.history.pushState({}, '', `/blog/${extra}`);
     } else if (page === 'register') {
@@ -986,7 +1017,7 @@ class YoletechApp {
                         .join('')}
                     </div>
                   </div>
-                  <button class="btn btn-outline btn-sm" onclick="window.app.contactServiceSelected='${srv.title}';window.app.navigate('contact')">
+                  <button class="btn btn-outline btn-sm" onclick="window.app.selectContactService('${srv.title}')">
                     Request ${srv.title} →
                   </button>
                 </div>
@@ -1135,7 +1166,7 @@ class YoletechApp {
                     <a href="${p.github_url || 'https://github.com/Eniekpo'}" target="_blank" rel="noopener" class="btn btn-outline btn-sm" style="flex:1;">
                       GitHub / Source
                     </a>
-                    <button class="btn btn-lime btn-sm" style="flex:1;" onclick="window.app.contactServiceSelected='${p.category}';window.app.navigate('contact')">
+                    <button class="btn btn-lime btn-sm" style="flex:1;" onclick="window.app.selectContactService('${p.category}')">
                       Build Similar →
                     </button>
                   </div>
@@ -1357,36 +1388,133 @@ class YoletechApp {
 
   formatMarkdownToHtml(md) {
     if (!md) return '';
-    let html = md
-      .replace(/```([a-z]*)\r?\n([\s\S]*?)```/g, (_, lang, code) => {
-        const escaped = code.replace(/</g, '&lt;').replace(/>/g, '&gt;');
-        return `<pre style="background:#0B0920;border:1px solid rgba(200,230,30,0.35);padding:18px;border-radius:12px;overflow-x:auto;margin:18px 0;font-family:monospace;font-size:13px;color:#C8E61E;"><code>${escaped}</code></pre>`;
-      })
-      .replace(/^### (.*$)/gim, '<h3 style="font-size:20px;font-weight:800;color:#C8E61E;margin:22px 0 10px;">$1</h3>')
-      .replace(/^## (.*$)/gim, '<h2 style="font-size:25px;font-weight:900;color:#FFFFFF;margin:28px 0 12px;border-bottom:1px solid rgba(255,255,255,0.12);padding-bottom:8px;">$1</h2>')
-      .replace(/\*\*(.*?)\*\*/g, '<strong style="color:#FFFFFF;">$1</strong>')
-      .replace(/\*(.*?)\*/g, '<em>$1</em>')
-      .replace(/`([^`]+)`/g, '<code style="background:rgba(200,230,30,0.14);color:#C8E61E;padding:2px 6px;border-radius:5px;font-family:monospace;">$1</code>');
 
-    const paragraphs = html.split(/\r?\n\r?\n/);
-    return paragraphs
-      .map((block) => {
-        const trimmed = block.trim();
-        if (!trimmed) return '';
-        if (trimmed.startsWith('<h2') || trimmed.startsWith('<h3') || trimmed.startsWith('<pre')) {
-          return trimmed;
+    const codeBlocks = [];
+    const textWithPlaceholders = String(md).replace(/```([a-zA-Z0-9_-]*)\r?\n([\s\S]*?)```/g, (_, lang, code) => {
+      const escaped = code
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .trimEnd();
+      const idx = codeBlocks.length;
+      const langBadge = lang
+        ? `<div style="font-size:11px;font-weight:800;text-transform:uppercase;color:#F7941D;margin-bottom:8px;letter-spacing:0.08em;">${lang}</div>`
+        : '';
+      codeBlocks.push(
+        `<pre style="background:#0B0920;border:1px solid rgba(200,230,30,0.35);padding:18px;border-radius:12px;overflow-x:auto;margin:18px 0;font-family:monospace;font-size:13px;color:#C8E61E;line-height:1.6;">${langBadge}<code>${escaped}</code></pre>`
+      );
+      return `\n\n@@CODE_BLOCK_${idx}@@\n\n`;
+    });
+
+    const formatInline = (str) =>
+      str
+        .replace(/`([^`]+)`/g, '<code style="background:rgba(200,230,30,0.14);color:#C8E61E;padding:2px 6px;border-radius:5px;font-family:monospace;">$1</code>')
+        .replace(/\*\*(.*?)\*\*/g, '<strong style="color:#FFFFFF;">$1</strong>')
+        .replace(/\*(.*?)\*/g, '<em>$1</em>')
+        .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener" style="color:#C8E61E;text-decoration:underline;">$1</a>');
+
+    const lines = textWithPlaceholders.split(/\r?\n/);
+    const htmlParts = [];
+    let paragraphBuffer = [];
+    let listBuffer = [];
+    let listType = null; // 'ul' | 'ol'
+
+    const flushParagraph = () => {
+      if (paragraphBuffer.length > 0) {
+        const text = formatInline(paragraphBuffer.join(' ').trim());
+        if (text) {
+          htmlParts.push(
+            `<p style="margin-bottom:16px;color:var(--yole-text-muted);font-size:16px;line-height:1.75;">${text}</p>`
+          );
         }
-        if (trimmed.startsWith('* ') || trimmed.startsWith('1. ')) {
-          const items = trimmed
-            .split(/\r?\n/)
-            .map((line) => line.replace(/^(\*|\d+\.)\s+/, ''))
-            .map((li) => `<li style="margin-bottom:8px;">${li}</li>`)
-            .join('');
-          return `<ul style="padding-left:22px;margin:14px 0;color:var(--yole-text-muted);">${items}</ul>`;
-        }
-        return `<p style="margin-bottom:16px;color:var(--yole-text-muted);font-size:16px;line-height:1.75;">${trimmed}</p>`;
-      })
-      .join('');
+        paragraphBuffer = [];
+      }
+    };
+
+    const flushList = () => {
+      if (listBuffer.length > 0) {
+        const tag = listType === 'ol' ? 'ol' : 'ul';
+        const itemsHtml = listBuffer
+          .map((item) => `<li style="margin-bottom:8px;line-height:1.7;">${formatInline(item)}</li>`)
+          .join('');
+        htmlParts.push(
+          `<${tag} style="padding-left:22px;margin:14px 0 18px;color:var(--yole-text-muted);font-size:15.5px;">${itemsHtml}</${tag}>`
+        );
+        listBuffer = [];
+        listType = null;
+      }
+    };
+
+    for (const rawLine of lines) {
+      const line = rawLine.trim();
+
+      if (!line) {
+        flushParagraph();
+        flushList();
+        continue;
+      }
+
+      const codeMatch = line.match(/^@@CODE_BLOCK_(\d+)@@$/);
+      if (codeMatch) {
+        flushParagraph();
+        flushList();
+        htmlParts.push(codeBlocks[Number(codeMatch[1])] || '');
+        continue;
+      }
+
+      if (line.startsWith('### ')) {
+        flushParagraph();
+        flushList();
+        htmlParts.push(
+          `<h3 style="font-size:20px;font-weight:800;color:#C8E61E;margin:24px 0 10px;">${formatInline(line.slice(4))}</h3>`
+        );
+        continue;
+      }
+
+      if (line.startsWith('## ')) {
+        flushParagraph();
+        flushList();
+        htmlParts.push(
+          `<h2 style="font-size:25px;font-weight:900;color:#FFFFFF;margin:30px 0 12px;border-bottom:1px solid rgba(255,255,255,0.12);padding-bottom:8px;">${formatInline(line.slice(3))}</h2>`
+        );
+        continue;
+      }
+
+      if (line.startsWith('# ')) {
+        flushParagraph();
+        flushList();
+        htmlParts.push(
+          `<h2 style="font-size:27px;font-weight:900;color:#FFFFFF;margin:30px 0 12px;">${formatInline(line.slice(2))}</h2>`
+        );
+        continue;
+      }
+
+      const ulMatch = line.match(/^(\*|-)\s+(.*)$/);
+      if (ulMatch) {
+        flushParagraph();
+        if (listType && listType !== 'ul') flushList();
+        listType = 'ul';
+        listBuffer.push(ulMatch[2]);
+        continue;
+      }
+
+      const olMatch = line.match(/^\d+\.\s+(.*)$/);
+      if (olMatch) {
+        flushParagraph();
+        if (listType && listType !== 'ol') flushList();
+        listType = 'ol';
+        listBuffer.push(olMatch[1]);
+        continue;
+      }
+
+      flushList();
+      paragraphBuffer.push(line);
+    }
+
+    flushParagraph();
+    flushList();
+
+    return htmlParts.join('\n');
   }
 
   renderBlogPostDetail() {
@@ -1823,7 +1951,12 @@ class YoletechApp {
                 ${this.user.company || 'Client Partner'} • Primary Track: <strong style="color:#C8E61E;">${this.user.service_interest}</strong>
               </p>
             </div>
-            <div style="display:flex;gap:12px;">
+            <div style="display:flex;gap:12px;flex-wrap:wrap;">
+              ${
+                this.user.role === 'ADMIN'
+                  ? `<button class="btn btn-outline btn-sm" onclick="window.app.navigate('admin-dashboard')">Open Admin CRM →</button>`
+                  : ''
+              }
               <a href="https://wa.me/2348025526389" target="_blank" class="btn btn-lime btn-sm">
                 Direct WhatsApp Support →
               </a>
@@ -1872,40 +2005,99 @@ class YoletechApp {
               }
             </div>
 
-            <!-- SUBMIT NEW PROJECT BRIEF -->
-            <div class="glass-card">
-              <h3 style="font-size:20px;font-weight:900;margin-bottom:16px;">Request a New Service / Project</h3>
-              <form onsubmit="window.app.handleClientPortalInquiry(event)">
-                <div class="form-group">
-                  <label class="form-label">Service Track</label>
-                  <select name="service_category" class="form-control">
-                    <option value="Data Analytics & Dashboards">Data Analytics &amp; BI Dashboards</option>
-                    <option value="Web Development">Full-Stack Web Development</option>
-                    <option value="AI & Automation">AI, ML &amp; Excel VBA Automation</option>
-                    <option value="Tech Tutorials & Training">Tech Tutorials &amp; Staff Training</option>
-                    <option value="Graphic Design & Video">Graphic Design &amp; Video Editing</option>
-                    <option value="IT & Customer Support">IT &amp; Database Support</option>
-                  </select>
-                </div>
-                <div class="form-group">
-                  <label class="form-label">Estimated Budget</label>
-                  <select name="budget" class="form-control">
-                    <option value="$500 - $1,500">$500 – $1,500</option>
-                    <option value="$1,500 - $5,000" selected>$1,500 – $5,000</option>
-                    <option value="$5,000+">$5,000+</option>
-                  </select>
-                </div>
-                <div class="form-group">
-                  <label class="form-label">Project Scope &amp; Deliverables *</label>
-                  <textarea name="message" rows="4" required class="form-control" placeholder="Describe the dataset, dashboard, web platform, or workflow automation you need..."></textarea>
-                </div>
-                <button type="submit" class="btn btn-lime" style="width:100%;">Submit Request to John →</button>
-              </form>
+            <!-- SUBMIT NEW PROJECT BRIEF & PROFILE SETTINGS -->
+            <div style="display:flex;flex-direction:column;gap:24px;">
+              <div class="glass-card">
+                <h3 style="font-size:20px;font-weight:900;margin-bottom:16px;">Request a New Service / Project</h3>
+                <form onsubmit="window.app.handleClientPortalInquiry(event)">
+                  <div class="form-group">
+                    <label class="form-label">Service Track</label>
+                    <select name="service_category" class="form-control">
+                      <option value="Data Analytics & Dashboards">Data Analytics &amp; BI Dashboards</option>
+                      <option value="Web Development">Full-Stack Web Development</option>
+                      <option value="AI & Automation">AI, ML &amp; Excel VBA Automation</option>
+                      <option value="Tech Tutorials & Training">Tech Tutorials &amp; Staff Training</option>
+                      <option value="Graphic Design & Video">Graphic Design &amp; Video Editing</option>
+                      <option value="IT & Customer Support">IT &amp; Database Support</option>
+                    </select>
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">Estimated Budget</label>
+                    <select name="budget" class="form-control">
+                      <option value="$500 - $1,500">$500 – $1,500</option>
+                      <option value="$1,500 - $5,000" selected>$1,500 – $5,000</option>
+                      <option value="$5,000+">$5,000+</option>
+                    </select>
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">Project Scope &amp; Deliverables *</label>
+                    <textarea name="message" rows="4" required class="form-control" placeholder="Describe the dataset, dashboard, web platform, or workflow automation you need..."></textarea>
+                  </div>
+                  <button type="submit" class="btn btn-lime" style="width:100%;">Submit Request to John →</button>
+                </form>
+              </div>
+
+              <!-- CLIENT PROFILE SETTINGS -->
+              <div class="glass-card">
+                <h3 style="font-size:19px;font-weight:900;margin-bottom:14px;">Account &amp; Profile Settings</h3>
+                <form onsubmit="window.app.handleProfileUpdateSubmit(event)">
+                  <div class="grid-2" style="gap:12px;">
+                    <div class="form-group">
+                      <label class="form-label">Full Name *</label>
+                      <input type="text" name="name" required class="form-control" value="${(this.user.name || '').replace(/"/g, '&quot;')}" />
+                    </div>
+                    <div class="form-group">
+                      <label class="form-label">WhatsApp / Phone</label>
+                      <input type="text" name="phone" class="form-control" value="${(this.user.phone || '').replace(/"/g, '&quot;')}" />
+                    </div>
+                  </div>
+                  <div class="grid-2" style="gap:12px;">
+                    <div class="form-group">
+                      <label class="form-label">Organization / Company</label>
+                      <input type="text" name="company" class="form-control" value="${(this.user.company || '').replace(/"/g, '&quot;')}" />
+                    </div>
+                    <div class="form-group">
+                      <label class="form-label">Primary Service Track</label>
+                      <select name="service_interest" class="form-control">
+                        <option value="Data Analytics & BI" ${this.user.service_interest === 'Data Analytics & BI' ? 'selected' : ''}>Data Analytics &amp; BI</option>
+                        <option value="Full-Stack Web Development" ${this.user.service_interest === 'Full-Stack Web Development' ? 'selected' : ''}>Full-Stack Web Development</option>
+                        <option value="AI & Workflow Automation" ${this.user.service_interest === 'AI & Workflow Automation' ? 'selected' : ''}>AI &amp; Workflow Automation</option>
+                        <option value="Tech Tutorials & Mentorship" ${this.user.service_interest === 'Tech Tutorials & Mentorship' ? 'selected' : ''}>Tech Tutorials &amp; Mentorship</option>
+                        <option value="Graphic Design & Video" ${this.user.service_interest === 'Graphic Design & Video' ? 'selected' : ''}>Graphic Design &amp; Video</option>
+                        <option value="IT & Customer Support" ${this.user.service_interest === 'IT & Customer Support' ? 'selected' : ''}>IT &amp; Customer Support</option>
+                      </select>
+                    </div>
+                  </div>
+                  <button type="submit" class="btn btn-outline btn-sm">Save Profile Changes</button>
+                </form>
+              </div>
             </div>
           </div>
         </div>
       </section>
     `;
+  }
+
+  async handleProfileUpdateSubmit(e) {
+    e.preventDefault();
+    const form = e.target;
+    try {
+      const { user } = await this.api('/api/auth/profile', {
+        method: 'PUT',
+        body: JSON.stringify({
+          name: form.name.value,
+          phone: form.phone.value,
+          company: form.company.value,
+          service_interest: form.service_interest.value
+        })
+      });
+      this.user = user;
+      localStorage.setItem('yoletech_user', JSON.stringify(user));
+      this.showToast('Profile settings updated!');
+      this.render();
+    } catch (err) {
+      this.showToast(err.message, 'error');
+    }
   }
 
   async handleClientPortalInquiry(e) {
@@ -2126,7 +2318,7 @@ class YoletechApp {
           </div>
 
           <div style="flex:1;max-width:340px;">
-            <input type="text" class="form-control" placeholder="Search client name, email, company..." value="${this.clientSearch}" oninput="window.app.clientSearch=this.value;window.app.render();" />
+            <input id="admin-client-search" type="text" class="form-control" placeholder="Search client name, email, company..." value="${this.clientSearch}" oninput="window.app.clientSearch=this.value;window.app.render();" />
           </div>
         </div>
       </div>
@@ -2324,12 +2516,37 @@ class YoletechApp {
               <label class="form-label">Status Note Visible in Client Portal</label>
               <input type="text" class="form-control" value="${(inq.admin_response || '').replace(/"/g, '&quot;')}" onchange="window.app.updateInquiry(${inq.id}, { admin_response: this.value })" placeholder="Write milestone update for client..." />
             </div>
+
+            <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;padding-top:10px;border-top:1px solid rgba(255,255,255,0.1);">
+              <div style="display:flex;gap:8px;">
+                <a href="mailto:${inq.email}" class="btn btn-outline btn-sm" style="padding:5px 10px;font-size:11.5px;">Email Client</a>
+                ${
+                  inq.phone
+                    ? `<a href="https://wa.me/${inq.phone.replace(/[^0-9]/g, '')}" target="_blank" class="btn btn-lime btn-sm" style="padding:5px 10px;font-size:11.5px;">WhatsApp</a>`
+                    : ''
+                }
+              </div>
+              <button class="btn btn-outline btn-sm" style="padding:5px 10px;font-size:11.5px;border-color:#ef4444;color:#ef4444;" onclick="window.app.deleteInquiry(${inq.id})">
+                Delete Inquiry
+              </button>
+            </div>
           </div>
         `
           )
           .join('')}
       </div>
     `;
+  }
+
+  async deleteInquiry(id) {
+    try {
+      await this.api(`/api/inquiries/${id}`, { method: 'DELETE' });
+      await this.loadAdminData();
+      this.showToast('Project inquiry deleted.');
+      this.render();
+    } catch (err) {
+      this.showToast(err.message, 'error');
+    }
   }
 
   async updateInquiry(id, updates) {
@@ -2380,9 +2597,15 @@ class YoletechApp {
                 <input type="text" name="readTime" class="form-control" value="${editing ? editing.readTime : '5 min read'}" />
               </div>
             </div>
-            <div class="form-group">
-              <label class="form-label">Tags (comma-separated)</label>
-              <input type="text" name="tags" class="form-control" value="${editing ? (editing.tags || []).join(', ') : 'Python, SQL, Power BI'}" />
+            <div class="grid-2" style="gap:12px;">
+              <div class="form-group">
+                <label class="form-label">Tags (comma-separated)</label>
+                <input type="text" name="tags" class="form-control" value="${editing ? (editing.tags || []).join(', ') : 'Python, SQL, Power BI'}" />
+              </div>
+              <div class="form-group">
+                <label class="form-label">Cover Image</label>
+                <input type="text" name="coverImage" class="form-control" value="${editing ? editing.coverImage || '/assets/dashboard-preview.jpg' : '/assets/dashboard-preview.jpg'}" placeholder="/assets/dashboard-preview.jpg" />
+              </div>
             </div>
             <div class="form-group">
               <label class="form-label">Executive Summary *</label>
@@ -2450,6 +2673,7 @@ class YoletechApp {
       category: form.category.value,
       readTime: form.readTime.value,
       tags: form.tags.value,
+      coverImage: form.coverImage?.value || '/assets/dashboard-preview.jpg',
       summary: form.summary.value,
       body: form.body.value
     };
@@ -2512,8 +2736,18 @@ class YoletechApp {
                 </select>
               </div>
               <div class="form-group">
-                <label class="form-label">Organization &amp; Period</label>
+                <label class="form-label">Organization</label>
                 <input type="text" name="organization" class="form-control" value="${editing ? editing.organization : 'YOLETECH'}" />
+              </div>
+            </div>
+            <div class="grid-2" style="gap:12px;">
+              <div class="form-group">
+                <label class="form-label">Period / Year</label>
+                <input type="text" name="period" class="form-control" value="${editing ? editing.period : '2026'}" placeholder="e.g. 2024 – Present" />
+              </div>
+              <div class="form-group">
+                <label class="form-label">Preview Image URL</label>
+                <input type="text" name="preview_image" class="form-control" value="${editing ? editing.preview_image : '/assets/dashboard-preview.jpg'}" />
               </div>
             </div>
             <div class="form-group">
@@ -2581,7 +2815,8 @@ class YoletechApp {
       title: form.title.value,
       category: form.category.value,
       organization: form.organization.value,
-      period: '2026',
+      period: form.period?.value || '2026',
+      preview_image: form.preview_image?.value || '/assets/dashboard-preview.jpg',
       tech_stack: form.tech_stack.value,
       impact_metrics: form.impact_metrics.value,
       summary: form.summary.value
@@ -2665,14 +2900,22 @@ class YoletechApp {
               .map(
                 (t) => `
               <div style="padding:14px;background:rgba(15,13,44,0.75);border:1px solid rgba(255,255,255,0.12);border-radius:12px;">
-                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;gap:8px;flex-wrap:wrap;">
                   <div>
                     <strong style="font-size:15px;">${t.author_name}</strong>
                     <span style="font-size:12px;color:#C8E61E;margin-left:8px;">${t.service_track}</span>
+                    <span class="tech-pill ${t.approved ? 'lime' : 'orange'}" style="font-size:10px;padding:2px 8px;margin-left:6px;">
+                      ${t.approved ? 'Approved' : 'Hidden'}
+                    </span>
                   </div>
-                  <button class="btn btn-outline btn-sm" style="border-color:#ef4444;color:#ef4444;padding:4px 10px;font-size:11.5px;" onclick="window.app.deleteTestimonial(${t.id})">
-                    Delete
-                  </button>
+                  <div style="display:flex;gap:6px;">
+                    <button class="btn btn-outline btn-sm" style="padding:4px 10px;font-size:11.5px;" onclick="window.app.toggleTestimonialApproval(${t.id}, ${t.approved ? 0 : 1})">
+                      ${t.approved ? 'Hide' : 'Approve'}
+                    </button>
+                    <button class="btn btn-outline btn-sm" style="border-color:#ef4444;color:#ef4444;padding:4px 10px;font-size:11.5px;" onclick="window.app.deleteTestimonial(${t.id})">
+                      Delete
+                    </button>
+                  </div>
                 </div>
                 <div style="font-size:12px;color:var(--yole-text-muted);margin-bottom:6px;">${t.author_role} • ${t.company}</div>
                 <p style="font-size:13px;color:#FFFFFF;font-style:italic;">"${t.content}"</p>
@@ -2684,6 +2927,20 @@ class YoletechApp {
         </div>
       </div>
     `;
+  }
+
+  async toggleTestimonialApproval(id, approved) {
+    try {
+      await this.api(`/api/testimonials/${id}`, {
+        method: 'PUT',
+        body: JSON.stringify({ approved })
+      });
+      await this.loadPublicData();
+      this.showToast(approved ? 'Testimonial approved!' : 'Testimonial hidden from public view.');
+      this.render();
+    } catch (err) {
+      this.showToast(err.message, 'error');
+    }
   }
 
   async deleteTestimonial(id) {
@@ -2703,6 +2960,11 @@ class YoletechApp {
   render() {
     const root = document.getElementById('app-root');
     if (!root) return;
+
+    const activeEl = document.activeElement;
+    const preserveSearchFocus = activeEl && activeEl.id === 'admin-client-search';
+    const selStart = preserveSearchFocus ? activeEl.selectionStart : null;
+    const selEnd = preserveSearchFocus ? activeEl.selectionEnd : null;
 
     let pageContent = '';
     switch (this.currentPage) {
@@ -2750,6 +3012,16 @@ class YoletechApp {
       <div id="toast-container"></div>
     `;
     this.renderToast();
+
+    if (preserveSearchFocus) {
+      const searchInput = document.getElementById('admin-client-search');
+      if (searchInput) {
+        searchInput.focus();
+        if (selStart !== null && selEnd !== null) {
+          searchInput.setSelectionRange(selStart, selEnd);
+        }
+      }
+    }
   }
 }
 

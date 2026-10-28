@@ -14,8 +14,12 @@ backend:
   auth_type: pkce
   app_id: yoletech-decap-bridge-client
 
-# Enables local Git/Markdown editing via npx decap-server & YOLETECH Backend API
-local_backend: true
+# Enables local Git/Markdown editing via YOLETECH built-in local backend API (/api/v1)
+local_backend:
+  url: http://localhost:4000/api/v1
+  allowed_hosts:
+    - localhost:4000
+    - 127.0.0.1:4000
 
 site_url: https://yolestica.com
 display_url: https://yolestica.com

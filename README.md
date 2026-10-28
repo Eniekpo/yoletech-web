@@ -10,7 +10,7 @@
 ## 1. Quick Start
 
 ```bash
-cd /Users/yoletech/CSharp/yoletech-web
+cd /Users/yoletech/Desktop/PROJECTS/yoletech-web
 npm start
 ```
 
