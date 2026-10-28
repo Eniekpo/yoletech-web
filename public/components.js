@@ -36,14 +36,24 @@ window.YOLETECH_COMPONENTS = {
   },
 
   // 1. Portrait Hero Widget
-  renderPortraitHeroWidget() {
+  renderPortraitHeroWidget(mode = 'home') {
+    const isAbout = mode === 'about';
+    const imgSrc = isAbout ? '/assets/john-portrait.png' : '/assets/home-hero-analyst.jpg';
+    const imgAlt = isAbout
+      ? 'John Oruebi Eniekpo — YOLETECH'
+      : 'Data Analyst analyzing live Business Intelligence dashboard on computer screen — YOLETECH';
+    const badgeTitle = isAbout ? 'John Oruebi Eniekpo' : 'Live BI &amp; Data Analytics Studio';
+    const badgeSub = isAbout
+      ? 'Data Analyst • BI Specialist • Full-Stack Dev'
+      : 'Data Analytics • Power BI • Full-Stack Dev';
+
     return `
       <div class="portrait-orbit-card">
-        <img src="/assets/john-portrait.png" alt="John Oruebi Eniekpo — YOLETECH" />
+        <img src="${imgSrc}" alt="${imgAlt}" />
         <div class="portrait-floating-badge">
           <div>
-            <div style="font-weight:800;font-size:14px;color:#FFFFFF;">John Oruebi Eniekpo</div>
-            <div style="font-size:12px;color:#C8E61E;font-weight:600;">Data Analyst • BI Specialist • Full-Stack Dev</div>
+            <div style="font-weight:800;font-size:14px;color:#FFFFFF;">${badgeTitle}</div>
+            <div style="font-size:12px;color:#C8E61E;font-weight:600;">${badgeSub}</div>
           </div>
           <span class="tech-pill orange" style="font-size:11px;" data-kpi-target="5" data-kpi-suffix="+ Yrs Exp">5+ Yrs Exp</span>
         </div>

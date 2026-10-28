@@ -1077,7 +1077,7 @@ class YoletechApp {
               </div>
             </div>
             <div>
-              ${C.renderPortraitHeroWidget()}
+              ${C.renderPortraitHeroWidget('about')}
             </div>
           </div>
 
