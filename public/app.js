@@ -1,6 +1,6 @@
 // ============================================================================
 // YOLETECH — FULL-STACK APPLICATION CONTROLLER & ROUTER
-// Owner: John Oruebi Eniekpo, B.Sc.
+// Owner: John Oruebi Eniekpo, M.Sc.
 // ============================================================================
 
 class YoletechApp {
