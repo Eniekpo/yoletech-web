@@ -537,7 +537,8 @@ class YoletechApp {
   renderHomePage() {
     const D = window.YOLETECH_DATA;
     const C = window.YOLETECH_COMPONENTS;
-    const featuredProjects = this.portfolio.slice(0, 3);
+    const featuredPool = this.portfolio.filter((p) => p.featured !== false);
+    const featuredProjects = (featuredPool.length > 0 ? featuredPool : this.portfolio).slice(0, 3);
     const recentBlogs = this.blogPosts.slice(0, 3);
 
     return `
@@ -710,8 +711,20 @@ class YoletechApp {
                   <div style="background:rgba(200,230,30,0.08);border-left:3px solid #C8E61E;padding:8px 12px;font-size:12px;color:#FFFFFF;margin-bottom:14px;border-radius:0 8px 8px 0;">
                     <strong>Impact:</strong> ${p.impact_metrics}
                   </div>
-                  <div style="display:flex;flex-wrap:wrap;gap:6px;">
+                  <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px;">
                     ${(p.tech_stack || []).map((t) => `<span class="tech-pill">${t}</span>`).join('')}
+                  </div>
+                  <div style="display:flex;gap:8px;border-top:1px solid rgba(255,255,255,0.1);padding-top:12px;">
+                    ${
+                      p.demo_url || p.live_url
+                        ? `<a href="${p.demo_url || p.live_url}" target="_blank" rel="noopener" class="btn btn-lime btn-sm" style="flex:1;">
+                            Live Demo ↗
+                          </a>`
+                        : ''
+                    }
+                    <button class="btn btn-outline btn-sm" style="flex:1;" onclick="window.app.navigate('portfolio')">
+                      Case Study →
+                    </button>
                   </div>
                 </div>
               </div>
@@ -1084,15 +1097,15 @@ class YoletechApp {
   }
 
   // ==========================================================================
-  // PAGE 4: PORTFOLIO (FILTERABLE CASE STUDIES)
+  // PAGE 4: PORTFOLIO (FILTERABLE CASE STUDIES — POWERED BY DECAP BRIDGE)
   // ==========================================================================
   renderPortfolioPage() {
     const categories = [
       'ALL',
       'Data Analytics & BI',
+      'Full-Stack Web',
       'AI & Machine Learning',
       'AI & Workflow Automation',
-      'Full-Stack Web',
       'Tech Tutorials & Training'
     ];
 
@@ -1110,6 +1123,14 @@ class YoletechApp {
             <p class="section-desc">
               Selected projects across data analytics, business intelligence, workflow automation, and full-stack web development.
             </p>
+            ${
+              this.user?.role === 'ADMIN'
+                ? `<div style="display:flex;justify-content:center;gap:10px;flex-wrap:wrap;margin-top:16px;">
+                    <button class="btn btn-lime btn-sm" onclick="window.app.adminTab='portfolio';window.app.navigate('admin-dashboard')">+ Add Project in Admin</button>
+                    <a href="/admin/" target="_blank" class="btn btn-outline btn-sm">Open Decap Bridge CMS ↗</a>
+                  </div>`
+                : ''
+            }
             <div style="display:flex;justify-content:center;flex-wrap:wrap;gap:8px;margin-top:24px;">
               ${categories
                 .map(
@@ -1147,11 +1168,22 @@ class YoletechApp {
                   <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:16px;">
                     ${(p.tech_stack || []).map((t) => `<span class="tech-pill">${t}</span>`).join('')}
                   </div>
-                  <div style="display:flex;gap:10px;border-top:1px solid rgba(255,255,255,0.1);padding-top:12px;">
-                    <a href="${p.github_url || 'https://github.com/Eniekpo'}" target="_blank" rel="noopener" class="btn btn-outline btn-sm" style="flex:1;">
-                      GitHub / Source
-                    </a>
-                    <button class="btn btn-lime btn-sm" style="flex:1;" onclick="window.app.selectContactService('${p.category}')">
+                  <div style="display:flex;gap:8px;flex-wrap:wrap;border-top:1px solid rgba(255,255,255,0.1);padding-top:12px;">
+                    ${
+                      p.demo_url || p.live_url
+                        ? `<a href="${p.demo_url || p.live_url}" target="_blank" rel="noopener" class="btn btn-lime btn-sm" style="flex:1;">
+                            Live Demo ↗
+                          </a>`
+                        : ''
+                    }
+                    ${
+                      p.github_url
+                        ? `<a href="${p.github_url}" target="_blank" rel="noopener" class="btn btn-outline btn-sm" style="flex:1;">
+                            GitHub / Source
+                          </a>`
+                        : ''
+                    }
+                    <button class="btn btn-outline btn-sm" style="flex:1;" onclick="window.app.selectContactService('${p.category}')">
                       Build Similar →
                     </button>
                   </div>
@@ -2677,6 +2709,7 @@ class YoletechApp {
     return `
       <div class="grid-2" style="align-items:start;">
         <div class="glass-card">
+          <div class="eyebrow"><span class="eyebrow-dot"></span> PORTFOLIO PUBLISHER (DECAP BRIDGE)</div>
           <h3 style="font-size:20px;font-weight:900;margin-bottom:14px;">
             ${editing ? `Edit Project: ${editing.title}` : '+ Add Portfolio Case Study'}
           </h3>
@@ -2694,6 +2727,8 @@ class YoletechApp {
                   <option value="AI & Machine Learning" ${editing?.category === 'AI & Machine Learning' ? 'selected' : ''}>AI &amp; Machine Learning</option>
                   <option value="AI & Workflow Automation" ${editing?.category === 'AI & Workflow Automation' ? 'selected' : ''}>AI &amp; Workflow Automation</option>
                   <option value="Tech Tutorials & Training" ${editing?.category === 'Tech Tutorials & Training' ? 'selected' : ''}>Tech Tutorials &amp; Training</option>
+                  <option value="Graphic Design & Video" ${editing?.category === 'Graphic Design & Video' ? 'selected' : ''}>Graphic Design &amp; Video</option>
+                  <option value="IT & Customer Support" ${editing?.category === 'IT & Customer Support' ? 'selected' : ''}>IT &amp; Customer Support</option>
                 </select>
               </div>
               <div class="form-group">
@@ -2711,6 +2746,16 @@ class YoletechApp {
                 <input type="text" name="preview_image" class="form-control" value="${editing ? editing.preview_image : '/assets/dashboard-preview.jpg'}" />
               </div>
             </div>
+            <div class="grid-2" style="gap:12px;">
+              <div class="form-group">
+                <label class="form-label">Live Demo Project URL (Optional)</label>
+                <input type="url" name="demo_url" class="form-control" value="${editing ? (editing.demo_url || editing.live_url || '').replace(/"/g, '&quot;') : ''}" placeholder="https://demo.yolestica.com or Kaggle/Dashboard link" />
+              </div>
+              <div class="form-group">
+                <label class="form-label">GitHub / Source URL (Optional)</label>
+                <input type="url" name="github_url" class="form-control" value="${editing ? (editing.github_url || '').replace(/"/g, '&quot;') : 'https://github.com/Eniekpo'}" placeholder="https://github.com/Eniekpo/..." />
+              </div>
+            </div>
             <div class="form-group">
               <label class="form-label">Tech Stack (comma-separated)</label>
               <input type="text" name="tech_stack" class="form-control" value="${editing ? (editing.tech_stack || []).join(', ') : 'Python, SQL, Power BI, React.js'}" />
@@ -2725,7 +2770,7 @@ class YoletechApp {
             </div>
             <div style="display:flex;gap:10px;">
               <button type="submit" class="btn btn-lime" style="flex:1;">
-                ${editing ? 'Save Project Changes →' : 'Add Project to Portfolio →'}
+                ${editing ? 'Save Project Changes →' : 'Publish Project →'}
               </button>
               ${
                 editing
@@ -2737,7 +2782,10 @@ class YoletechApp {
         </div>
 
         <div class="glass-card">
-          <h3 style="font-size:20px;font-weight:900;margin-bottom:14px;">Existing Portfolio Projects</h3>
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+            <h3 style="font-size:20px;font-weight:900;">Published Portfolio Projects</h3>
+            <a href="/admin/" target="_blank" class="btn btn-outline btn-sm">Open Decap CMS ↗</a>
+          </div>
           <div style="display:flex;flex-direction:column;gap:12px;">
             ${this.portfolio
               .map(
@@ -2746,10 +2794,15 @@ class YoletechApp {
                 <div>
                   <div style="font-weight:800;font-size:15px;">${p.title}</div>
                   <div style="font-size:12px;color:#C8E61E;">${p.category} • ${p.organization}</div>
+                  ${
+                    p.demo_url || p.live_url
+                      ? `<div style="font-size:11.5px;margin-top:2px;"><a href="${p.demo_url || p.live_url}" target="_blank" style="color:#F7941D;">🔗 Demo: ${p.demo_url || p.live_url}</a></div>`
+                      : ''
+                  }
                 </div>
                 <div style="display:flex;gap:6px;">
-                  <button class="btn btn-outline btn-sm" onclick="window.app.startEditPortfolioProject(${p.id})">Edit</button>
-                  <button class="btn btn-outline btn-sm" style="border-color:#ef4444;color:#ef4444;" onclick="window.app.deletePortfolioProject(${p.id})">Delete</button>
+                  <button class="btn btn-outline btn-sm" onclick="window.app.startEditPortfolioProject('${p.slug || p.id}')">Edit</button>
+                  <button class="btn btn-outline btn-sm" style="border-color:#ef4444;color:#ef4444;" onclick="window.app.deletePortfolioProject('${p.slug || p.id}')">Delete</button>
                 </div>
               </div>
             `
@@ -2761,8 +2814,8 @@ class YoletechApp {
     `;
   }
 
-  startEditPortfolioProject(id) {
-    const found = this.portfolio.find((p) => p.id === id);
+  startEditPortfolioProject(slugOrId) {
+    const found = this.portfolio.find((p) => String(p.slug || p.id) === String(slugOrId));
     if (found) {
       this.editingPortfolioProject = found;
       this.render();
@@ -2778,13 +2831,16 @@ class YoletechApp {
       organization: form.organization.value,
       period: form.period?.value || '2026',
       preview_image: form.preview_image?.value || '/assets/dashboard-preview.jpg',
+      demo_url: form.demo_url?.value || '',
+      github_url: form.github_url?.value || '',
       tech_stack: form.tech_stack.value,
       impact_metrics: form.impact_metrics.value,
       summary: form.summary.value
     };
     try {
       if (this.editingPortfolioProject) {
-        await this.api(`/api/portfolio/${this.editingPortfolioProject.id}`, {
+        const targetSlug = this.editingPortfolioProject.slug || this.editingPortfolioProject.id;
+        await this.api(`/api/portfolio/${targetSlug}`, {
           method: 'PUT',
           body: JSON.stringify(payload)
         });
@@ -2795,7 +2851,7 @@ class YoletechApp {
           method: 'POST',
           body: JSON.stringify(payload)
         });
-        this.showToast('Portfolio project added!');
+        this.showToast('Portfolio project published!');
       }
       await this.loadPublicData();
       form.reset();
@@ -2805,9 +2861,9 @@ class YoletechApp {
     }
   }
 
-  async deletePortfolioProject(id) {
+  async deletePortfolioProject(slugOrId) {
     try {
-      await this.api(`/api/portfolio/${id}`, { method: 'DELETE' });
+      await this.api(`/api/portfolio/${slugOrId}`, { method: 'DELETE' });
       await this.loadPublicData();
       this.showToast('Portfolio project removed.');
       this.render();

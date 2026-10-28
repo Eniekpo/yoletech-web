@@ -1,6 +1,6 @@
 # ============================================================================
 # YOLETECH — Decap CMS Configuration (Powered by DecapBridge)
-# Author: John Oruebi Eniekpo, B.Sc. (https://github.com/Eniekpo)
+# Author: John Oruebi Eniekpo (https://github.com/Eniekpo)
 # ============================================================================
 
 # Use DecapBridge classic auth (required)
@@ -31,6 +31,39 @@ media_folder: "public/assets/blog"
 public_folder: "/assets/blog"
 
 collections:
+  - name: "portfolio"
+    label: "YOLETECH Portfolio Projects"
+    label_singular: "Portfolio Project"
+    folder: "content/portfolio"
+    create: true
+    slug: "{{slug}}"
+    summary: "{{title}} — {{category}} ({{period}})"
+    fields:
+      - { label: "Project Title", name: "title", widget: "string", required: true }
+      - { label: "Publish Date", name: "date", widget: "datetime", format: "YYYY-MM-DD", date_format: "YYYY-MM-DD", time_format: false, required: false }
+      - label: "Category"
+        name: "category"
+        widget: "select"
+        options:
+          - "Data Analytics & BI"
+          - "Full-Stack Web"
+          - "AI & Machine Learning"
+          - "AI & Workflow Automation"
+          - "Tech Tutorials & Training"
+          - "Graphic Design & Video"
+          - "IT & Customer Support"
+        default: "Data Analytics & BI"
+      - { label: "Client / Organization", name: "organization", widget: "string", default: "YOLETECH" }
+      - { label: "Project Period / Year (e.g. 2024 – Present)", name: "period", widget: "string", default: "2026" }
+      - { label: "Preview Image URL", name: "preview_image", widget: "string", default: "/assets/dashboard-preview.jpg" }
+      - { label: "Live Demo Project URL (Optional)", name: "demo_url", widget: "string", required: false, hint: "Paste the live URL to your interactive demo, web app, Power BI/Tableau view, or deployed project" }
+      - { label: "GitHub / Source Code URL (Optional)", name: "github_url", widget: "string", required: false, default: "https://github.com/Eniekpo" }
+      - { label: "Measurable Impact / Outcome Metric", name: "impact_metrics", widget: "string", required: true }
+      - { label: "Tech Stack (comma-separated)", name: "tech_stack", widget: "list", default: ["Python", "SQL", "Power BI", "React.js"] }
+      - { label: "Featured on Home Page", name: "featured", widget: "boolean", default: true }
+      - { label: "Project Summary", name: "summary", widget: "text", required: true }
+      - { label: "Detailed Case Study Notes (Optional Markdown)", name: "body", widget: "markdown", required: false }
+
   - name: "blog"
     label: "YOLETECH Blog Articles"
     label_singular: "Blog Article"
@@ -52,7 +85,7 @@ collections:
           - "Tech Tutorials & Mentorship"
         default: "Data Analytics & BI"
       - { label: "Read Time (e.g. 6 min read)", name: "readTime", widget: "string", default: "5 min read" }
-      - { label: "Author", name: "author", widget: "string", default: "John Oruebi Eniekpo, B.Sc." }
+      - { label: "Author", name: "author", widget: "string", default: "John Oruebi Eniekpo" }
       - { label: "Cover Image URL", name: "coverImage", widget: "string", default: "/assets/dashboard-preview.jpg" }
       - { label: "Executive Summary", name: "summary", widget: "text", required: true }
       - { label: "Tags (comma-separated)", name: "tags", widget: "list", default: ["Python", "Power BI", "SQL"] }

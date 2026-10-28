@@ -9,12 +9,16 @@ const JWT_SECRET = process.env.JWT_SECRET || 'yoletech-super-secret-jwt-key-2026
 const DB_PATH = path.join(__dirname, 'yoletech.db');
 const PUBLIC_DIR = path.join(__dirname, '..', 'public');
 const BLOG_DIR = path.join(__dirname, '..', 'content', 'blog');
+const PORTFOLIO_DIR = path.join(__dirname, '..', 'content', 'portfolio');
 const BLOG_MEDIA_DIR = path.join(PUBLIC_DIR, 'assets', 'blog');
 const ROOT_DIR = path.join(__dirname, '..');
 
 // Ensure directories exist
 if (!fs.existsSync(BLOG_DIR)) {
   fs.mkdirSync(BLOG_DIR, { recursive: true });
+}
+if (!fs.existsSync(PORTFOLIO_DIR)) {
+  fs.mkdirSync(PORTFOLIO_DIR, { recursive: true });
 }
 if (!fs.existsSync(BLOG_MEDIA_DIR)) {
   fs.mkdirSync(BLOG_MEDIA_DIR, { recursive: true });
@@ -393,58 +397,84 @@ function seedDatabase() {
 seedDatabase();
 
 // ============================================================================
-// 3. DECAP CMS MARKDOWN PARSER & WRITER (/content/blog/*.md)
+// 3. DECAP CMS MARKDOWN PARSER & WRITER (/content/blog/*.md & /content/portfolio/*.md)
 // ============================================================================
+function parseYamlFrontmatter(raw) {
+  const match = raw.match(/^---\r?\n([\s\S]*?)\r?\n---\r?\n?([\s\S]*)$/);
+  if (!match) return { frontmatter: {}, body: raw.trim() };
+
+  const frontmatterText = match[1];
+  const body = match[2].trim();
+  const lines = frontmatterText.split(/\r?\n/);
+  const result = {};
+  let currentListKey = null;
+
+  for (const line of lines) {
+    const listMatch = line.match(/^\s*-\s+(.*)$/);
+    if (listMatch && currentListKey) {
+      let itemVal = listMatch[1].trim();
+      if ((itemVal.startsWith('"') && itemVal.endsWith('"')) || (itemVal.startsWith("'") && itemVal.endsWith("'"))) {
+        itemVal = itemVal.slice(1, -1);
+      }
+      result[currentListKey].push(itemVal);
+      continue;
+    }
+
+    const colonIdx = line.indexOf(':');
+    if (colonIdx === -1) continue;
+    const key = line.slice(0, colonIdx).trim();
+    let val = line.slice(colonIdx + 1).trim();
+
+    if (!val) {
+      currentListKey = key;
+      result[key] = [];
+      continue;
+    }
+
+    currentListKey = null;
+    if ((val.startsWith('"') && val.endsWith('"')) || (val.startsWith("'") && val.endsWith("'"))) {
+      val = val.slice(1, -1);
+    }
+    result[key] = val;
+  }
+
+  return { frontmatter: result, body };
+}
+
+function parseYamlArray(val, fallback = []) {
+  if (Array.isArray(val)) return val;
+  if (!val) return fallback;
+  try {
+    const parsed = JSON.parse(val);
+    if (Array.isArray(parsed)) return parsed;
+  } catch {
+    // fallback to comma-separated parsing
+  }
+  return String(val)
+    .replace(/^\[|\]$/g, '')
+    .split(',')
+    .map((s) => s.trim().replace(/^["']|["']$/g, ''))
+    .filter(Boolean);
+}
+
 function parseMarkdownFile(filePath) {
   const raw = fs.readFileSync(filePath, 'utf8');
   const slug = path.basename(filePath, '.md');
-  const match = raw.match(/^---\r?\n([\s\S]*?)\r?\n---\r?\n([\s\S]*)$/);
+  const { frontmatter, body } = parseYamlFrontmatter(raw);
 
-  const meta = {
+  return {
     slug,
-    title: slug,
-    date: '2026-10-15',
-    category: 'Data Analytics & BI',
-    readTime: '5 min read',
-    author: 'John Oruebi Eniekpo',
-    coverImage: '/assets/dashboard-preview.jpg',
-    summary: '',
-    tags: ['Python', 'SQL', 'Power BI'],
-    featured: false
+    title: frontmatter.title || slug,
+    date: frontmatter.date || '2026-10-15',
+    category: frontmatter.category || 'Data Analytics & BI',
+    readTime: frontmatter.readTime || '5 min read',
+    author: frontmatter.author || 'John Oruebi Eniekpo',
+    coverImage: frontmatter.coverImage || '/assets/dashboard-preview.jpg',
+    summary: frontmatter.summary || '',
+    tags: parseYamlArray(frontmatter.tags, ['Python', 'SQL', 'Power BI']),
+    featured: String(frontmatter.featured) === 'true',
+    body
   };
-
-  let body = raw;
-  if (match) {
-    const frontmatter = match[1];
-    body = match[2].trim();
-    const lines = frontmatter.split(/\r?\n/);
-    for (const line of lines) {
-      const colonIdx = line.indexOf(':');
-      if (colonIdx === -1) continue;
-      const key = line.slice(0, colonIdx).trim();
-      let val = line.slice(colonIdx + 1).trim();
-      if (val.startsWith('"') && val.endsWith('"')) {
-        val = val.slice(1, -1);
-      }
-      if (key === 'tags') {
-        try {
-          meta.tags = JSON.parse(val);
-        } catch {
-          meta.tags = val
-            .replace(/^\[|\]$/g, '')
-            .split(',')
-            .map((s) => s.trim().replace(/^["']|["']$/g, ''))
-            .filter(Boolean);
-        }
-      } else if (key === 'featured') {
-        meta.featured = val === 'true';
-      } else if (key in meta) {
-        meta[key] = val;
-      }
-    }
-  }
-
-  return { ...meta, body };
 }
 
 function writeMarkdownFile(slug, data) {
@@ -453,12 +483,7 @@ function writeMarkdownFile(slug, data) {
     .replace(/[^a-z0-9-_]/g, '-')
     .replace(/-+/g, '-')
     .replace(/^-|-$/g, '');
-  const tagsArray = Array.isArray(data.tags)
-    ? data.tags
-    : String(data.tags || 'Python, SQL')
-        .split(',')
-        .map((t) => t.trim())
-        .filter(Boolean);
+  const tagsArray = parseYamlArray(data.tags, ['Python', 'SQL']);
 
   const content = `---
 title: "${String(data.title || 'Untitled Article').replace(/"/g, '\\"')}"
@@ -484,6 +509,70 @@ function getAllBlogPosts() {
   const files = fs.readdirSync(BLOG_DIR).filter((f) => f.endsWith('.md'));
   const posts = files.map((f) => parseMarkdownFile(path.join(BLOG_DIR, f)));
   return posts.sort((a, b) => (a.date < b.date ? 1 : -1));
+}
+
+function parsePortfolioMarkdownFile(filePath) {
+  const raw = fs.readFileSync(filePath, 'utf8');
+  const slug = path.basename(filePath, '.md');
+  const { frontmatter, body } = parseYamlFrontmatter(raw);
+  const demoUrl = frontmatter.demo_url ?? frontmatter.live_url ?? '';
+
+  return {
+    id: slug,
+    slug,
+    title: frontmatter.title || slug,
+    date: frontmatter.date || '2026-10-15',
+    category: frontmatter.category || 'Data Analytics & BI',
+    organization: frontmatter.organization || 'YOLETECH',
+    period: frontmatter.period || '2026',
+    preview_image: frontmatter.preview_image || '/assets/dashboard-preview.jpg',
+    demo_url: demoUrl,
+    live_url: demoUrl,
+    github_url: frontmatter.github_url || 'https://github.com/Eniekpo',
+    impact_metrics: frontmatter.impact_metrics || '',
+    tech_stack: parseYamlArray(frontmatter.tech_stack, ['Python', 'SQL', 'Power BI']),
+    featured: frontmatter.featured === undefined ? true : String(frontmatter.featured) === 'true',
+    summary: frontmatter.summary || '',
+    body
+  };
+}
+
+function writePortfolioMarkdownFile(slug, data) {
+  const safeSlug = String(slug || data.title || 'project')
+    .toLowerCase()
+    .replace(/[^a-z0-9-_]/g, '-')
+    .replace(/-+/g, '-')
+    .replace(/^-|-$/g, '');
+  const techStackArray = parseYamlArray(data.tech_stack, ['Python', 'SQL']);
+  const demoUrl = data.demo_url ?? data.live_url ?? '';
+
+  const content = `---
+title: "${String(data.title || 'Untitled Project').replace(/"/g, '\\"')}"
+date: "${data.date || new Date().toISOString().slice(0, 10)}"
+category: "${data.category || 'Data Analytics & BI'}"
+organization: "${String(data.organization || 'YOLETECH').replace(/"/g, '\\"')}"
+period: "${String(data.period || '2026').replace(/"/g, '\\"')}"
+preview_image: "${data.preview_image || '/assets/dashboard-preview.jpg'}"
+demo_url: "${String(demoUrl).replace(/"/g, '\\"')}"
+github_url: "${String(data.github_url || 'https://github.com/Eniekpo').replace(/"/g, '\\"')}"
+impact_metrics: "${String(data.impact_metrics || '').replace(/"/g, '\\"')}"
+tech_stack: ${JSON.stringify(techStackArray)}
+featured: ${data.featured === false ? 'false' : 'true'}
+summary: "${String(data.summary || '').replace(/"/g, '\\"')}"
+---
+
+${data.body || ''}
+`;
+  const filePath = path.join(PORTFOLIO_DIR, `${safeSlug}.md`);
+  fs.writeFileSync(filePath, content, 'utf8');
+  return parsePortfolioMarkdownFile(filePath);
+}
+
+function getAllPortfolioProjects() {
+  if (!fs.existsSync(PORTFOLIO_DIR)) return [];
+  const files = fs.readdirSync(PORTFOLIO_DIR).filter((f) => f.endsWith('.md'));
+  const projects = files.map((f) => parsePortfolioMarkdownFile(path.join(PORTFOLIO_DIR, f)));
+  return projects.sort((a, b) => (a.date < b.date ? 1 : -1));
 }
 
 // ============================================================================
@@ -817,19 +906,9 @@ const server = http.createServer(async (req, res) => {
       return sendJson(res, 200, { deleted: true });
     }
 
-    // --- PORTFOLIO PROJECTS ENDPOINTS ---
+    // --- PORTFOLIO PROJECTS ENDPOINTS (DECAP BRIDGE MARKDOWN /content/portfolio/*.md) ---
     if (pathname === '/api/portfolio' && req.method === 'GET') {
-      const rows = db.prepare('SELECT * FROM portfolio_projects ORDER BY id ASC').all();
-      const projects = rows.map((r) => ({
-        ...r,
-        tech_stack: (() => {
-          try {
-            return JSON.parse(r.tech_stack);
-          } catch {
-            return String(r.tech_stack).split(',').map((s) => s.trim());
-          }
-        })()
-      }));
+      const projects = getAllPortfolioProjects();
       return sendJson(res, 200, { projects });
     }
 
@@ -839,33 +918,12 @@ const server = http.createServer(async (req, res) => {
         return sendJson(res, 403, { error: 'Admin access required.' });
       }
       const body = await parseBody(req);
-      const techStack = Array.isArray(body.tech_stack)
-        ? JSON.stringify(body.tech_stack)
-        : JSON.stringify(
-            String(body.tech_stack || 'Python, SQL')
-              .split(',')
-              .map((s) => s.trim())
-              .filter(Boolean)
-          );
-      const info = db
-        .prepare(
-          `INSERT INTO portfolio_projects (title, category, organization, period, summary, impact_metrics, tech_stack, preview_image, live_url, github_url, featured)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1)`
-        )
-        .run(
-          body.title,
-          body.category || 'Data Analytics & BI',
-          body.organization || 'YOLETECH',
-          body.period || '2026',
-          body.summary || '',
-          body.impact_metrics || '',
-          techStack,
-          body.preview_image || '/assets/dashboard-preview.jpg',
-          body.live_url || 'https://github.com/Eniekpo',
-          body.github_url || 'https://github.com/Eniekpo'
-        );
-      const created = db.prepare('SELECT * FROM portfolio_projects WHERE id = ?').get(info.lastInsertRowid);
-      return sendJson(res, 201, { project: created });
+      if (!body.title) {
+        return sendJson(res, 400, { error: 'Project title is required.' });
+      }
+      const slug = body.slug || body.title;
+      const project = writePortfolioMarkdownFile(slug, body);
+      return sendJson(res, 201, { project });
     }
 
     if (pathname.startsWith('/api/portfolio/') && req.method === 'PUT') {
@@ -873,41 +931,17 @@ const server = http.createServer(async (req, res) => {
       if (!user || user.role !== 'ADMIN') {
         return sendJson(res, 403, { error: 'Admin access required.' });
       }
-      const id = Number(pathname.split('/').pop());
-      const existing = db.prepare('SELECT * FROM portfolio_projects WHERE id = ?').get(id);
-      if (!existing) return sendJson(res, 404, { error: 'Project not found.' });
+      const slug = path.basename(decodeURIComponent(pathname.split('/').pop()));
+      const existingPath = path.join(PORTFOLIO_DIR, `${slug}.md`);
+      const existingData = fs.existsSync(existingPath) ? parsePortfolioMarkdownFile(existingPath) : {};
       const body = await parseBody(req);
-      const techStack = body.tech_stack
-        ? Array.isArray(body.tech_stack)
-          ? JSON.stringify(body.tech_stack)
-          : JSON.stringify(
-              String(body.tech_stack)
-                .split(',')
-                .map((s) => s.trim())
-                .filter(Boolean)
-            )
-        : existing.tech_stack;
-
-      db.prepare(
-        `UPDATE portfolio_projects
-         SET title = ?, category = ?, organization = ?, period = ?, summary = ?, impact_metrics = ?, tech_stack = ?, preview_image = ?, live_url = ?, github_url = ?, featured = ?
-         WHERE id = ?`
-      ).run(
-        body.title ?? existing.title,
-        body.category ?? existing.category,
-        body.organization ?? existing.organization,
-        body.period ?? existing.period,
-        body.summary ?? existing.summary,
-        body.impact_metrics ?? existing.impact_metrics,
-        techStack,
-        body.preview_image ?? existing.preview_image,
-        body.live_url ?? existing.live_url,
-        body.github_url ?? existing.github_url,
-        body.featured ?? existing.featured,
-        id
-      );
-      const updated = db.prepare('SELECT * FROM portfolio_projects WHERE id = ?').get(id);
-      return sendJson(res, 200, { project: updated });
+      const merged = {
+        ...existingData,
+        ...body,
+        featured: body.featured !== undefined ? body.featured : existingData.featured
+      };
+      const project = writePortfolioMarkdownFile(slug, merged);
+      return sendJson(res, 200, { project });
     }
 
     if (pathname.startsWith('/api/portfolio/') && req.method === 'DELETE') {
@@ -915,8 +949,11 @@ const server = http.createServer(async (req, res) => {
       if (!user || user.role !== 'ADMIN') {
         return sendJson(res, 403, { error: 'Admin access required.' });
       }
-      const id = Number(pathname.split('/').pop());
-      db.prepare('DELETE FROM portfolio_projects WHERE id = ?').run(id);
+      const slug = path.basename(decodeURIComponent(pathname.split('/').pop()));
+      const filePath = path.join(PORTFOLIO_DIR, `${slug}.md`);
+      if (fs.existsSync(filePath)) {
+        fs.unlinkSync(filePath);
+      }
       return sendJson(res, 200, { deleted: true });
     }
 
