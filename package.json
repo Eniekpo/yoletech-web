@@ -7,6 +7,9 @@
     "start": "node server/index.js",
     "dev": "node server/index.js"
   },
-  "author": "John Oruebi Eniekpo, B.Sc. <yoletech@yolestica.com>",
-  "license": "MIT"
+  "author": "John Oruebi Eniekpo, B.Sc. <yoletech@yoletica.com>",
+  "license": "MIT",
+  "engines": {
+    "node": ">=20.x"
+  }
 }

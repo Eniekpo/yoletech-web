@@ -3,10 +3,16 @@ const fs = require('node:fs');
 const path = require('node:path');
 const crypto = require('node:crypto');
 const os = require('node:os');
-const { DatabaseSync } = require('node:sqlite');
+let DatabaseSync = null;
+try {
+  ({ DatabaseSync } = require('node:sqlite'));
+} catch {
+  DatabaseSync = null;
+}
 
 const PORT = process.env.PORT || 4000;
 const JWT_SECRET = process.env.JWT_SECRET || 'yoletech-super-secret-jwt-key-2026-eniekpo';
+const ADMIN_NOTIFY_EMAIL = process.env.ADMIN_NOTIFY_EMAIL || 'yoletech@yoletica.com';
 const DB_PATH = path.join(__dirname, 'yoletech.db');
 const PUBLIC_DIR = path.join(__dirname, '..', 'public');
 const BLOG_DIR = path.join(__dirname, '..', 'content', 'blog');
@@ -73,7 +79,286 @@ function verifyToken(token) {
 // ============================================================================
 // 2. OPEN-SOURCE SQLITE DATABASE INITIALIZATION & SEEDING
 // ============================================================================
+// Pure-JS JSON Fallback Store when node:sqlite is unavailable (e.g. Vercel Node 18/20 runtime)
+function createJsonFallbackDatabase() {
+  const storePath = path.join(os.tmpdir(), 'yoletech_fallback_store.json');
+  let state = {
+    users: [],
+    inquiries: [],
+    portfolio_projects: [],
+    testimonials: [],
+    seq: { users: 1, inquiries: 1, portfolio_projects: 1, testimonials: 1 }
+  };
+
+  const loadState = () => {
+    try {
+      if (fs.existsSync(storePath)) {
+        state = JSON.parse(fs.readFileSync(storePath, 'utf8'));
+      }
+    } catch {
+      // ignore read errors
+    }
+  };
+
+  const saveState = () => {
+    try {
+      fs.writeFileSync(storePath, JSON.stringify(state, null, 2), 'utf8');
+    } catch {
+      // ignore write errors
+    }
+  };
+
+  loadState();
+
+  return {
+    exec() {},
+    prepare(sql) {
+      const norm = sql.replace(/\s+/g, ' ').trim();
+      return {
+        get(...args) {
+          loadState();
+          if (/SELECT COUNT\(\*\) as count FROM (\w+)/i.test(norm)) {
+            const table = RegExp.$1;
+            return { count: (state[table] || []).length };
+          }
+          if (/FROM users WHERE email = \?/i.test(norm)) {
+            const email = String(args[0] || '').toLowerCase();
+            return state.users.find((u) => String(u.email).toLowerCase() === email) || undefined;
+          }
+          if (/FROM (\w+) WHERE id = \?/i.test(norm)) {
+            const table = RegExp.$1;
+            const id = Number(args[0]);
+            return (state[table] || []).find((r) => Number(r.id) === id) || undefined;
+          }
+          return undefined;
+        },
+        all(...args) {
+          loadState();
+          if (/FROM inquiries WHERE user_id = \? OR email = \?/i.test(norm)) {
+            const uid = Number(args[0]);
+            const email = String(args[1] || '').toLowerCase();
+            return [...state.inquiries]
+              .filter((r) => Number(r.user_id) === uid || String(r.email).toLowerCase() === email)
+              .sort((a, b) => b.id - a.id);
+          }
+          if (/FROM testimonials WHERE approved = 1/i.test(norm)) {
+            return [...state.testimonials].filter((t) => Number(t.approved) === 1).sort((a, b) => b.id - a.id);
+          }
+          if (/FROM (\w+)/i.test(norm)) {
+            const table = RegExp.$1;
+            return [...(state[table] || [])].sort((a, b) => b.id - a.id);
+          }
+          return [];
+        },
+        run(...args) {
+          loadState();
+          const now = new Date().toISOString().replace('T', ' ').slice(0, 19);
+
+          if (/INSERT INTO users/i.test(norm)) {
+            const id = state.seq.users++;
+            let row;
+            if (args.length === 10) {
+              row = {
+                id,
+                name: args[0],
+                email: args[1],
+                password_hash: args[2],
+                phone: args[3],
+                company: args[4],
+                service_interest: args[5],
+                role: args[6],
+                status: args[7],
+                admin_notes: args[8],
+                created_at: args[9] || now
+              };
+            } else if (args.length === 6) {
+              row = {
+                id,
+                name: args[0],
+                email: args[1],
+                password_hash: args[2],
+                phone: args[3],
+                company: args[4],
+                service_interest: args[5],
+                role: 'CLIENT',
+                status: 'ACTIVE',
+                admin_notes: 'Registered via YOLETECH Client Portal',
+                created_at: now
+              };
+            } else {
+              row = {
+                id,
+                name: args[0],
+                email: args[1],
+                password_hash: args[2],
+                phone: args[3],
+                company: args[4],
+                service_interest: args[5],
+                role: 'CLIENT',
+                status: args[6] || 'ACTIVE',
+                admin_notes: args[7] || '',
+                created_at: now
+              };
+            }
+            state.users.push(row);
+            saveState();
+            return { lastInsertRowid: id };
+          }
+
+          if (/UPDATE users SET name = \?, phone = \?, company = \?, service_interest = \? WHERE id = \?/i.test(norm)) {
+            const id = Number(args[4]);
+            const u = state.users.find((x) => Number(x.id) === id);
+            if (u) {
+              u.name = args[0];
+              u.phone = args[1];
+              u.company = args[2];
+              u.service_interest = args[3];
+              saveState();
+            }
+            return { changes: u ? 1 : 0 };
+          }
+
+          if (/UPDATE users SET name = \?, phone = \?, company = \?, service_interest = \?, status = \?, admin_notes = \? WHERE id = \?/i.test(norm)) {
+            const id = Number(args[6]);
+            const u = state.users.find((x) => Number(x.id) === id);
+            if (u) {
+              u.name = args[0];
+              u.phone = args[1];
+              u.company = args[2];
+              u.service_interest = args[3];
+              u.status = args[4];
+              u.admin_notes = args[5];
+              saveState();
+            }
+            return { changes: u ? 1 : 0 };
+          }
+
+          if (/INSERT INTO inquiries/i.test(norm)) {
+            const id = state.seq.inquiries++;
+            let row;
+            if (args.length >= 11) {
+              row = {
+                id,
+                user_id: args[0],
+                name: args[1],
+                email: args[2],
+                phone: args[3],
+                service_category: args[4],
+                budget: args[5],
+                message: args[6],
+                status: args[7],
+                project_progress: args[8],
+                admin_response: args[9],
+                created_at: args[10] || now
+              };
+            } else {
+              row = {
+                id,
+                user_id: args[0],
+                name: args[1],
+                email: args[2],
+                phone: args[3],
+                service_category: args[4],
+                budget: args[5],
+                message: args[6],
+                status: 'NEW',
+                project_progress: 10,
+                admin_response: '',
+                created_at: now
+              };
+            }
+            state.inquiries.push(row);
+            saveState();
+            return { lastInsertRowid: id };
+          }
+
+          if (/UPDATE inquiries SET status = \?, project_progress = \?, admin_response = \? WHERE id = \?/i.test(norm)) {
+            const id = Number(args[3]);
+            const inq = state.inquiries.find((x) => Number(x.id) === id);
+            if (inq) {
+              inq.status = args[0];
+              inq.project_progress = args[1];
+              inq.admin_response = args[2];
+              saveState();
+            }
+            return { changes: inq ? 1 : 0 };
+          }
+
+          if (/INSERT INTO portfolio_projects/i.test(norm)) {
+            const id = state.seq.portfolio_projects++;
+            state.portfolio_projects.push({
+              id,
+              title: args[0],
+              category: args[1],
+              organization: args[2],
+              period: args[3],
+              summary: args[4],
+              impact_metrics: args[5],
+              tech_stack: args[6],
+              preview_image: args[7],
+              live_url: args[8],
+              github_url: args[9],
+              featured: args[10],
+              created_at: now
+            });
+            saveState();
+            return { lastInsertRowid: id };
+          }
+
+          if (/INSERT INTO testimonials/i.test(norm)) {
+            const id = state.seq.testimonials++;
+            state.testimonials.push({
+              id,
+              author_name: args[0],
+              author_role: args[1],
+              company: args[2],
+              service_track: args[3],
+              rating: args[4],
+              content: args[5],
+              approved: args[6],
+              created_at: now
+            });
+            saveState();
+            return { lastInsertRowid: id };
+          }
+
+          if (/UPDATE testimonials/i.test(norm)) {
+            const id = Number(args[7]);
+            const t = state.testimonials.find((x) => Number(x.id) === id);
+            if (t) {
+              t.author_name = args[0];
+              t.author_role = args[1];
+              t.company = args[2];
+              t.service_track = args[3];
+              t.rating = args[4];
+              t.content = args[5];
+              t.approved = args[6];
+              saveState();
+            }
+            return { changes: t ? 1 : 0 };
+          }
+
+          if (/DELETE FROM (\w+) WHERE id = \?/i.test(norm)) {
+            const table = RegExp.$1;
+            const id = Number(args[0]);
+            if (Array.isArray(state[table])) {
+              state[table] = state[table].filter((x) => Number(x.id) !== id);
+              saveState();
+            }
+            return { changes: 1 };
+          }
+
+          return { lastInsertRowid: 0, changes: 0 };
+        }
+      };
+    }
+  };
+}
+
 function openDatabase() {
+  if (!DatabaseSync) {
+    return createJsonFallbackDatabase();
+  }
   if (process.env.VERCEL) {
     try {
       const tmpDbPath = path.join(os.tmpdir(), 'yoletech.db');
@@ -82,7 +367,7 @@ function openDatabase() {
       }
       return new DatabaseSync(tmpDbPath);
     } catch {
-      return new DatabaseSync(':memory:');
+      return createJsonFallbackDatabase();
     }
   }
   try {
@@ -90,14 +375,13 @@ function openDatabase() {
     instance.exec('PRAGMA journal_mode = WAL;');
     return instance;
   } catch {
-    return new DatabaseSync(':memory:');
+    return createJsonFallbackDatabase();
   }
 }
 
 const db = openDatabase();
 
 db.exec(`
-
   CREATE TABLE IF NOT EXISTS users (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     name TEXT NOT NULL,
@@ -156,81 +440,121 @@ db.exec(`
   );
 `);
 
-function seedDatabase() {
-  // 1. Seed Admin & Sample Registered Clients
-  const userCount = db.prepare('SELECT COUNT(*) as count FROM users').get().count;
-  if (userCount === 0) {
-    const insertUser = db.prepare(`
+function ensureAccount(account) {
+  const existing = db.prepare('SELECT id FROM users WHERE email = ?').get(account.email.toLowerCase());
+  if (!existing) {
+    db.prepare(`
       INSERT INTO users (name, email, password_hash, phone, company, service_interest, role, status, admin_notes, created_at)
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    `);
-
-    // Master Admin Account (John Oruebi Eniekpo)
-    insertUser.run(
-      'John Oruebi Eniekpo',
-      'yoletech@yolestica.com',
-      hashPassword('YoleTech@2026#Admin'),
-      '+234 802 552 6389',
-      'YOLETECH Headquarters',
-      'Full-Stack, BI & AI Architecture',
-      'ADMIN',
-      'ACTIVE',
-      'Master Administrator & Founder Account.',
-      '2026-01-10 09:00:00'
+    `).run(
+      account.name,
+      account.email.toLowerCase(),
+      hashPassword(account.password),
+      account.phone,
+      account.company,
+      account.service_interest,
+      account.role,
+      account.status,
+      account.admin_notes,
+      account.created_at
     );
+  }
+}
 
-    // Registered clients
-    insertUser.run(
-      'Engr. Ebiowei Dickson',
-      'ebiowei@bayelsatechventures.ng',
-      hashPassword('Client@2026'),
-      '+234 806 118 3340',
-      'Bayelsa Tech Ventures',
-      'Full-Stack Web Development',
-      'CLIENT',
-      'ACTIVE',
-      'React.js + SQL client operations portal and automated reporting integration.',
-      '2026-09-02 14:15:00'
-    );
+function seedDatabase() {
+  // Always ensure Master Admin accounts (both yoletech@yoletica.com and yoletech@yolestica.com) & Demo Client exist
+  ensureAccount({
+    name: 'John Oruebi Eniekpo',
+    email: 'yoletech@yoletica.com',
+    password: 'YoleTech@2026#Admin',
+    phone: '+234 802 552 6389',
+    company: 'YOLETECH Headquarters',
+    service_interest: 'Full-Stack, BI & AI Architecture',
+    role: 'ADMIN',
+    status: 'ACTIVE',
+    admin_notes: 'Master Administrator & Founder Account.',
+    created_at: '2026-01-10 09:00:00'
+  });
 
-    insertUser.run(
-      'Amaka Nwosu',
-      'a.nwosu@primelogistics.com',
-      hashPassword('Client@2026'),
-      '+234 812 904 5512',
-      'Prime Logistics & Supply Ltd',
-      'AI & Workflow Automation',
-      'CLIENT',
-      'ONBOARDING',
-      'Automating multi-departmental Excel VBA workbooks into SQL Server.',
-      '2026-09-21 16:40:00'
-    );
+  ensureAccount({
+    name: 'John Oruebi Eniekpo',
+    email: 'yoletech@yolestica.com',
+    password: 'YoleTech@2026#Admin',
+    phone: '+234 802 552 6389',
+    company: 'YOLETECH Headquarters',
+    service_interest: 'Full-Stack, BI & AI Architecture',
+    role: 'ADMIN',
+    status: 'ACTIVE',
+    admin_notes: 'Master Administrator & Founder Account.',
+    created_at: '2026-01-10 09:00:00'
+  });
 
-    insertUser.run(
-      'Marcus Vance',
-      'mvance@globaledumetrix.io',
-      hashPassword('Client@2026'),
-      '+44 7700 900412',
-      'Global EduMetrix (UK Remote)',
-      'Data Analytics & BI',
-      'CLIENT',
-      'COMPLETED',
-      'Delivered student performance predictive ML model & Tableau executive views.',
-      '2026-10-05 10:20:00'
-    );
+  ensureAccount({
+    name: 'Demo Client Partner',
+    email: 'client@example.com',
+    password: 'Client@2026',
+    phone: '+234 802 552 6389',
+    company: 'Demo Client Organization',
+    service_interest: 'Data Analytics & BI',
+    role: 'CLIENT',
+    status: 'ACTIVE',
+    admin_notes: 'Demo Client Account for portal testing.',
+    created_at: '2026-09-01 10:00:00'
+  });
 
-    insertUser.run(
-      'Preye Alagoa',
-      'preye.alagoa@sulphilcohort.org',
-      hashPassword('Client@2026'),
-      '+234 705 339 8172',
-      'SulPhil Analytics Cohort Alumni',
-      'Tech Tutorials & Mentorship',
-      'CLIENT',
-      'ACTIVE',
-      'Corporate team training in Python (Pandas), SQL querying, and Power BI.',
-      '2026-10-19 08:50:00'
-    );
+  const userCount = db.prepare('SELECT COUNT(*) as count FROM users').get().count;
+  if (userCount <= 3) {
+    ensureAccount({
+      name: 'Engr. Ebiowei Dickson',
+      email: 'ebiowei@bayelsatechventures.ng',
+      password: 'Client@2026',
+      phone: '+234 806 118 3340',
+      company: 'Bayelsa Tech Ventures',
+      service_interest: 'Full-Stack Web Development',
+      role: 'CLIENT',
+      status: 'ACTIVE',
+      admin_notes: 'React.js + SQL client operations portal and automated reporting integration.',
+      created_at: '2026-09-02 14:15:00'
+    });
+
+    ensureAccount({
+      name: 'Amaka Nwosu',
+      email: 'a.nwosu@primelogistics.com',
+      password: 'Client@2026',
+      phone: '+234 812 904 5512',
+      company: 'Prime Logistics & Supply Ltd',
+      service_interest: 'AI & Workflow Automation',
+      role: 'CLIENT',
+      status: 'ONBOARDING',
+      admin_notes: 'Automating multi-departmental Excel VBA workbooks into SQL Server.',
+      created_at: '2026-09-21 16:40:00'
+    });
+
+    ensureAccount({
+      name: 'Marcus Vance',
+      email: 'mvance@globaledumetrix.io',
+      password: 'Client@2026',
+      phone: '+44 7700 900412',
+      company: 'Global EduMetrix (UK Remote)',
+      service_interest: 'Data Analytics & BI',
+      role: 'CLIENT',
+      status: 'COMPLETED',
+      admin_notes: 'Delivered student performance predictive ML model & Tableau executive views.',
+      created_at: '2026-10-05 10:20:00'
+    });
+
+    ensureAccount({
+      name: 'Preye Alagoa',
+      email: 'preye.alagoa@sulphilcohort.org',
+      password: 'Client@2026',
+      phone: '+234 705 339 8172',
+      company: 'SulPhil Analytics Cohort Alumni',
+      service_interest: 'Tech Tutorials & Mentorship',
+      role: 'CLIENT',
+      status: 'ACTIVE',
+      admin_notes: 'Corporate team training in Python (Pandas), SQL querying, and Power BI.',
+      created_at: '2026-10-19 08:50:00'
+    });
   }
 
   // 2. Seed Inquiries
@@ -260,7 +584,7 @@ function seedDatabase() {
       'Amaka Nwosu',
       'a.nwosu@primelogistics.com',
       '+234 812 904 5512',
-      'AI & Automation',
+      'AI Automation',
       'AI Automation',
       'Our operations team spends 18 hours every week compiling 6 departmental Excel sheets. We want Excel VBA macros + Python SQL automation.',
       'NEW',
@@ -288,76 +612,6 @@ function seedDatabase() {
       JSON.stringify(['Power BI', 'Tableau', 'SQL', 'Python', 'Data Governance']),
       '/assets/dashboard-preview.jpg',
       'https://kaggle.com/Yoletech',
-      'https://github.com/Eniekpo',
-      1
-    );
-
-    insertProject.run(
-      'Student Performance & Institutional Resource Predictive Model',
-      'AI & Machine Learning',
-      'SulPhil Tech Hub',
-      '2022 – 2024',
-      'Developed machine learning and statistical forecasting models in Python (Pandas, Scikit-Learn), R, and SPSS to predict student academic outcomes and optimize institutional resource allocation.',
-      'Analyzed multi-year academic cohorts with high predictive accuracy for early intervention',
-      JSON.stringify(['Python', 'Pandas', 'Machine Learning', 'R', 'SPSS']),
-      '/assets/workflow-diagram.jpg',
-      'https://kaggle.com/Yoletech',
-      'https://github.com/Eniekpo',
-      1
-    );
-
-    insertProject.run(
-      'Automated Multi-Departmental Data & VBA Reporting Engine',
-      'AI & Workflow Automation',
-      'Feasibility Giant Company',
-      '2019 – 2021',
-      'Automated repetitive high-volume data processing workflows across multiple departments using Advanced Microsoft Excel VBA macros, custom scripts, and centralized SQL databases.',
-      'Drastically reduced manual report compilation time across organizational units',
-      JSON.stringify(['Excel VBA', 'SQL Server', 'MySQL', 'MS Access', 'Automation']),
-      '/assets/code-sync-preview.jpg',
-      'https://github.com/Eniekpo',
-      'https://github.com/Eniekpo',
-      1
-    );
-
-    insertProject.run(
-      'Multi-Departmental SQL Database & Data Governance Architecture',
-      'Data Analytics & BI',
-      'Feasibility Giant Company',
-      '2019 – 2021',
-      'Administered and updated SQL Server, MySQL, and Microsoft Access databases with end-to-end data validation, discrepancy resolution, and compliance auditing across organizational units.',
-      'Guaranteed 100% cross-departmental data consistency and scheduled academic research metrics',
-      JSON.stringify(['SQL Server', 'MySQL', 'Microsoft Access', 'Statistical Auditing']),
-      '/assets/dashboard-preview.jpg',
-      'https://github.com/Eniekpo',
-      'https://github.com/Eniekpo',
-      1
-    );
-
-    insertProject.run(
-      'Full-Stack Enterprise Web & Client Management Platform',
-      'Full-Stack Web',
-      'YOLETECH Digital Solutions',
-      '2024 – Present',
-      'Full-stack web application built with React.js, modern JavaScript, HTML/CSS, and relational SQL backend featuring role-based client portals, live analytics, and content management.',
-      'Sub-1.5s load time, JWT security, and real-time client CRM management',
-      JSON.stringify(['React.js', 'JavaScript', 'HTML5/CSS3', 'Node.js', 'SQL']),
-      '/assets/code-sync-preview.jpg',
-      'https://github.com/Eniekpo',
-      'https://github.com/Eniekpo',
-      1
-    );
-
-    insertProject.run(
-      'Data Analytics & Python/SQL Mentorship Curriculum (200+ Interns)',
-      'Tech Tutorials & Training',
-      'SulPhil Tech Hub',
-      '2021 – 2024',
-      'Structured hands-on technical training program and practical data workflows used to train and mentor over 200 interns in Python, SQL, Power BI, and statistical data analysis.',
-      '200+ interns trained and mentored into job-ready data analysts and developers',
-      JSON.stringify(['Python', 'SQL', 'Power BI', 'Excel', 'Technical Leadership']),
-      '/assets/workflow-diagram.jpg',
-      'https://youtube.com/@yole-tech',
       'https://github.com/Eniekpo',
       1
     );
@@ -414,6 +668,65 @@ function seedDatabase() {
 }
 
 seedDatabase();
+
+// Server-side Email Notification Dispatcher -> sends all emails to yoletech@yoletica.com
+async function sendEmailToYoletech({ subject, replyTo, fields }) {
+  const recipient = ADMIN_NOTIFY_EMAIL; // "yoletech@yoletica.com"
+  const results = { recipient, sent: false };
+
+  // 1. Optional Resend API if RESEND_API_KEY is configured in environment
+  if (process.env.RESEND_API_KEY) {
+    try {
+      const htmlRows = Object.entries(fields)
+        .map(([k, v]) => `<tr><td style="padding:8px 12px;border:1px solid #ddd;font-weight:bold;">${k}</td><td style="padding:8px 12px;border:1px solid #ddd;">${String(v || '')}</td></tr>`)
+        .join('');
+      const res = await fetch('https://api.resend.com/emails', {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${process.env.RESEND_API_KEY}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          from: process.env.RESEND_FROM_EMAIL || 'YOLETECH Portal <onboarding@resend.dev>',
+          to: [recipient, 'yoletech@yolestica.com'],
+          reply_to: replyTo || recipient,
+          subject,
+          html: `<h2>${subject}</h2><table style="border-collapse:collapse;width:100%;max-width:600px;">${htmlRows}</table>`
+        })
+      });
+      if (res.ok) results.sent = true;
+    } catch (err) {
+      console.warn('Resend dispatch warning:', err.message);
+    }
+  }
+
+  // 2. FormSubmit AJAX Relay to yoletech@yoletica.com (and CC yoletech@yolestica.com)
+  try {
+    const formPayload = {
+      _subject: subject,
+      _replyto: replyTo || '',
+      _cc: 'yoletech@yolestica.com',
+      _template: 'table',
+      _captcha: 'false',
+      ...fields
+    };
+    const res = await fetch(`https://formsubmit.co/ajax/${encodeURIComponent(recipient)}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Accept: 'application/json',
+        Origin: 'https://yolestica.com',
+        Referer: 'https://yolestica.com/contact'
+      },
+      body: JSON.stringify(formPayload)
+    });
+    if (res.ok) results.sent = true;
+  } catch (err) {
+    console.warn('FormSubmit relay warning:', err.message);
+  }
+
+  return results;
+}
 
 // ============================================================================
 // 3. DECAP CMS MARKDOWN PARSER & WRITER (/content/blog/*.md & /content/portfolio/*.md)
@@ -632,11 +945,31 @@ function getAuthUser(req) {
   const token = authHeader.slice(7);
   const payload = verifyToken(token);
   if (!payload) return null;
-  const user = db
-    .prepare(
-      'SELECT id, name, email, phone, company, service_interest, role, status, admin_notes, created_at FROM users WHERE id = ?'
-    )
-    .get(payload.id);
+  let user =
+    db
+      .prepare(
+        'SELECT id, name, email, phone, company, service_interest, role, status, admin_notes, created_at FROM users WHERE id = ?'
+      )
+      .get(payload.id) ||
+    (payload.email
+      ? db.prepare('SELECT id, name, email, phone, company, service_interest, role, status, admin_notes, created_at FROM users WHERE email = ?').get(String(payload.email).toLowerCase())
+      : null);
+
+  if (!user && payload.email) {
+    // Stateless serverless token fallback: reconstruct user from signed JWT
+    user = {
+      id: payload.id || Date.now(),
+      name: payload.name || payload.email.split('@')[0],
+      email: payload.email,
+      phone: payload.phone || '',
+      company: payload.company || '',
+      service_interest: payload.service_interest || 'Data Analytics & BI',
+      role: payload.role || 'CLIENT',
+      status: payload.status || 'ACTIVE',
+      admin_notes: '',
+      created_at: payload.created_at || new Date().toISOString().slice(0, 19).replace('T', ' ')
+    };
+  }
   return user || null;
 }
 
@@ -698,8 +1031,31 @@ const requestHandler = async (req, res) => {
           'SELECT id, name, email, phone, company, service_interest, role, status, created_at FROM users WHERE id = ?'
         )
         .get(info.lastInsertRowid);
-      const token = signToken({ id: user.id, email: user.email, role: user.role });
-      return sendJson(res, 201, { token, user });
+      const token = signToken({
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        phone: user.phone,
+        company: user.company,
+        service_interest: user.service_interest,
+        role: user.role,
+        status: user.status,
+        created_at: user.created_at
+      });
+      await sendEmailToYoletech({
+        subject: `[YOLETECH Client Registration] ${user.name} (${user.service_interest})`,
+        replyTo: user.email,
+        fields: {
+          Event: 'New Client Portal Registration',
+          'Client Name': user.name,
+          'Client Email': user.email,
+          'WhatsApp / Phone': user.phone || 'Not provided',
+          'Company / Organization': user.company || 'Independent Client',
+          'Primary Service Track': user.service_interest,
+          'Registered At': user.created_at
+        }
+      });
+      return sendJson(res, 201, { token, user, notifiedEmail: ADMIN_NOTIFY_EMAIL });
     }
 
     if (pathname === '/api/auth/login' && req.method === 'POST') {
@@ -724,7 +1080,17 @@ const requestHandler = async (req, res) => {
         status: userRecord.status,
         created_at: userRecord.created_at
       };
-      const token = signToken({ id: user.id, email: user.email, role: user.role });
+      const token = signToken({
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        phone: user.phone,
+        company: user.company,
+        service_interest: user.service_interest,
+        role: user.role,
+        status: user.status,
+        created_at: user.created_at
+      });
       return sendJson(res, 200, { token, user });
     }
 
@@ -890,7 +1256,19 @@ const requestHandler = async (req, res) => {
           message.trim()
         );
       const inquiry = db.prepare('SELECT * FROM inquiries WHERE id = ?').get(info.lastInsertRowid);
-      return sendJson(res, 201, { inquiry });
+      await sendEmailToYoletech({
+        subject: `[YOLETECH Project Inquiry] ${inquiry.service_category} — ${inquiry.name}`,
+        replyTo: inquiry.email,
+        fields: {
+          'Client Name': inquiry.name,
+          'Client Email': inquiry.email,
+          'WhatsApp / Phone': inquiry.phone || 'Not provided',
+          'Project Category': inquiry.service_category,
+          'Project Details & Goals': inquiry.message,
+          'Submitted At': inquiry.created_at
+        }
+      });
+      return sendJson(res, 201, { inquiry, notifiedEmail: ADMIN_NOTIFY_EMAIL });
     }
 
     if (pathname.startsWith('/api/inquiries/') && req.method === 'PUT') {

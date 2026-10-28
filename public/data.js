@@ -9,7 +9,7 @@ window.YOLETECH_DATA = {
     location: "Yenagoa, Bayelsa State, Nigeria",
     phone: "+234 802 552 6389",
     whatsappUrl: "https://wa.me/2348025526389",
-    email: "yoletech@yolestica.com",
+    email: "yoletech@yoletica.com",
     workingHours: "Mon - Fri, 9 AM - 6 PM (GMT+1)",
     socials: {
       linkedin: "https://linkedin.com/in/yolestica",
