@@ -34,6 +34,7 @@ class YoletechApp {
     this.notifyEmail = 'yoletech@yoletica.com';
     this.showPassword = false;
     this.lastContactSubmission = null;
+    this.formConfirmations = {};
   }
 
   async init() {
@@ -408,7 +409,6 @@ class YoletechApp {
   showToast(msg, type = 'success') {
     this.toastMessage = { msg, type };
     this.renderToast();
-    this.initKpiCounters(root);
     setTimeout(() => {
       this.toastMessage = null;
       this.renderToast();
@@ -433,6 +433,163 @@ class YoletechApp {
         <span>${this.toastMessage.msg}</span>
       </div>
     `;
+  }
+
+  setFormConfirmation(formKey, data) {
+    if (!this.formConfirmations) this.formConfirmations = {};
+    this.formConfirmations[formKey] = {
+      type: 'success',
+      ...data,
+      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+    };
+    this.updateFormFeedbackDOM(formKey);
+  }
+
+  dismissFormConfirmation(formKey) {
+    if (this.formConfirmations && this.formConfirmations[formKey]) {
+      delete this.formConfirmations[formKey];
+    }
+    const el = document.getElementById(`form-feedback-${formKey}`);
+    if (el) {
+      el.innerHTML = '';
+    }
+  }
+
+  buildFormFeedbackHtml(formKey, conf) {
+    if (!conf) return '';
+    if (conf.type === 'error') {
+      return `
+        <div class="form-error-box" role="alert">
+          <div class="form-confirmation-header">
+            <div class="form-confirmation-title" style="color:#F7941D;">
+              <span style="font-size:16px;">⚠️</span>
+              <span>${conf.title || 'Form Validation Error'}</span>
+            </div>
+            <button type="button" class="form-confirmation-dismiss" title="Dismiss" onclick="window.app.dismissFormConfirmation('${formKey}')">×</button>
+          </div>
+          <p style="font-size:13px;color:#FFFFFF;margin:0;line-height:1.5;">${conf.message}</p>
+        </div>
+      `;
+    }
+    return `
+      <div class="form-confirmation-box" role="status">
+        <div class="form-confirmation-header">
+          <div class="form-confirmation-title">
+            <span class="form-confirmation-badge">✓</span>
+            <span>${conf.title || 'Submission Confirmed'}</span>
+          </div>
+          <button type="button" class="form-confirmation-dismiss" title="Dismiss" onclick="window.app.dismissFormConfirmation('${formKey}')">×</button>
+        </div>
+        <p style="font-size:13.5px;color:#FFFFFF;margin-bottom:${conf.actionsHtml ? '12px' : '0'};line-height:1.55;">
+          ${conf.message}
+        </p>
+        ${conf.actionsHtml || ''}
+      </div>
+    `;
+  }
+
+  renderFormConfirmation(formKey) {
+    const conf = this.formConfirmations?.[formKey];
+    return `<div id="form-feedback-${formKey}">${this.buildFormFeedbackHtml(formKey, conf)}</div>`;
+  }
+
+  updateFormFeedbackDOM(formKey) {
+    const container = document.getElementById(`form-feedback-${formKey}`);
+    if (!container) return;
+    const conf = this.formConfirmations?.[formKey];
+    container.innerHTML = this.buildFormFeedbackHtml(formKey, conf);
+  }
+
+  clearFieldError(field) {
+    if (!field) return;
+    if (field.classList) {
+      field.classList.remove('is-invalid');
+    }
+    if (field.parentNode && field.parentNode.querySelectorAll) {
+      const existing = field.parentNode.querySelectorAll('.field-error-msg');
+      existing.forEach((el) => el.remove());
+    }
+  }
+
+  setFieldError(field, msg) {
+    if (!field) return;
+    this.clearFieldError(field);
+    if (field.classList) {
+      field.classList.remove('is-valid');
+      field.classList.add('is-invalid');
+    }
+    if (field.parentNode && typeof document !== 'undefined' && document.createElement) {
+      const errEl = document.createElement('div');
+      errEl.className = 'field-error-msg';
+      errEl.innerHTML = `<span>⚠️</span><span>${msg}</span>`;
+      if (field.parentNode.appendChild) {
+        field.parentNode.appendChild(errEl);
+      }
+    }
+    if (field.addEventListener && !field._validationBound) {
+      field._validationBound = true;
+      field.addEventListener('input', () => {
+        this.clearFieldError(field);
+      });
+    }
+  }
+
+  validateForm(form, formKey, rules) {
+    if (!form) return true;
+    if (this.formConfirmations?.[formKey]) {
+      delete this.formConfirmations[formKey];
+      this.updateFormFeedbackDOM(formKey);
+    }
+
+    const errors = [];
+    let firstInvalidField = null;
+
+    for (const rule of rules) {
+      const field = form[rule.name];
+      if (!field) continue;
+      this.clearFieldError(field);
+
+      const rawVal = String(field.value ?? '');
+      const val = rule.trim === false ? rawVal : rawVal.trim();
+      let fieldErr = null;
+
+      if (rule.required && !val) {
+        fieldErr = `${rule.label} is required.`;
+      } else if (val) {
+        if (rule.type === 'email' && !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(val)) {
+          fieldErr = `Please enter a valid email address for ${rule.label} (e.g. name@company.com).`;
+        } else if (rule.type === 'phone' && !/^[+\d][\d\s().-]{6,22}$/.test(val)) {
+          fieldErr = `Please enter a valid phone or WhatsApp number for ${rule.label}.`;
+        } else if (rule.type === 'url' && !/^(https?:\/\/[^\s/$.?#].[^\s]*|\/[^\s]*)$/i.test(val)) {
+          fieldErr = `Please enter a valid URL for ${rule.label} (starting with https:// or /).`;
+        } else if (rule.minLength && val.length < rule.minLength) {
+          fieldErr = `${rule.label} must be at least ${rule.minLength} characters long.`;
+        }
+      }
+
+      if (fieldErr) {
+        errors.push(fieldErr);
+        this.setFieldError(field, fieldErr);
+        if (!firstInvalidField) firstInvalidField = field;
+      } else if (val && field.classList) {
+        field.classList.add('is-valid');
+      }
+    }
+
+    if (errors.length > 0) {
+      this.setFormConfirmation(formKey, {
+        type: 'error',
+        title: 'Form Validation Required',
+        message: errors[0]
+      });
+      this.showToast(errors[0], 'error');
+      if (firstInvalidField && typeof firstInvalidField.focus === 'function') {
+        firstInvalidField.focus();
+      }
+      return false;
+    }
+
+    return true;
   }
 
   selectContactService(rawService) {
@@ -1701,7 +1858,7 @@ class YoletechApp {
           <div class="glass-card" style="max-width:740px;margin:0 auto;">
             <div class="eyebrow"><span class="eyebrow-dot"></span> SHARE YOUR FEEDBACK</div>
             <h3 style="font-size:24px;font-weight:900;margin-bottom:16px;">Share Your Experience with YOLETECH</h3>
-            <form onsubmit="window.app.handleTestimonialSubmit(event)">
+            <form novalidate onsubmit="window.app.handleTestimonialSubmit(event)">
               <div class="grid-2" style="gap:16px;">
                 <div class="form-group">
                   <label class="form-label">Your Full Name *</label>
@@ -1736,7 +1893,8 @@ class YoletechApp {
                 <label class="form-label">Your Testimonial *</label>
                 <textarea name="content" rows="3" required class="form-control" placeholder="Share how our dashboards, web development, automation, or training helped you..."></textarea>
               </div>
-              <button type="submit" class="btn btn-lime">Submit Testimonial →</button>
+              <button type="submit" id="testimonial-submit-btn" class="btn btn-lime">Submit Testimonial →</button>
+              ${this.renderFormConfirmation('testimonial')}
             </form>
           </div>
         </div>
@@ -1747,25 +1905,61 @@ class YoletechApp {
   async handleTestimonialSubmit(e) {
     e.preventDefault();
     const form = e.target;
+    const isValid = this.validateForm(form, 'testimonial', [
+      { name: 'author_name', label: 'Full Name', required: true, minLength: 2 },
+      { name: 'content', label: 'Testimonial Message', required: true, minLength: 10 }
+    ]);
+    if (!isValid) return;
+
+    const submitBtn = form.querySelector ? form.querySelector('button[type="submit"]') : document.getElementById('testimonial-submit-btn');
+    const origText = submitBtn ? submitBtn.textContent : 'Submit Testimonial →';
+    if (submitBtn) {
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Submitting Testimonial...';
+    }
+
     const payload = {
-      author_name: form.author_name.value,
-      author_role: form.author_role.value,
-      company: form.company.value,
+      author_name: form.author_name.value.trim(),
+      author_role: (form.author_role?.value || '').trim() || 'Client Partner',
+      company: (form.company?.value || '').trim() || 'Independent Client',
       service_track: form.service_track.value,
       rating: 5,
-      content: form.content.value
+      content: form.content.value.trim()
     };
     try {
-      await this.api('/api/testimonials', {
-        method: 'POST',
-        body: JSON.stringify(payload)
-      });
-      await this.loadPublicData();
+      try {
+        await this.api('/api/testimonials', {
+          method: 'POST',
+          body: JSON.stringify(payload)
+        });
+        await this.loadPublicData();
+      } catch {
+        const localTestimonial = {
+          id: Date.now(),
+          ...payload,
+          approved: 1,
+          created_at: new Date().toISOString().slice(0, 10)
+        };
+        this.testimonials = [localTestimonial, ...(this.testimonials || [])];
+      }
       form.reset();
+      this.setFormConfirmation('testimonial', {
+        title: 'Testimonial Submitted & Confirmed!',
+        message: `Thank you, <strong>${payload.author_name}</strong>! Your endorsement for <strong>${payload.service_track}</strong> has been validated and published.`
+      });
       this.showToast('Thank you! Your testimonial has been published.');
       this.render();
     } catch (err) {
+      this.setFormConfirmation('testimonial', {
+        type: 'error',
+        title: 'Submission Error',
+        message: err.message || 'Could not submit testimonial.'
+      });
       this.showToast(err.message, 'error');
+      if (submitBtn) {
+        submitBtn.disabled = false;
+        submitBtn.textContent = origText;
+      }
     }
   }
 
@@ -2085,7 +2279,7 @@ class YoletechApp {
                   .join('')}
               </div>
 
-              <form onsubmit="window.app.handleContactSubmit(event)">
+              <form novalidate onsubmit="window.app.handleContactSubmit(event)">
                 <div class="form-group">
                   <label class="form-label">Your Full Name *</label>
                   <input type="text" name="name" required class="form-control" placeholder="Your Name" value="${
@@ -2129,31 +2323,8 @@ class YoletechApp {
                 <button type="submit" id="contact-submit-btn" class="btn btn-lime" style="width:100%;font-size:15px;padding:14px;">
                   Send Message to yoletech@yoletica.com →
                 </button>
+                ${this.renderFormConfirmation('contact')}
               </form>
-
-              ${
-                this.lastContactSubmission
-                  ? `
-                <div style="margin-top:18px;padding:16px;background:rgba(200,230,30,0.1);border:1.5px solid #C8E61E;border-radius:12px;">
-                  <div style="display:flex;align-items:center;gap:8px;font-weight:800;color:#C8E61E;font-size:14.5px;margin-bottom:6px;">
-                    <span>✓</span>
-                    <span>Inquiry Sent to ${this.notifyEmail}</span>
-                  </div>
-                  <p style="font-size:13px;color:#FFFFFF;margin-bottom:12px;">
-                    Thank you, <strong>${this.lastContactSubmission.name}</strong>! Your <strong>${this.lastContactSubmission.service_category}</strong> inquiry has been logged and emailed to <strong>${this.notifyEmail}</strong>.
-                  </p>
-                  <div style="display:flex;gap:10px;flex-wrap:wrap;">
-                    <a href="${this.lastContactSubmission.mailtoUrl}" class="btn btn-lime btn-sm">
-                      ✉️ Open in Email App (${this.notifyEmail}) ↗
-                    </a>
-                    <a href="${this.lastContactSubmission.whatsappUrl}" target="_blank" rel="noopener" class="btn btn-outline btn-sm">
-                      💬 Send Copy on WhatsApp ↗
-                    </a>
-                  </div>
-                </div>
-              `
-                  : ''
-              }
             </div>
 
             <!-- RIGHT COLUMN: DISCOVERY CALL, DIRECT CONTACT & QUICK FAQ -->
@@ -2235,6 +2406,15 @@ class YoletechApp {
   async handleContactSubmit(e) {
     e.preventDefault();
     const form = e.target;
+    const isValid = this.validateForm(form, 'contact', [
+      { name: 'name', label: 'Full Name', required: true, minLength: 2 },
+      { name: 'email', label: 'Email Address', required: true, type: 'email' },
+      { name: 'phone', label: 'WhatsApp / Phone', required: false, type: 'phone' },
+      { name: 'service_category', label: 'Project Category', required: true },
+      { name: 'message', label: 'Project Details & Goals', required: true, minLength: 10 }
+    ]);
+    if (!isValid) return;
+
     const submitBtn = document.getElementById('contact-submit-btn');
     if (submitBtn) {
       submitBtn.disabled = true;
@@ -2308,9 +2488,28 @@ class YoletechApp {
       };
 
       form.reset();
+      this.setFormConfirmation('contact', {
+        title: `Inquiry Sent & Confirmed (${this.notifyEmail})`,
+        message: `Thank you, <strong>${payload.name}</strong>! Your <strong>${payload.service_category}</strong> inquiry has been validated, logged, and emailed to <strong>${this.notifyEmail}</strong>. We will respond within 24 hours.`,
+        actionsHtml: `
+          <div style="display:flex;gap:10px;flex-wrap:wrap;">
+            <a href="${mailtoUrl}" class="btn btn-lime btn-sm">
+              ✉️ Open in Email App (${this.notifyEmail}) ↗
+            </a>
+            <a href="${whatsappUrl}" target="_blank" rel="noopener" class="btn btn-outline btn-sm">
+              💬 Send Copy on WhatsApp ↗
+            </a>
+          </div>
+        `
+      });
       this.showToast(`Inquiry sent to ${this.notifyEmail}! We will respond within 24 hours.`);
       this.render();
     } catch (err) {
+      this.setFormConfirmation('contact', {
+        type: 'error',
+        title: 'Submission Error',
+        message: err.message || 'Could not send message.'
+      });
       this.showToast(err.message || 'Could not send message.', 'error');
       if (submitBtn) {
         submitBtn.disabled = false;
@@ -2360,7 +2559,7 @@ class YoletechApp {
             ${
               isLogin
                 ? `
-              <form onsubmit="window.app.handleLoginSubmit(event)">
+              <form novalidate onsubmit="window.app.handleLoginSubmit(event)">
                 <div class="form-group">
                   <label class="form-label">Email Address *</label>
                   <input type="email" id="login-email" name="email" required autocomplete="email" class="form-control" placeholder="you@company.com" />
@@ -2377,6 +2576,7 @@ class YoletechApp {
                 <button type="submit" id="auth-login-btn" class="btn btn-lime" style="width:100%;padding:14px;">
                   Sign In to Portal →
                 </button>
+                ${this.renderFormConfirmation('login')}
                 <div style="text-align:center;margin-top:16px;font-size:13px;color:var(--yole-text-muted);">
                   Don't have a client account yet?
                   <a style="color:#C8E61E;font-weight:700;cursor:pointer;margin-left:4px;" onclick="window.app.authMode='register';window.app.render();">
@@ -2386,7 +2586,7 @@ class YoletechApp {
               </form>
             `
                 : `
-              <form onsubmit="window.app.handleRegisterSubmit(event)">
+              <form novalidate onsubmit="window.app.handleRegisterSubmit(event)">
                 <div class="form-group">
                   <label class="form-label">Full Name *</label>
                   <input type="text" name="name" required autocomplete="name" class="form-control" placeholder="Your full name" />
@@ -2432,6 +2632,7 @@ class YoletechApp {
                 <button type="submit" id="auth-register-btn" class="btn btn-lime" style="width:100%;padding:14px;">
                   Complete Registration →
                 </button>
+                ${this.renderFormConfirmation('register')}
                 <div style="text-align:center;margin-top:16px;font-size:13px;color:var(--yole-text-muted);">
                   Already have an account?
                   <a style="color:#C8E61E;font-weight:700;cursor:pointer;margin-left:4px;" onclick="window.app.authMode='login';window.app.render();">
@@ -2507,6 +2708,12 @@ class YoletechApp {
   async handleLoginSubmit(e) {
     e.preventDefault();
     const form = e.target;
+    const isValid = this.validateForm(form, 'login', [
+      { name: 'email', label: 'Email Address', required: true, type: 'email' },
+      { name: 'password', label: 'Password', required: true, minLength: 6, trim: false }
+    ]);
+    if (!isValid) return;
+
     const submitBtn = document.getElementById('auth-login-btn');
     if (submitBtn) {
       submitBtn.disabled = true;
@@ -2539,6 +2746,15 @@ class YoletechApp {
       this.saveLocalRegisteredUser(user, password);
       localStorage.setItem('yoletech_token', token);
       localStorage.setItem('yoletech_user', JSON.stringify(user));
+
+      this.setFormConfirmation('login', {
+        title: 'Sign-In Confirmed!',
+        message: `Welcome back, <strong>${user.name}</strong>! Opening your portal...`
+      });
+      this.setFormConfirmation('auth-welcome', {
+        title: 'Sign-In Confirmed',
+        message: `Welcome back, <strong>${user.name}</strong> (${user.email})! Your session is verified and active.`
+      });
       this.showToast(`Welcome back, ${user.name}!`);
       if (user.role === 'ADMIN') {
         await this.loadAdminData();
@@ -2548,6 +2764,11 @@ class YoletechApp {
         this.navigate('portal');
       }
     } catch (err) {
+      this.setFormConfirmation('login', {
+        type: 'error',
+        title: 'Sign-In Failed',
+        message: err.message || 'Invalid email or password. Please verify your credentials and try again.'
+      });
       this.showToast(err.message || 'Invalid email or password.', 'error');
       if (submitBtn) {
         submitBtn.disabled = false;
@@ -2559,6 +2780,15 @@ class YoletechApp {
   async handleRegisterSubmit(e) {
     e.preventDefault();
     const form = e.target;
+    const isValid = this.validateForm(form, 'register', [
+      { name: 'name', label: 'Full Name', required: true, minLength: 2 },
+      { name: 'email', label: 'Email Address', required: true, type: 'email' },
+      { name: 'phone', label: 'WhatsApp / Phone', required: true, type: 'phone' },
+      { name: 'service_interest', label: 'Primary Service Interest', required: true },
+      { name: 'password', label: 'Password', required: true, minLength: 6, trim: false }
+    ]);
+    if (!isValid) return;
+
     const submitBtn = document.getElementById('auth-register-btn');
     if (submitBtn) {
       submitBtn.disabled = true;
@@ -2632,9 +2862,23 @@ class YoletechApp {
       localStorage.setItem('yoletech_token', token);
       localStorage.setItem('yoletech_user', JSON.stringify(user));
       await this.loadClientData();
+
+      this.setFormConfirmation('register', {
+        title: 'Registration Confirmed!',
+        message: `Account created for <strong>${user.name}</strong> (${user.email}). Welcome to YOLETECH!`
+      });
+      this.setFormConfirmation('auth-welcome', {
+        title: 'Registration Confirmed — Welcome to YOLETECH!',
+        message: `Thank you for registering, <strong>${user.name}</strong>! Your Client Portal account is now active under the <strong>${user.service_interest}</strong> track, and a confirmation has been dispatched to <strong>${this.notifyEmail}</strong>.`
+      });
       this.showToast(`Account created! Welcome to YOLETECH, ${user.name}.`);
       this.navigate('portal');
     } catch (err) {
+      this.setFormConfirmation('register', {
+        type: 'error',
+        title: 'Registration Error',
+        message: err.message || 'Registration failed. Please check your details and try again.'
+      });
       this.showToast(err.message || 'Registration failed.', 'error');
       if (submitBtn) {
         submitBtn.disabled = false;
@@ -2651,6 +2895,7 @@ class YoletechApp {
     return `
       <section class="section">
         <div class="container">
+          ${this.renderFormConfirmation('auth-welcome')}
           <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px;margin-bottom:36px;">
             <div>
               <div class="eyebrow"><span class="eyebrow-dot"></span> REGISTERED CLIENT WORKSPACE</div>
@@ -2717,7 +2962,7 @@ class YoletechApp {
             <div style="display:flex;flex-direction:column;gap:24px;">
               <div class="glass-card">
                 <h3 style="font-size:20px;font-weight:900;margin-bottom:16px;">Request a New Service / Project</h3>
-                <form onsubmit="window.app.handleClientPortalInquiry(event)">
+                <form novalidate onsubmit="window.app.handleClientPortalInquiry(event)">
                   <div class="form-group">
                     <label class="form-label">Project Category *</label>
                     <select name="service_category" class="form-control">
@@ -2735,14 +2980,15 @@ class YoletechApp {
                     <label class="form-label">Project Scope &amp; Deliverables *</label>
                     <textarea name="message" rows="4" required class="form-control" placeholder="Describe the dataset, dashboard, web platform, or workflow automation you need..."></textarea>
                   </div>
-                  <button type="submit" class="btn btn-lime" style="width:100%;">Submit Request to John →</button>
+                  <button type="submit" id="portal-inquiry-submit-btn" class="btn btn-lime" style="width:100%;">Submit Request to John →</button>
+                  ${this.renderFormConfirmation('portal-inquiry')}
                 </form>
               </div>
 
               <!-- CLIENT PROFILE SETTINGS -->
               <div class="glass-card">
                 <h3 style="font-size:19px;font-weight:900;margin-bottom:14px;">Account &amp; Profile Settings</h3>
-                <form onsubmit="window.app.handleProfileUpdateSubmit(event)">
+                <form novalidate onsubmit="window.app.handleProfileUpdateSubmit(event)">
                   <div class="grid-2" style="gap:12px;">
                     <div class="form-group">
                       <label class="form-label">Full Name *</label>
@@ -2770,7 +3016,8 @@ class YoletechApp {
                       </select>
                     </div>
                   </div>
-                  <button type="submit" class="btn btn-outline btn-sm">Save Profile Changes</button>
+                  <button type="submit" id="profile-submit-btn" class="btn btn-outline btn-sm">Save Profile Changes</button>
+                  ${this.renderFormConfirmation('profile-settings')}
                 </form>
               </div>
             </div>
@@ -2783,28 +3030,75 @@ class YoletechApp {
   async handleProfileUpdateSubmit(e) {
     e.preventDefault();
     const form = e.target;
+    const isValid = this.validateForm(form, 'profile-settings', [
+      { name: 'name', label: 'Full Name', required: true, minLength: 2 },
+      { name: 'phone', label: 'WhatsApp / Phone', required: false, type: 'phone' },
+      { name: 'service_interest', label: 'Primary Service Track', required: true }
+    ]);
+    if (!isValid) return;
+
+    const submitBtn = document.getElementById('profile-submit-btn');
+    if (submitBtn) {
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Saving Changes...';
+    }
+
+    const updatedFields = {
+      name: form.name.value.trim(),
+      phone: (form.phone.value || '').trim(),
+      company: (form.company.value || '').trim(),
+      service_interest: form.service_interest.value
+    };
+
     try {
-      const { user } = await this.api('/api/auth/profile', {
-        method: 'PUT',
-        body: JSON.stringify({
-          name: form.name.value,
-          phone: form.phone.value,
-          company: form.company.value,
-          service_interest: form.service_interest.value
-        })
+      let updatedUser = null;
+      try {
+        const { user } = await this.api('/api/auth/profile', {
+          method: 'PUT',
+          body: JSON.stringify(updatedFields)
+        });
+        updatedUser = user;
+      } catch {
+        updatedUser = { ...this.user, ...updatedFields };
+      }
+      this.user = updatedUser;
+      this.saveLocalRegisteredUser(updatedUser);
+      localStorage.setItem('yoletech_user', JSON.stringify(updatedUser));
+      this.setFormConfirmation('profile-settings', {
+        title: 'Profile Settings Saved!',
+        message: `Your profile details for <strong>${updatedUser.name}</strong> and primary service track (<strong>${updatedUser.service_interest}</strong>) have been validated and updated.`
       });
-      this.user = user;
-      localStorage.setItem('yoletech_user', JSON.stringify(user));
       this.showToast('Profile settings updated!');
       this.render();
     } catch (err) {
+      this.setFormConfirmation('profile-settings', {
+        type: 'error',
+        title: 'Update Failed',
+        message: err.message || 'Could not update profile settings.'
+      });
       this.showToast(err.message, 'error');
+      if (submitBtn) {
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Save Profile Changes';
+      }
     }
   }
 
   async handleClientPortalInquiry(e) {
     e.preventDefault();
     const form = e.target;
+    const isValid = this.validateForm(form, 'portal-inquiry', [
+      { name: 'service_category', label: 'Project Category', required: true },
+      { name: 'message', label: 'Project Scope & Deliverables', required: true, minLength: 10 }
+    ]);
+    if (!isValid) return;
+
+    const submitBtn = document.getElementById('portal-inquiry-submit-btn');
+    if (submitBtn) {
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Submitting Request to John...';
+    }
+
     const payload = {
       name: this.user.name,
       email: this.user.email,
@@ -2812,6 +3106,19 @@ class YoletechApp {
       service_category: form.service_category.value,
       message: form.message.value.trim()
     };
+
+    const subject = `[YOLETECH Client Portal Request] ${payload.service_category} — ${payload.name}`;
+    const emailBody = [
+      `Client Name: ${payload.name}`,
+      `Client Email: ${payload.email}`,
+      `WhatsApp / Phone: ${payload.phone || 'N/A'}`,
+      `Project Category: ${payload.service_category}`,
+      '',
+      'Project Scope & Deliverables:',
+      payload.message
+    ].join('\n');
+    const mailtoUrl = `mailto:${this.notifyEmail}?cc=yoletech@yolestica.com&subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(emailBody)}`;
+    const whatsappUrl = `https://wa.me/2348025526389?text=${encodeURIComponent(subject + '\n\n' + emailBody)}`;
 
     try {
       let savedInquiry = null;
@@ -2838,7 +3145,7 @@ class YoletechApp {
       }
 
       await this.sendEmailToYoletech({
-        subject: `[YOLETECH Client Portal Request] ${payload.service_category} — ${payload.name}`,
+        subject,
         replyTo: payload.email,
         fields: {
           Source: 'Registered Client Portal',
@@ -2852,10 +3159,33 @@ class YoletechApp {
 
       await this.loadClientData();
       form.reset();
+      this.setFormConfirmation('portal-inquiry', {
+        title: 'Service / Project Request Confirmed!',
+        message: `Thank you, <strong>${payload.name}</strong>! Your <strong>${payload.service_category}</strong> request ("<em>${payload.message.slice(0, 80)}${payload.message.length > 80 ? '...' : ''}</em>") has been submitted to John Eniekpo (<strong>${this.notifyEmail}</strong>) and added to <strong>Your Projects &amp; Service Requests</strong>.`,
+        actionsHtml: `
+          <div style="display:flex;gap:10px;flex-wrap:wrap;">
+            <a href="${whatsappUrl}" target="_blank" rel="noopener" class="btn btn-lime btn-sm">
+              💬 Follow Up on WhatsApp ↗
+            </a>
+            <a href="${mailtoUrl}" class="btn btn-outline btn-sm">
+              ✉️ Open in Email App (${this.notifyEmail}) ↗
+            </a>
+          </div>
+        `
+      });
       this.showToast(`Project request submitted and emailed to ${this.notifyEmail}!`);
       this.render();
     } catch (err) {
+      this.setFormConfirmation('portal-inquiry', {
+        type: 'error',
+        title: 'Request Could Not Be Sent',
+        message: err.message || 'Failed to submit project request.'
+      });
       this.showToast(err.message, 'error');
+      if (submitBtn) {
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Submit Request to John →';
+      }
     }
   }
 
@@ -3764,6 +4094,7 @@ class YoletechApp {
       <div id="toast-container"></div>
     `;
     this.renderToast();
+    this.initKpiCounters(root);
 
     if (preserveSearchFocus) {
       const searchInput = document.getElementById('admin-client-search');

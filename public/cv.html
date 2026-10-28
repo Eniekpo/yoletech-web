@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -11,7 +12,11 @@
       --lime: #C8E61E;
       --orange: #F7941D;
     }
-    * { box-sizing: border-box; }
+
+    * {
+      box-sizing: border-box;
+    }
+
     body {
       font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       color: #1e293b;
@@ -20,6 +25,7 @@
       padding: 32px 16px;
       line-height: 1.55;
     }
+
     .toolbar {
       max-width: 880px;
       margin: 0 auto 20px;
@@ -31,7 +37,9 @@
       padding: 12px 20px;
       border-radius: 12px;
     }
-    .toolbar a, .toolbar button {
+
+    .toolbar a,
+    .toolbar button {
       background: var(--lime);
       color: var(--indigo);
       border: none;
@@ -42,11 +50,13 @@
       cursor: pointer;
       text-decoration: none;
     }
+
     .toolbar a.back {
       background: transparent;
       color: #fff;
-      border: 1px solid rgba(255,255,255,0.4);
+      border: 1px solid rgba(255, 255, 255, 0.4);
     }
+
     .sheet {
       max-width: 880px;
       margin: 0 auto;
@@ -56,29 +66,39 @@
       box-shadow: 0 20px 45px rgba(15, 23, 42, 0.08);
       border-top: 6px solid var(--indigo);
     }
+
     header {
       border-bottom: 2px solid var(--indigo);
       padding-bottom: 18px;
       margin-bottom: 24px;
     }
+
     h1 {
       margin: 0;
       font-size: 28px;
       color: var(--indigo);
       letter-spacing: -0.02em;
     }
+
     .subtitle {
       font-weight: 700;
       color: #334155;
       font-size: 15px;
       margin-top: 4px;
     }
+
     .contact-line {
       font-size: 13px;
       color: #475569;
       margin-top: 8px;
     }
-    .contact-line a { color: var(--indigo); text-decoration: none; font-weight: 600; }
+
+    .contact-line a {
+      color: var(--indigo);
+      text-decoration: none;
+      font-weight: 600;
+    }
+
     h2 {
       font-size: 14px;
       text-transform: uppercase;
@@ -88,9 +108,22 @@
       padding-bottom: 6px;
       margin: 24px 0 12px;
     }
-    p { margin: 0 0 10px; font-size: 14px; }
-    ul { margin: 6px 0 14px; padding-left: 20px; }
-    li { font-size: 14px; margin-bottom: 5px; }
+
+    p {
+      margin: 0 0 10px;
+      font-size: 14px;
+    }
+
+    ul {
+      margin: 6px 0 14px;
+      padding-left: 20px;
+    }
+
+    li {
+      font-size: 14px;
+      margin-bottom: 5px;
+    }
+
     .role-header {
       display: flex;
       justify-content: space-between;
@@ -100,32 +133,85 @@
       color: #0f172a;
       margin-top: 12px;
     }
-    .role-date { font-size: 13px; color: var(--indigo); font-weight: 600; }
+
+    .role-date {
+      font-size: 13px;
+      color: var(--indigo);
+      font-weight: 600;
+    }
+
     .two-col {
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 20px;
     }
+
     @media (max-width: 768px) {
-      body { padding: 20px 12px; }
-      .sheet { padding: 32px 28px; }
-      .toolbar { flex-wrap: wrap; gap: 10px; padding: 12px 16px; }
+      body {
+        padding: 20px 12px;
+      }
+
+      .sheet {
+        padding: 32px 28px;
+      }
+
+      .toolbar {
+        flex-wrap: wrap;
+        gap: 10px;
+        padding: 12px 16px;
+      }
     }
+
     @media (max-width: 640px) {
-      body { padding: 14px 10px; }
-      .sheet { padding: 22px 18px; border-radius: 10px; }
-      h1 { font-size: 22px; }
-      .role-header { flex-direction: column; gap: 2px; }
-      .two-col { grid-template-columns: 1fr; gap: 8px; }
-      .toolbar a, .toolbar button { flex: 1 1 auto; text-align: center; }
+      body {
+        padding: 14px 10px;
+      }
+
+      .sheet {
+        padding: 22px 18px;
+        border-radius: 10px;
+      }
+
+      h1 {
+        font-size: 22px;
+      }
+
+      .role-header {
+        flex-direction: column;
+        gap: 2px;
+      }
+
+      .two-col {
+        grid-template-columns: 1fr;
+        gap: 8px;
+      }
+
+      .toolbar a,
+      .toolbar button {
+        flex: 1 1 auto;
+        text-align: center;
+      }
     }
+
     @media print {
-      body { background: #fff; padding: 0; }
-      .toolbar { display: none; }
-      .sheet { box-shadow: none; padding: 20px; border-top: none; }
+      body {
+        background: #fff;
+        padding: 0;
+      }
+
+      .toolbar {
+        display: none;
+      }
+
+      .sheet {
+        box-shadow: none;
+        padding: 20px;
+        border-top: none;
+      }
     }
   </style>
 </head>
+
 <body>
   <div class="toolbar">
     <a href="/" class="back">← Back to YOLETECH Website</a>
@@ -147,16 +233,25 @@
 
     <h2>Professional Summary</h2>
     <p>
-      Computer Scientist with over 5 years of experience specializing in data management, statistical analysis, business intelligence reporting, and full-stack web development. Proven track record in handling large datasets, ensuring data integrity, automating workflows, and delivering actionable insights for research and decision-making. Certified across Google Data Analytics, Business Intelligence, and AI specializations. Proficient in Python, SQL, R, Power BI, Tableau, Excel VBA, and modern web frameworks including React.js.
+      Computer Scientist with over 5 years of experience specializing in data management, statistical analysis, business
+      intelligence reporting, and full-stack web development. Proven track record in handling large datasets, ensuring
+      data integrity, automating workflows, and delivering actionable insights for research and decision-making.
+      Certified across Google Data Analytics, Business Intelligence, and AI specializations. Proficient in Python, SQL,
+      R, Power BI, Tableau, Excel VBA, and modern web frameworks including React.js.
     </p>
 
     <h2>Core Technical Proficiencies</h2>
     <ul>
-      <li><strong>Data Analysis &amp; Science:</strong> Python (Pandas, Machine Learning), R, SPSS, Predictive Modeling, Data Cleaning, Data Validation, Statistical Auditing</li>
-      <li><strong>Business Intelligence:</strong> Power BI, Tableau, Advanced Microsoft Excel (Formulas, Pivot Tables, Macros, VBA Automation), Dashboard Design</li>
-      <li><strong>Database Management:</strong> SQL, SQL Server, MySQL, Microsoft Access, Database Architecture, Multi-Departmental Data Consistency</li>
-      <li><strong>Web Development:</strong> Full-Stack Development, HTML, CSS, JavaScript, React.js, Frontend &amp; Backend System Implementation</li>
-      <li><strong>AI &amp; Machine Learning:</strong> Introductory &amp; Intermediate Machine Learning, AI Ethics, Game AI &amp; Reinforcement Learning, Workflow Automation</li>
+      <li><strong>Data Analysis &amp; Science:</strong> Python (Pandas, Machine Learning), R, SPSS, Predictive Modeling,
+        Data Cleaning, Data Validation, Statistical Auditing</li>
+      <li><strong>Business Intelligence:</strong> Power BI, Tableau, Advanced Microsoft Excel (Formulas, Pivot Tables,
+        Macros, VBA Automation), Dashboard Design</li>
+      <li><strong>Database Management:</strong> SQL, SQL Server, MySQL, Microsoft Access, Database Architecture,
+        Multi-Departmental Data Consistency</li>
+      <li><strong>Web Development:</strong> Full-Stack Development, HTML, CSS, JavaScript, React.js, Frontend &amp;
+        Backend System Implementation</li>
+      <li><strong>AI &amp; Machine Learning:</strong> Introductory &amp; Intermediate Machine Learning, AI Ethics, Game
+        AI &amp; Reinforcement Learning, Workflow Automation</li>
     </ul>
 
     <h2>Professional Experience</h2>
@@ -165,11 +260,16 @@
       <span class="role-date">May 2021 – October 2024</span>
     </div>
     <ul>
-      <li>Managed, cleaned, and analyzed complex datasets for client research projects, improving analytical accuracy and reporting speed.</li>
-      <li>Designed interactive Power BI and Tableau dashboards to communicate key performance metrics to executive stakeholders.</li>
-      <li>Developed predictive models to forecast student performance outcomes and institutional resource allocation.</li>
-      <li>Executed regular data audits and validation checks to enforce strict data compliance and quality standards.</li>
-      <li>Trained and mentored over 200 interns in data analytics, programming languages (Python/SQL), and practical technical workflows.</li>
+      <li>Managed, cleaned, and analyzed complex datasets for client research projects, improving analytical accuracy
+        and reporting speed.</li>
+      <li>Designed interactive Power BI and Tableau dashboards to communicate key performance metrics to executive
+        stakeholders.</li>
+      <li>Developed predictive models to forecast student performance outcomes and institutional resource allocation.
+      </li>
+      <li>Executed regular data audits and validation checks to enforce strict data compliance and quality standards.
+      </li>
+      <li>Trained and mentored over 200 interns in data analytics, programming languages (Python/SQL), and practical
+        technical workflows.</li>
     </ul>
 
     <div class="role-header">
@@ -177,18 +277,24 @@
       <span class="role-date">June 2019 – February 2021</span>
     </div>
     <ul>
-      <li>Processed and managed high-volume datasets across multiple departments, maintaining strict data accuracy and reporting timelines.</li>
-      <li>Automated repetitive data processing workflows using Excel VBA and custom scripts, reducing manual report compilation time significantly.</li>
-      <li>Administered and updated SQL databases to guarantee data consistency and integrity across organizational units.</li>
-      <li>Generated scheduled analytical reports tracking student performance, enrollment trends, and academic research metrics.</li>
-      <li>Partnered with IT and administrative teams to deploy new data management systems and trained staff on data entry standards.</li>
+      <li>Processed and managed high-volume datasets across multiple departments, maintaining strict data accuracy and
+        reporting timelines.</li>
+      <li>Automated repetitive data processing workflows using Excel VBA and custom scripts, reducing manual report
+        compilation time significantly.</li>
+      <li>Administered and updated SQL databases to guarantee data consistency and integrity across organizational
+        units.</li>
+      <li>Generated scheduled analytical reports tracking student performance, enrollment trends, and academic research
+        metrics.</li>
+      <li>Partnered with IT and administrative teams to deploy new data management systems and trained staff on data
+        entry standards.</li>
     </ul>
 
     <h2>Education</h2>
     <ul>
-      <li><strong>M.Sc. in Information Technology</strong> | National Open University of Nigeria (2025 – Present)</li>
+      <li><strong>M.Sc. in Information Technology</strong> | National Open University of Nigeria (2025 – 2026)</li>
       <li><strong>B.Sc. in Computer Science</strong> | National Open University of Nigeria (2017 – 2021)</li>
-      <li><strong>National Youth Service Corps (NYSC) Exclusion Letter</strong> | Federal Republic of Nigeria (2025)</li>
+      <li><strong>National Youth Service Corps (NYSC) Exclusion Letter</strong> | Federal Republic of Nigeria (2025)
+      </li>
       <li><strong>Senior Secondary School Certificate</strong> | Okpokunou Secondary School, Nigeria (2000 – 2003)</li>
     </ul>
 
@@ -216,13 +322,17 @@
 
     <h2>Professional Competencies</h2>
     <ul>
-      <li><strong>Data Governance &amp; Quality Control:</strong> End-to-end data validation, discrepancy resolution, and compliance auditing across multi-departmental databases.</li>
-      <li><strong>Technical Instruction &amp; Leadership:</strong> Software implementation team leadership, staff training on data management best practices, and mentoring technical personnel.</li>
-      <li><strong>Cross-Functional Collaboration:</strong> Adept at working with IT teams, researchers, and executive stakeholders to translate raw datasets into clear strategic reports.</li>
+      <li><strong>Data Governance &amp; Quality Control:</strong> End-to-end data validation, discrepancy resolution,
+        and compliance auditing across multi-departmental databases.</li>
+      <li><strong>Technical Instruction &amp; Leadership:</strong> Software implementation team leadership, staff
+        training on data management best practices, and mentoring technical personnel.</li>
+      <li><strong>Cross-Functional Collaboration:</strong> Adept at working with IT teams, researchers, and executive
+        stakeholders to translate raw datasets into clear strategic reports.</li>
     </ul>
 
     <h2>References</h2>
     <p>Available upon request.</p>
   </div>
 </body>
+
 </html>

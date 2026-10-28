@@ -1754,3 +1754,116 @@ button, input, select, textarea {
 .mini-kpi-value {
   font-variant-numeric: tabular-nums;
 }
+
+/* ============================================================================
+   FORM VALIDATION & CONFIRMATION BANNERS
+   ============================================================================ */
+.form-control.is-invalid {
+  border-color: #ef4444 !important;
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.22) !important;
+  background: rgba(127, 29, 29, 0.16);
+}
+
+.form-control.is-valid {
+  border-color: var(--yole-lime) !important;
+  box-shadow: 0 0 0 2px rgba(200, 230, 30, 0.16);
+}
+
+.field-error-msg {
+  color: #fca5a5;
+  font-size: 12px;
+  font-weight: 600;
+  margin-top: 6px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  line-height: 1.35;
+}
+
+.form-confirmation-box {
+  margin-top: 16px;
+  margin-bottom: 16px;
+  padding: 16px 18px;
+  background: linear-gradient(135deg, rgba(200, 230, 30, 0.14) 0%, rgba(31, 28, 82, 0.92) 100%);
+  border: 1.5px solid var(--yole-lime);
+  border-radius: 14px;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.35);
+  animation: formFeedbackFadeIn 0.28s ease-out;
+}
+
+.form-error-box {
+  margin-top: 14px;
+  margin-bottom: 16px;
+  padding: 14px 16px;
+  background: linear-gradient(135deg, rgba(127, 29, 29, 0.82) 0%, rgba(45, 14, 36, 0.92) 100%);
+  border: 1.5px solid #F7941D;
+  border-radius: 12px;
+  color: #FFFFFF;
+  font-size: 13.5px;
+  box-shadow: 0 10px 26px rgba(0, 0, 0, 0.35);
+  animation: formFeedbackFadeIn 0.25s ease-out;
+}
+
+.form-confirmation-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 6px;
+}
+
+.form-confirmation-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 800;
+  color: var(--yole-lime);
+  font-size: 14.5px;
+}
+
+.form-confirmation-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--yole-lime);
+  color: #17143A;
+  font-size: 13px;
+  font-weight: 900;
+  flex-shrink: 0;
+}
+
+.form-confirmation-dismiss {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  color: var(--yole-text-muted);
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 14px;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.18s ease;
+}
+
+.form-confirmation-dismiss:hover {
+  background: rgba(200, 230, 30, 0.2);
+  color: var(--yole-white);
+  border-color: var(--yole-lime);
+}
+
+@keyframes formFeedbackFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
