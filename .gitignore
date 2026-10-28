@@ -4,3 +4,9 @@ node_modules/
 server/*.db-shm
 server/*.db-wal
 
+
+# Local Netlify folder
+.netlify/*
+!.netlify/results.md
+!.netlify/assets/
+

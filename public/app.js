@@ -24,9 +24,9 @@ class YoletechApp {
     this.token = localStorage.getItem('yoletech_token') || null;
     this.user = JSON.parse(localStorage.getItem('yoletech_user') || 'null');
 
-    this.portfolio = [];
-    this.testimonials = [];
-    this.blogPosts = [];
+    this.portfolio = window.YOLETECH_DATA?.initialPortfolio || [];
+    this.testimonials = window.YOLETECH_DATA?.initialTestimonials || [];
+    this.blogPosts = window.YOLETECH_DATA?.initialBlogPosts || [];
     this.clients = [];
     this.inquiries = [];
     this.toastMessage = null;
@@ -35,12 +35,13 @@ class YoletechApp {
   async init() {
     this.bindPopState();
     this.resolveInitialRoute();
+    this.render();
+    this.startSlideshow();
     await this.loadPublicData();
     if (this.token) {
       await this.verifySession();
     }
     this.render();
-    this.startSlideshow();
   }
 
   bindPopState() {
@@ -101,13 +102,19 @@ class YoletechApp {
   async loadPublicData() {
     try {
       const [portRes, testRes, blogRes] = await Promise.all([
-        this.api('/api/portfolio'),
-        this.api('/api/testimonials'),
-        this.api('/api/blog')
+        this.api('/api/portfolio').catch(() => null),
+        this.api('/api/testimonials').catch(() => null),
+        this.api('/api/blog').catch(() => null)
       ]);
-      this.portfolio = portRes.projects || [];
-      this.testimonials = testRes.testimonials || [];
-      this.blogPosts = blogRes.posts || [];
+      if (portRes && Array.isArray(portRes.projects) && portRes.projects.length > 0) {
+        this.portfolio = portRes.projects;
+      }
+      if (testRes && Array.isArray(testRes.testimonials) && testRes.testimonials.length > 0) {
+        this.testimonials = testRes.testimonials;
+      }
+      if (blogRes && Array.isArray(blogRes.posts) && blogRes.posts.length > 0) {
+        this.blogPosts = blogRes.posts;
+      }
       if (this.currentPage === 'blog-detail' && this.activeBlogSlug) {
         this.activeBlogPost = this.blogPosts.find((p) => p.slug === this.activeBlogSlug) || null;
       }
