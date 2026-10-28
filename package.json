@@ -1,0 +1,12 @@
+{
+  "name": "yoletech-web",
+  "version": "1.0.0",
+  "description": "YOLETECH Official Full-Stack Website, Client Portal, Admin CRM & Decap Bridge Blog — John Oruebi Eniekpo, B.Sc.",
+  "main": "server/index.js",
+  "scripts": {
+    "start": "node server/index.js",
+    "dev": "node server/index.js"
+  },
+  "author": "John Oruebi Eniekpo, B.Sc. <yoletech@yolestica.com>",
+  "license": "MIT"
+}
