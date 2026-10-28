@@ -45,7 +45,7 @@ window.YOLETECH_COMPONENTS = {
             <div style="font-weight:800;font-size:14px;color:#FFFFFF;">John Oruebi Eniekpo</div>
             <div style="font-size:12px;color:#C8E61E;font-weight:600;">Data Analyst • BI Specialist • Full-Stack Dev</div>
           </div>
-          <span class="tech-pill orange" style="font-size:11px;">5+ Yrs Exp</span>
+          <span class="tech-pill orange" style="font-size:11px;" data-kpi-target="5" data-kpi-suffix="+ Yrs Exp">5+ Yrs Exp</span>
         </div>
       </div>
     `;
@@ -73,8 +73,10 @@ window.YOLETECH_COMPONENTS = {
           <div class="kpi-cards-row">
             <div class="mini-kpi-card">
               <div class="mini-kpi-title">Data &amp; API Workflows</div>
-              <div class="mini-kpi-value">5,903,500</div>
-              <div style="font-size:11px;color:#C8E61E;font-weight:700;margin-top:4px;">▲ +12.5% vs baseline</div>
+              <div class="mini-kpi-value" data-kpi-target="5903500" data-kpi-comma="true">5,903,500</div>
+              <div style="font-size:11px;color:#C8E61E;font-weight:700;margin-top:4px;">
+                ▲ <span data-kpi-target="12.5" data-kpi-decimals="1" data-kpi-prefix="+" data-kpi-suffix="%">+12.5%</span> vs baseline
+              </div>
               <svg viewBox="0 0 160 36" style="width:100%;height:32px;margin-top:6px;">
                 <path d="M2 30 Q 25 20, 45 25 T 90 15 T 130 18 T 158 6" fill="none" stroke="#C8E61E" stroke-width="2.5"/>
               </svg>
@@ -82,10 +84,10 @@ window.YOLETECH_COMPONENTS = {
 
             <div class="mini-kpi-card">
               <div class="mini-kpi-title">Records Audited</div>
-              <div class="mini-kpi-value">43,010</div>
+              <div class="mini-kpi-value" data-kpi-target="43010" data-kpi-comma="true">43,010</div>
               <div style="display:flex;justify-content:space-between;margin-top:14px;font-size:11px;">
-                <span><strong style="color:#C8E61E;">0.03ms</strong> query</span>
-                <span><strong style="color:#F7941D;">99.9%</strong> integrity</span>
+                <span><strong style="color:#C8E61E;" data-kpi-target="0.03" data-kpi-decimals="2" data-kpi-suffix="ms">0.03ms</strong> query</span>
+                <span><strong style="color:#F7941D;" data-kpi-target="99.9" data-kpi-decimals="1" data-kpi-suffix="%">99.9%</strong> integrity</span>
               </div>
             </div>
 

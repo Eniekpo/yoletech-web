@@ -296,6 +296,7 @@ class YoletechApp {
   showToast(msg, type = 'success') {
     this.toastMessage = { msg, type };
     this.renderToast();
+    this.initKpiCounters(root);
     setTimeout(() => {
       this.toastMessage = null;
       this.renderToast();
@@ -398,7 +399,134 @@ class YoletechApp {
     const container = document.getElementById('hero-slideshow-mount');
     if (container) {
       container.innerHTML = this.renderHeroSlideInner();
+      this.initKpiCounters(container);
     }
+  }
+
+  getKpiStepConfig(target, decimals) {
+    const absTarget = Math.abs(target);
+    if (absTarget === 0) {
+      return { stepSize: 1, intervalMs: 50 };
+    }
+    // Sub-unit decimals (e.g. 0.03ms)
+    if (absTarget < 1) {
+      const unitStep = Math.pow(10, -Math.max(1, decimals));
+      return { stepSize: unitStep, intervalMs: 220 };
+    }
+    // Small decimal metrics (e.g. +12.5%)
+    if (decimals > 0 && absTarget <= 20) {
+      return { stepSize: 0.5, intervalMs: 42 };
+    }
+    // Small integers (e.g. 5+, 8+, CRM counts)
+    if (absTarget <= 15 && decimals === 0) {
+      const intervalMs = Math.max(85, Math.min(140, Math.round(750 / absTarget)));
+      return { stepSize: 1, intervalMs };
+    }
+    // Medium decimals & percentages (e.g. 99.9%)
+    if (absTarget <= 100 && decimals > 0) {
+      return { stepSize: Number((absTarget / 37).toFixed(decimals)), intervalMs: 30 };
+    }
+    // Medium integers & percentages (e.g. 100%, project progress)
+    if (absTarget <= 100) {
+      const stepSize = absTarget <= 40 ? 1 : 2;
+      return { stepSize, intervalMs: 24 };
+    }
+    // Hundreds (e.g. 200+ interns mentored)
+    if (absTarget <= 1000) {
+      const stepSize = Math.max(2, Math.ceil(absTarget / 40));
+      return { stepSize, intervalMs: 30 };
+    }
+    // Thousands (e.g. 43,010 records audited)
+    if (absTarget <= 100000) {
+      const stepSize = Math.max(10, Math.ceil(absTarget / 55));
+      return { stepSize, intervalMs: 26 };
+    }
+    // Millions+ (e.g. 5,903,500 workflows)
+    const stepSize = Math.max(100, Math.ceil(absTarget / 70));
+    return { stepSize, intervalMs: 22 };
+  }
+
+  formatKpiValue(val, decimals, useComma, prefix, suffix) {
+    let numStr;
+    if (decimals > 0) {
+      numStr = val.toFixed(decimals);
+      if (useComma) {
+        const parts = numStr.split('.');
+        parts[0] = Number(parts[0]).toLocaleString('en-US');
+        numStr = parts.join('.');
+      }
+    } else {
+      const rounded = Math.round(val);
+      numStr = useComma ? rounded.toLocaleString('en-US') : String(rounded);
+    }
+    return `${prefix}${numStr}${suffix}`;
+  }
+
+  animateKpiElement(el) {
+    if (!el) return;
+    if (el._kpiTimer) {
+      clearInterval(el._kpiTimer);
+      el._kpiTimer = null;
+    }
+
+    const target = parseFloat(el.getAttribute('data-kpi-target'));
+    if (isNaN(target)) return;
+
+    const decimals = parseInt(el.getAttribute('data-kpi-decimals') || '0', 10);
+    const useComma = el.getAttribute('data-kpi-comma') === 'true';
+    const prefix = el.getAttribute('data-kpi-prefix') || '';
+    const suffix = el.getAttribute('data-kpi-suffix') || '';
+
+    if (target <= 0) {
+      el.textContent = this.formatKpiValue(target, decimals, useComma, prefix, suffix);
+      return;
+    }
+
+    const { stepSize, intervalMs } = this.getKpiStepConfig(target, decimals);
+    let current = 0;
+    el.textContent = this.formatKpiValue(0, decimals, useComma, prefix, suffix);
+
+    el._kpiTimer = setInterval(() => {
+      current = Number((current + stepSize).toFixed(Math.max(decimals, 4)));
+      if (current >= target) {
+        current = target;
+        clearInterval(el._kpiTimer);
+        el._kpiTimer = null;
+      }
+      el.textContent = this.formatKpiValue(current, decimals, useComma, prefix, suffix);
+    }, intervalMs);
+  }
+
+  initKpiCounters(rootEl = document) {
+    const elements = rootEl.querySelectorAll('[data-kpi-target]');
+    if (!elements.length) return;
+
+    if (!('IntersectionObserver' in window)) {
+      elements.forEach((el) => this.animateKpiElement(el));
+      return;
+    }
+
+    if (this.kpiObserver && rootEl === document) {
+      this.kpiObserver.disconnect();
+    }
+
+    const observer = new IntersectionObserver(
+      (entries, obs) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            this.animateKpiElement(entry.target);
+            obs.unobserve(entry.target);
+          }
+        });
+      },
+      { threshold: 0.15 }
+    );
+
+    if (rootEl === document) {
+      this.kpiObserver = observer;
+    }
+
+    elements.forEach((el) => observer.observe(el));
   }
 
   logout(showNotification = true) {
@@ -719,19 +847,19 @@ class YoletechApp {
         <div class="container">
           <div class="metrics-strip">
             <div class="metric-cell">
-              <div class="metric-number">5+</div>
+              <div class="metric-number" data-kpi-target="5" data-kpi-suffix="+">5+</div>
               <div class="metric-label">Years Data, BI &amp;<br/>Full-Stack Experience</div>
             </div>
             <div class="metric-cell">
-              <div class="metric-number">200+</div>
+              <div class="metric-number" data-kpi-target="200" data-kpi-suffix="+">200+</div>
               <div class="metric-label">Analytics Interns<br/>Trained &amp; Mentored</div>
             </div>
             <div class="metric-cell">
-              <div class="metric-number">8+</div>
+              <div class="metric-number" data-kpi-target="8" data-kpi-suffix="+">8+</div>
               <div class="metric-label">Google, Coursera &amp;<br/>Kaggle Certifications</div>
             </div>
             <div class="metric-cell">
-              <div class="metric-number">100%</div>
+              <div class="metric-number" data-kpi-target="100" data-kpi-suffix="%">100%</div>
               <div class="metric-label">Data Integrity &amp;<br/>Quality Commitment</div>
             </div>
           </div>
@@ -1422,7 +1550,7 @@ class YoletechApp {
             <div class="eyebrow"><span class="eyebrow-dot"></span> CLIENT &amp; MENTEE ENDORSEMENTS</div>
             <h1 class="section-title">What Stakeholders, Clients &amp; Mentees Say</h1>
             <p class="section-desc">
-              Feedback from executive research stakeholders, departmental supervisors, and graduates of our 200+ intern analytics mentorship program.
+              Feedback from executive research stakeholders, departmental supervisors, and graduates of our <strong style="color:#C8E61E;" data-kpi-target="200" data-kpi-suffix="+">200+</strong> intern analytics mentorship program.
             </p>
           </div>
 
@@ -2201,7 +2329,7 @@ class YoletechApp {
                           <div style="margin-bottom:8px;">
                             <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px;">
                               <span>Project Completion Progress</span>
-                              <strong style="color:#C8E61E;">${inq.project_progress || 15}%</strong>
+                              <strong style="color:#C8E61E;" data-kpi-target="${inq.project_progress || 15}" data-kpi-suffix="%">${inq.project_progress || 15}%</strong>
                             </div>
                             <div style="height:8px;background:#2F2B73;border-radius:999px;overflow:hidden;">
                               <div style="width:${inq.project_progress || 15}%;height:100%;background:#C8E61E;"></div>
@@ -2344,9 +2472,9 @@ class YoletechApp {
           <div style="font-size:12px;font-weight:800;color:#C8E61E;text-transform:uppercase;">Client Status Breakdown</div>
           <div style="display:flex;align-items:center;justify-content:space-between;margin-top:12px;">
             <div style="display:flex;flex-direction:column;gap:6px;font-size:13px;">
-              <span><strong style="color:#C8E61E;">● Active:</strong> ${activeCount}</span>
-              <span><strong style="color:#F7941D;">● Onboarding:</strong> ${onboardingCount}</span>
-              <span><strong style="color:#FFFFFF;">● Completed:</strong> ${completedCount}</span>
+              <span><strong style="color:#C8E61E;">● Active:</strong> <span data-kpi-target="${activeCount}">${activeCount}</span></span>
+              <span><strong style="color:#F7941D;">● Onboarding:</strong> <span data-kpi-target="${onboardingCount}">${onboardingCount}</span></span>
+              <span><strong style="color:#FFFFFF;">● Completed:</strong> <span data-kpi-target="${completedCount}">${completedCount}</span></span>
             </div>
             <svg width="76" height="76" viewBox="0 0 36 36">
               <circle cx="18" cy="18" r="14" fill="none" stroke="#2F2B73" stroke-width="5"></circle>
@@ -2450,19 +2578,19 @@ class YoletechApp {
           <!-- DATA OVERVIEW KPI ROW -->
           <div class="metrics-strip" style="margin-bottom:24px;">
             <div class="metric-cell">
-              <div class="metric-number">${totalClients}</div>
+              <div class="metric-number" data-kpi-target="${totalClients}">${totalClients}</div>
               <div class="metric-label">Registered<br/>Clients</div>
             </div>
             <div class="metric-cell">
-              <div class="metric-number" style="color:#F7941D;">${this.inquiries.length}</div>
+              <div class="metric-number" style="color:#F7941D;" data-kpi-target="${this.inquiries.length}">${this.inquiries.length}</div>
               <div class="metric-label">Active Project<br/>Inquiries</div>
             </div>
             <div class="metric-cell">
-              <div class="metric-number">${this.portfolio.length}</div>
+              <div class="metric-number" data-kpi-target="${this.portfolio.length}">${this.portfolio.length}</div>
               <div class="metric-label">Portfolio<br/>Case Studies</div>
             </div>
             <div class="metric-cell">
-              <div class="metric-number" style="color:#F7941D;">${this.blogPosts.length}</div>
+              <div class="metric-number" style="color:#F7941D;" data-kpi-target="${this.blogPosts.length}">${this.blogPosts.length}</div>
               <div class="metric-label">Published<br/>Blog Posts</div>
             </div>
           </div>
