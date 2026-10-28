@@ -37,6 +37,7 @@ collections:
     folder: "content/portfolio"
     create: true
     slug: "{{slug}}"
+    preview_path: "portfolio"
     summary: "{{title}} — {{category}} ({{period}})"
     fields:
       - { label: "Project Title", name: "title", widget: "string", required: true }
@@ -70,6 +71,7 @@ collections:
     folder: "content/blog"
     create: true
     slug: "{{slug}}"
+    preview_path: "blog/{{slug}}"
     summary: "{{title}} — {{category}} ({{date}})"
     fields:
       - { label: "Article Title", name: "title", widget: "string", required: true }

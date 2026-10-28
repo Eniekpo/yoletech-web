@@ -2,6 +2,7 @@ const http = require('node:http');
 const fs = require('node:fs');
 const path = require('node:path');
 const crypto = require('node:crypto');
+const os = require('node:os');
 const { DatabaseSync } = require('node:sqlite');
 
 const PORT = process.env.PORT || 4000;
@@ -13,15 +14,13 @@ const PORTFOLIO_DIR = path.join(__dirname, '..', 'content', 'portfolio');
 const BLOG_MEDIA_DIR = path.join(PUBLIC_DIR, 'assets', 'blog');
 const ROOT_DIR = path.join(__dirname, '..');
 
-// Ensure directories exist
-if (!fs.existsSync(BLOG_DIR)) {
-  fs.mkdirSync(BLOG_DIR, { recursive: true });
-}
-if (!fs.existsSync(PORTFOLIO_DIR)) {
-  fs.mkdirSync(PORTFOLIO_DIR, { recursive: true });
-}
-if (!fs.existsSync(BLOG_MEDIA_DIR)) {
-  fs.mkdirSync(BLOG_MEDIA_DIR, { recursive: true });
+// Ensure directories exist (safe for read-only serverless environments)
+try {
+  if (!fs.existsSync(BLOG_DIR)) fs.mkdirSync(BLOG_DIR, { recursive: true });
+  if (!fs.existsSync(PORTFOLIO_DIR)) fs.mkdirSync(PORTFOLIO_DIR, { recursive: true });
+  if (!fs.existsSync(BLOG_MEDIA_DIR)) fs.mkdirSync(BLOG_MEDIA_DIR, { recursive: true });
+} catch {
+  // Ignore on read-only serverless file systems (Vercel)
 }
 
 // ============================================================================
@@ -74,10 +73,30 @@ function verifyToken(token) {
 // ============================================================================
 // 2. OPEN-SOURCE SQLITE DATABASE INITIALIZATION & SEEDING
 // ============================================================================
-const db = new DatabaseSync(DB_PATH);
+function openDatabase() {
+  if (process.env.VERCEL) {
+    try {
+      const tmpDbPath = path.join(os.tmpdir(), 'yoletech.db');
+      if (!fs.existsSync(tmpDbPath) && fs.existsSync(DB_PATH)) {
+        fs.copyFileSync(DB_PATH, tmpDbPath);
+      }
+      return new DatabaseSync(tmpDbPath);
+    } catch {
+      return new DatabaseSync(':memory:');
+    }
+  }
+  try {
+    const instance = new DatabaseSync(DB_PATH);
+    instance.exec('PRAGMA journal_mode = WAL;');
+    return instance;
+  } catch {
+    return new DatabaseSync(':memory:');
+  }
+}
+
+const db = openDatabase();
 
 db.exec(`
-  PRAGMA journal_mode = WAL;
 
   CREATE TABLE IF NOT EXISTS users (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -638,7 +657,7 @@ const MIME_TYPES = {
 // ============================================================================
 // 5. MAIN SERVER & API ROUTER
 // ============================================================================
-const server = http.createServer(async (req, res) => {
+const requestHandler = async (req, res) => {
   if (req.method === 'OPTIONS') {
     return sendJson(res, 200, { ok: true });
   }
@@ -1338,13 +1357,19 @@ const server = http.createServer(async (req, res) => {
     console.error('Server error:', err);
     sendJson(res, 500, { error: err.message || 'Internal Server Error' });
   }
-});
+};
 
-server.listen(PORT, () => {
-  console.log(`================================================================`);
-  console.log(`🚀 YOLETECH Full-Stack Server & SQLite DB Running on Port ${PORT}`);
-  console.log(`👉 Website URL:       http://localhost:${PORT}`);
-  console.log(`👉 Admin Dashboard:   http://localhost:${PORT}/admin-dashboard`);
-  console.log(`👉 Decap CMS Bridge:  http://localhost:${PORT}/admin/`);
-  console.log(`================================================================`);
-});
+const server = http.createServer(requestHandler);
+
+if (require.main === module) {
+  server.listen(PORT, () => {
+    console.log(`================================================================`);
+    console.log(`🚀 YOLETECH Full-Stack Server & SQLite DB Running on Port ${PORT}`);
+    console.log(`👉 Website URL:       http://localhost:${PORT}`);
+    console.log(`👉 Admin Dashboard:   http://localhost:${PORT}/admin-dashboard`);
+    console.log(`👉 Decap CMS Bridge:  http://localhost:${PORT}/admin/`);
+    console.log(`================================================================`);
+  });
+}
+
+module.exports = requestHandler;

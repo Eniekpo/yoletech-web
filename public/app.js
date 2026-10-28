@@ -51,7 +51,12 @@ class YoletechApp {
   }
 
   resolveInitialRoute() {
-    const path = window.location.pathname.replace(/^\/+|\/+$/g, '').toLowerCase();
+    const params = new URLSearchParams(window.location.search || '');
+    const queryPage = (params.get('page') || '').replace(/^\/+|\/+$/g, '').toLowerCase();
+    const hashPage = (window.location.hash || '').replace(/^#+|\/+$/g, '').replace(/^\/+/, '').toLowerCase();
+    const pathPage = window.location.pathname.replace(/^\/+|\/+$/g, '').toLowerCase();
+    const path = queryPage || hashPage || pathPage;
+
     const validPages = [
       'home',
       'about',
@@ -65,7 +70,7 @@ class YoletechApp {
       'portal',
       'admin-dashboard'
     ];
-    if (!path || path === '') {
+    if (!path || path === '' || path === 'index.html') {
       this.currentPage = 'home';
     } else if (path.startsWith('blog/')) {
       this.currentPage = 'blog-detail';
@@ -73,12 +78,18 @@ class YoletechApp {
       if (this.blogPosts.length > 0) {
         this.activeBlogPost = this.blogPosts.find((p) => p.slug === this.activeBlogSlug) || null;
       }
+      if (queryPage || hashPage) {
+        window.history.replaceState({}, '', `/blog/${this.activeBlogSlug}`);
+      }
     } else if (validPages.includes(path)) {
       if (path === 'register') {
         this.currentPage = 'login';
         this.authMode = 'register';
       } else {
         this.currentPage = path;
+      }
+      if (queryPage || hashPage) {
+        window.history.replaceState({}, '', path === 'home' ? '/' : `/${path}`);
       }
     } else {
       this.currentPage = 'home';
@@ -98,21 +109,152 @@ class YoletechApp {
     return data;
   }
 
-  async loadPublicData() {
-    try {
-      const [portRes, testRes, blogRes] = await Promise.all([
-        this.api('/api/portfolio'),
-        this.api('/api/testimonials'),
-        this.api('/api/blog')
-      ]);
-      this.portfolio = portRes.projects || [];
-      this.testimonials = testRes.testimonials || [];
-      this.blogPosts = blogRes.posts || [];
-      if (this.currentPage === 'blog-detail' && this.activeBlogSlug) {
-        this.activeBlogPost = this.blogPosts.find((p) => p.slug === this.activeBlogSlug) || null;
+  parseFrontmatterMarkdown(rawContent, slug) {
+    const normalized = String(rawContent || '').replace(/\r\n/g, '\n');
+    const match = normalized.match(/^---\n([\s\S]*?)\n---\n?([\s\S]*)$/);
+    const meta = {};
+    let body = normalized.trim();
+
+    if (match) {
+      const yamlBlock = match[1];
+      body = match[2].trim();
+      const lines = yamlBlock.split('\n');
+      let currentListKey = null;
+
+      for (const line of lines) {
+        const listItemMatch = line.match(/^\s*-\s+(.+)$/);
+        if (listItemMatch && currentListKey) {
+          let itemVal = listItemMatch[1].trim();
+          if ((itemVal.startsWith('"') && itemVal.endsWith('"')) || (itemVal.startsWith("'") && itemVal.endsWith("'"))) {
+            itemVal = itemVal.slice(1, -1);
+          }
+          meta[currentListKey].push(itemVal);
+          continue;
+        }
+        const kvMatch = line.match(/^([A-Za-z0-9_-]+):\s*(.*)$/);
+        if (!kvMatch) continue;
+        const key = kvMatch[1].trim();
+        let val = kvMatch[2].trim();
+        if (val === '') {
+          currentListKey = key;
+          meta[key] = [];
+          continue;
+        }
+        currentListKey = null;
+        if ((val.startsWith('"') && val.endsWith('"')) || (val.startsWith("'") && val.endsWith("'"))) {
+          val = val.slice(1, -1);
+        }
+        if (val.startsWith('[') && val.endsWith(']')) {
+          try {
+            meta[key] = JSON.parse(val);
+            continue;
+          } catch {}
+        }
+        meta[key] = val;
       }
-    } catch (err) {
-      console.error('Error loading public data:', err);
+    }
+    return { slug, meta, body };
+  }
+
+  async fetchGitHubCollection(folderType) {
+    try {
+      const apiUrl = `https://api.github.com/repos/Eniekpo/yoletech-web/contents/content/${folderType}?ref=main`;
+      const res = await fetch(apiUrl);
+      if (!res.ok) return [];
+      const files = await res.json();
+      if (!Array.isArray(files)) return [];
+      const mdFiles = files.filter((f) => f.name && f.name.endsWith('.md') && f.download_url);
+
+      const items = await Promise.all(
+        mdFiles.map(async (file) => {
+          const rawRes = await fetch(file.download_url);
+          const rawText = await rawRes.text();
+          const slug = file.name.replace(/\.md$/i, '');
+          const { meta, body } = this.parseFrontmatterMarkdown(rawText, slug);
+
+          if (folderType === 'portfolio') {
+            const techStack = Array.isArray(meta.tech_stack)
+              ? meta.tech_stack
+              : String(meta.tech_stack || 'Python, SQL, Power BI').split(',').map((s) => s.trim()).filter(Boolean);
+            return {
+              id: slug,
+              slug,
+              title: meta.title || slug,
+              date: meta.date || '2026-01-01',
+              category: meta.category || 'Data Analytics & BI',
+              organization: meta.organization || 'YOLETECH',
+              period: meta.period || '2026',
+              summary: meta.summary || body.slice(0, 220),
+              impact_metrics: meta.impact_metrics || 'Verified production delivery',
+              tech_stack: techStack,
+              preview_image: meta.preview_image || '/assets/dashboard-preview.jpg',
+              demo_url: meta.demo_url || meta.live_url || '',
+              live_url: meta.demo_url || meta.live_url || '',
+              github_url: meta.github_url || 'https://github.com/Eniekpo',
+              featured: meta.featured !== 'false' && meta.featured !== false,
+              body
+            };
+          } else {
+            const tags = Array.isArray(meta.tags)
+              ? meta.tags
+              : String(meta.tags || 'Python, SQL, Power BI').split(',').map((s) => s.trim()).filter(Boolean);
+            return {
+              slug,
+              title: meta.title || slug,
+              date: meta.date || '2026-01-01',
+              category: meta.category || 'Data Analytics & BI',
+              readTime: meta.readTime || '5 min read',
+              author: meta.author || 'John Oruebi Eniekpo',
+              coverImage: meta.coverImage || '/assets/dashboard-preview.jpg',
+              summary: meta.summary || body.slice(0, 180),
+              tags,
+              featured: meta.featured === 'true' || meta.featured === true,
+              body
+            };
+          }
+        })
+      );
+
+      return items.sort((a, b) => (a.date < b.date ? 1 : -1));
+    } catch (e) {
+      console.warn(`GitHub fallback fetch failed for ${folderType}:`, e);
+      return [];
+    }
+  }
+
+  async loadPublicData() {
+    const [portSettled, testSettled, blogSettled] = await Promise.allSettled([
+      this.api('/api/portfolio'),
+      this.api('/api/testimonials'),
+      this.api('/api/blog')
+    ]);
+
+    this.portfolio =
+      portSettled.status === 'fulfilled' && Array.isArray(portSettled.value?.projects)
+        ? portSettled.value.projects
+        : [];
+    this.testimonials =
+      testSettled.status === 'fulfilled' && Array.isArray(testSettled.value?.testimonials)
+        ? testSettled.value.testimonials
+        : [];
+    this.blogPosts =
+      blogSettled.status === 'fulfilled' && Array.isArray(blogSettled.value?.posts)
+        ? blogSettled.value.posts
+        : [];
+
+    // Fallback or live sync with GitHub Decap Bridge content if API is unavailable or empty
+    if (this.portfolio.length === 0) {
+      this.portfolio = await this.fetchGitHubCollection('portfolio');
+    }
+    if (this.blogPosts.length === 0) {
+      this.blogPosts = await this.fetchGitHubCollection('blog');
+    }
+    if (this.testimonials.length === 0 && window.YOLETECH_DATA?.defaultTestimonials) {
+      this.testimonials = window.YOLETECH_DATA.defaultTestimonials;
+    }
+
+    if (this.currentPage === 'blog-detail' && this.activeBlogSlug) {
+      this.activeBlogPost = this.blogPosts.find((p) => p.slug === this.activeBlogSlug) || null;
     }
   }
 
