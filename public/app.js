@@ -685,6 +685,7 @@ class YoletechApp {
     const recentBlogs = this.blogPosts.slice(0, 3);
 
     return `
+      <div class="home-page-view">
       <!-- HERO SECTION WITH SLIDESHOW & 8-SERVICE FEATURE STRIP -->
       <section class="hero-section" onmouseenter="window.app.slidePaused = true" onmouseleave="window.app.slidePaused = false">
         <div class="container hero-slideshow-wrapper" id="hero-slideshow-mount">
@@ -914,6 +915,7 @@ class YoletechApp {
               .join('')}
           </div>
         </div>
+      </div>
       </section>
     `;
   }
