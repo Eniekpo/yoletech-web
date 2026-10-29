@@ -38,13 +38,14 @@ collections:
     create: true
     slug: "{{slug}}"
     preview_path: "portfolio"
-    summary: "{{title}} — {{category}} ({{period}})"
+    summary: "{{title}}"
     fields:
       - { label: "Project Title", name: "title", widget: "string", required: true }
-      - { label: "Publish Date", name: "date", widget: "datetime", format: "YYYY-MM-DD", date_format: "YYYY-MM-DD", time_format: false, required: false }
+      - { label: "Publish Date", name: "date", widget: "datetime", format: "YYYY-MM-DD", date_format: "YYYY-MM-DD", time_format: false, required: false, hint: "Used to order projects; it is not shown on the portfolio card." }
       - label: "Category"
         name: "category"
         widget: "select"
+        hint: "Used by the portfolio filters and the Build Similar button."
         options:
           - "Data Analytics & BI"
           - "Full-Stack Web"
@@ -54,16 +55,10 @@ collections:
           - "Graphic Design & Video"
           - "IT & Customer Support"
         default: "Data Analytics & BI"
-      - { label: "Client / Organization", name: "organization", widget: "string", default: "YOLETECH" }
-      - { label: "Project Period / Year (e.g. 2024 – Present)", name: "period", widget: "string", default: "2026" }
-      - { label: "Preview Image URL", name: "preview_image", widget: "string", default: "/assets/dashboard-preview.jpg" }
+      - { label: "Project Card Image URL", name: "preview_image", widget: "string", required: true, default: "/assets/dashboard-preview.jpg" }
       - { label: "Live Demo Project URL (Optional)", name: "demo_url", widget: "string", required: false, hint: "Paste the live URL to your interactive demo, web app, Power BI/Tableau view, or deployed project" }
       - { label: "GitHub / Source Code URL (Optional)", name: "github_url", widget: "string", required: false, default: "https://github.com/Eniekpo" }
-      - { label: "Measurable Impact / Outcome Metric", name: "impact_metrics", widget: "string", required: true }
-      - { label: "Tech Stack (comma-separated)", name: "tech_stack", widget: "list", default: ["Python", "SQL", "Power BI", "React.js"] }
-      - { label: "Featured on Home Page", name: "featured", widget: "boolean", default: true }
-      - { label: "Project Summary", name: "summary", widget: "text", required: true }
-      - { label: "Detailed Case Study Notes (Optional Markdown)", name: "body", widget: "markdown", required: false }
+      - { label: "Feature on Home Page", name: "featured", widget: "boolean", default: true, hint: "Controls whether this project can appear in the featured project section on the home page." }
 
   - name: "blog"
     label: "YOLETECH Blog Articles"

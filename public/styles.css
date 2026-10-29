@@ -653,6 +653,80 @@ button, input, select, textarea {
   gap: 28px;
 }
 
+.portfolio-project-card {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  padding: 18px;
+}
+
+.portfolio-project-image {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  background: rgba(15, 13, 44, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 12px;
+}
+
+.portfolio-project-image img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.portfolio-project-title {
+  margin: 17px 0 18px;
+  color: var(--yole-white);
+  font-size: 19px;
+  font-weight: 850;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+}
+
+.portfolio-project-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin-top: auto;
+  padding-top: 13px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.portfolio-project-action {
+  min-width: 0;
+  width: 100%;
+  min-height: 38px;
+  padding: 8px 10px;
+  gap: 5px;
+  font-size: 12px;
+}
+
+.portfolio-project-action-wide {
+  grid-column: 1 / -1;
+}
+
+.portfolio-featured-field {
+  margin: 2px 0 18px;
+}
+
+.portfolio-featured-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  color: var(--yole-text-muted);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.portfolio-featured-label input {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--yole-lime);
+}
+
 /* ============================================================================
    INTERACTIVE UI MOCKUPS (DATA OVERVIEW, CODE SYNC, WORKFLOW DIAGRAM)
    ============================================================================ */

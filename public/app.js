@@ -1950,47 +1950,31 @@ class YoletechApp {
             ${filtered
               .map(
                 (p) => `
-              <div class="glass-card" style="display:flex;flex-direction:column;justify-content:space-between;">
-                <div>
-                  <div style="border-radius:12px;overflow:hidden;margin-bottom:16px;border:1px solid rgba(255,255,255,0.14);height:190px;">
-                    <img src="${p.preview_image}" alt="${p.title}" style="width:100%;height:100%;object-fit:cover;" />
-                  </div>
-                  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
-                    <span class="tech-pill lime">${p.category}</span>
-                    <span style="font-size:12px;color:var(--yole-text-muted);">${p.organization} (${p.period})</span>
-                  </div>
-                  <h3 style="font-size:20px;font-weight:800;margin-bottom:10px;">${p.title}</h3>
-                  <p style="font-size:14px;color:var(--yole-text-muted);margin-bottom:14px;">${p.summary}</p>
+              <article class="glass-card portfolio-project-card">
+                <div class="portfolio-project-image">
+                  <img src="${p.preview_image}" alt="${p.title}" loading="lazy" decoding="async" />
                 </div>
-
-                <div>
-                  <div style="background:rgba(200,230,30,0.08);border-left:3px solid #C8E61E;padding:10px 12px;font-size:12.5px;color:#FFFFFF;margin-bottom:14px;border-radius:0 8px 8px 0;">
-                    <strong>Verified Outcome:</strong> ${p.impact_metrics}
-                  </div>
-                  <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:16px;">
-                    ${(p.tech_stack || []).map((t) => `<span class="tech-pill">${t}</span>`).join('')}
-                  </div>
-                  <div style="display:flex;gap:8px;flex-wrap:wrap;border-top:1px solid rgba(255,255,255,0.1);padding-top:12px;">
+                <h2 class="portfolio-project-title">${p.title}</h2>
+                <div class="portfolio-project-actions">
                     ${
                       p.demo_url || p.live_url
-                        ? `<a href="${p.demo_url || p.live_url}" target="_blank" rel="noopener" class="btn btn-lime btn-sm" style="flex:1;">
-                            Live Demo ↗
+                        ? `<a href="${p.demo_url || p.live_url}" target="_blank" rel="noopener noreferrer" class="btn btn-lime btn-sm portfolio-project-action">
+                            Live Demo <span aria-hidden="true">↗</span>
                           </a>`
                         : ''
                     }
                     ${
                       p.github_url
-                        ? `<a href="${p.github_url}" target="_blank" rel="noopener" class="btn btn-outline btn-sm" style="flex:1;">
-                            GitHub / Source
+                        ? `<a href="${p.github_url}" target="_blank" rel="noopener noreferrer" class="btn btn-outline btn-sm portfolio-project-action">
+                            GitHub / Source <span aria-hidden="true">↗</span>
                           </a>`
                         : ''
                     }
-                    <button class="btn btn-outline btn-sm" style="flex:1;" onclick="window.app.selectContactService('${p.category}')">
-                      Build Similar →
+                    <button class="btn btn-outline btn-sm portfolio-project-action portfolio-project-action-wide" onclick="window.app.selectContactService('${p.category}')">
+                      Build Similar <span aria-hidden="true">→</span>
                     </button>
-                  </div>
                 </div>
-              </div>
+              </article>
             `
               )
               .join('')}
@@ -3988,20 +3972,10 @@ class YoletechApp {
                   <option value="IT & Customer Support" ${editing?.category === 'IT & Customer Support' ? 'selected' : ''}>IT &amp; Customer Support</option>
                 </select>
               </div>
-              <div class="form-group">
-                <label class="form-label">Organization</label>
-                <input type="text" name="organization" class="form-control" value="${editing ? editing.organization : 'YOLETECH'}" />
-              </div>
             </div>
-            <div class="grid-2" style="gap:12px;">
-              <div class="form-group">
-                <label class="form-label">Period / Year</label>
-                <input type="text" name="period" class="form-control" value="${editing ? editing.period : '2026'}" placeholder="e.g. 2024 – Present" />
-              </div>
-              <div class="form-group">
-                <label class="form-label">Preview Image URL</label>
-                <input type="text" name="preview_image" class="form-control" value="${editing ? editing.preview_image : '/assets/dashboard-preview.jpg'}" />
-              </div>
+            <div class="form-group">
+              <label class="form-label">Project Card Image URL *</label>
+              <input type="text" name="preview_image" required class="form-control" value="${editing ? editing.preview_image : '/assets/dashboard-preview.jpg'}" placeholder="/assets/project-preview.jpg" />
             </div>
             <div class="grid-2" style="gap:12px;">
               <div class="form-group">
@@ -4013,17 +3987,11 @@ class YoletechApp {
                 <input type="url" name="github_url" class="form-control" value="${editing ? (editing.github_url || '').replace(/"/g, '&quot;') : 'https://github.com/Eniekpo'}" placeholder="https://github.com/Eniekpo/..." />
               </div>
             </div>
-            <div class="form-group">
-              <label class="form-label">Tech Stack (comma-separated)</label>
-              <input type="text" name="tech_stack" class="form-control" value="${editing ? (editing.tech_stack || []).join(', ') : 'Python, SQL, Power BI, React.js'}" />
-            </div>
-            <div class="form-group">
-              <label class="form-label">Measurable Impact Metric *</label>
-              <input type="text" name="impact_metrics" required class="form-control" value="${editing ? editing.impact_metrics.replace(/"/g, '&quot;') : ''}" placeholder="e.g. Reduced reporting compilation time by 70%" />
-            </div>
-            <div class="form-group">
-              <label class="form-label">Summary *</label>
-              <textarea name="summary" rows="3" required class="form-control" placeholder="Project summary...">${editing ? editing.summary : ''}</textarea>
+            <div class="form-group portfolio-featured-field">
+              <label class="portfolio-featured-label">
+                <input type="checkbox" name="featured" ${editing?.featured !== false ? 'checked' : ''} />
+                <span>Feature this project on the home page</span>
+              </label>
             </div>
             <div style="display:flex;gap:10px;">
               <button type="submit" class="btn btn-lime" style="flex:1;">
@@ -4085,14 +4053,10 @@ class YoletechApp {
     const payload = {
       title: form.title.value,
       category: form.category.value,
-      organization: form.organization.value,
-      period: form.period?.value || '2026',
       preview_image: form.preview_image?.value || '/assets/dashboard-preview.jpg',
       demo_url: form.demo_url?.value || '',
       github_url: form.github_url?.value || '',
-      tech_stack: form.tech_stack.value,
-      impact_metrics: form.impact_metrics.value,
-      summary: form.summary.value
+      featured: form.featured.checked
     };
     try {
       if (this.editingPortfolioProject) {
