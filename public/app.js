@@ -36,6 +36,7 @@ class YoletechApp {
     this.showPassword = false;
     this.lastContactSubmission = null;
     this.formConfirmations = {};
+    this.renderedPage = null;
   }
 
   async init() {
@@ -4112,6 +4113,7 @@ class YoletechApp {
   render() {
     const root = document.getElementById('app-root');
     if (!root) return;
+    const pageChanged = this.renderedPage !== this.currentPage;
 
     const activeEl = document.activeElement;
     const preserveSearchFocus = activeEl && activeEl.id === 'admin-client-search';
@@ -4159,10 +4161,23 @@ class YoletechApp {
 
     root.innerHTML = `
       ${this.renderHeader()}
-      <main>${pageContent}</main>
+      <main class="${pageChanged ? 'page-enter' : ''}">${pageContent}</main>
       ${this.renderFooter()}
       <div id="toast-container"></div>
     `;
+    this.renderedPage = this.currentPage;
+    if (pageChanged) {
+      const page = root.querySelector('main.page-enter');
+      if (page) {
+        const finishPageAnimation = (event) => {
+          if (event.target === page && event.animationName === 'site-page-enter') {
+            page.classList.remove('page-enter');
+            page.removeEventListener('animationend', finishPageAnimation);
+          }
+        };
+        page.addEventListener('animationend', finishPageAnimation);
+      }
+    }
     this.renderToast();
     this.initKpiCounters(root);
 

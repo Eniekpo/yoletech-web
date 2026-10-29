@@ -2276,3 +2276,130 @@ button, input, select, textarea {
     gap: 6px;
   }
 }
+
+/* ============================================================================
+   SITE-WIDE MOTION
+   Keep page entry and hover effects on opacity/transform; avoid layout work.
+   ============================================================================ */
+.page-enter {
+  animation: site-page-enter 360ms cubic-bezier(0.2, 0.7, 0.25, 1) both;
+}
+
+@keyframes site-page-enter {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 8px, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+.glass-card,
+.ui-mockup-frame,
+.workflow-diagram-frame,
+.portrait-orbit-card,
+.mini-kpi-card,
+.status-mini-box,
+.service-strip-item,
+.scope-tab-btn,
+.about-tab-btn,
+.selector-pill,
+.social-btn,
+.tech-pill,
+.metric-cell,
+.footer-cta-banner {
+  transition:
+    transform 180ms ease,
+    border-color 180ms ease,
+    box-shadow 180ms ease,
+    background-color 180ms ease,
+    color 180ms ease;
+}
+
+.glass-card:hover,
+.ui-mockup-frame:hover,
+.workflow-diagram-frame:hover,
+.portrait-orbit-card:hover,
+.mini-kpi-card:hover,
+.status-mini-box:hover {
+  transform: translateY(-3px);
+}
+
+.glass-card:hover,
+.ui-mockup-frame:hover,
+.workflow-diagram-frame:hover,
+.portrait-orbit-card:hover {
+  border-color: rgba(200, 230, 30, 0.48);
+}
+
+.tech-pill:hover {
+  transform: translateY(-1px);
+  border-color: rgba(200, 230, 30, 0.48);
+}
+
+.service-strip-item:hover,
+.social-btn:hover,
+.scope-tab-btn:hover,
+.about-tab-btn:hover,
+.selector-pill:hover {
+  transform: translateY(-2px);
+}
+
+.footer-cta-banner:hover {
+  transform: translateY(-2px);
+  border-color: rgba(200, 230, 30, 0.7);
+}
+
+.btn,
+.mobile-menu-btn,
+.slide-pill-btn,
+.slide-arrow-btn,
+.nav-link,
+.form-control,
+.form-confirmation-dismiss {
+  transition:
+    transform 180ms ease,
+    color 180ms ease,
+    background-color 180ms ease,
+    border-color 180ms ease,
+    box-shadow 180ms ease,
+    filter 180ms ease;
+}
+
+.glass-card img,
+.portrait-orbit-card img,
+.ui-mockup-frame img {
+  transition: transform 320ms ease;
+}
+
+.glass-card:hover img,
+.portrait-orbit-card:hover img,
+.ui-mockup-frame:hover img {
+  transform: scale(1.015);
+}
+
+.yole-table tbody tr {
+  transition: background-color 160ms ease;
+}
+
+.footer-links a,
+details > summary {
+  transition: color 180ms ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto !important;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
+}
