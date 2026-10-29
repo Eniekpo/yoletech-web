@@ -16,6 +16,7 @@ class YoletechApp {
     this.serviceScopeTab = 0;
     this.authMode = 'login';
     this.adminTab = 'clients';
+    this.footerTab = 'overview';
     this.clientSearch = '';
     this.clientStatusFilter = 'ALL';
     this.contactServiceSelected = 'Data Analysis & Analytics';
@@ -910,88 +911,81 @@ class YoletechApp {
 
   renderFooter() {
     const D = window.YOLETECH_DATA.owner;
-    const C = window.YOLETECH_COMPONENTS;
+    const tabs = [
+      { id: 'overview', label: 'Overview', detail: 'Who we are' },
+      { id: 'services', label: 'Services', detail: 'What we do' },
+      { id: 'explore', label: 'Explore', detail: 'Useful links' },
+      { id: 'contact', label: 'Contact', detail: 'Get in touch' }
+    ];
+    const activeTab = tabs.some((tab) => tab.id === this.footerTab) ? this.footerTab : 'overview';
 
     return `
       <footer class="site-footer">
         <div class="container">
           <div class="footer-cta-banner">
-            <div>
-              <h2 style="font-size:clamp(24px,3vw,34px);font-weight:900;">Ready to build your next digital engine?</h2>
-              <p style="color:var(--yole-text-muted);max-width:560px;margin-top:6px;">
-                From React.js &amp; WordPress platforms to interactive Power BI/Tableau dashboards and Python/VBA automation pipelines—let's make your business run faster.
+            <div class="footer-cta-copy">
+              <span class="footer-kicker"><span class="eyebrow-dot"></span> LET'S BUILD SOMETHING BETTER</span>
+              <h2>Ready to move your next idea forward?</h2>
+              <p>
+                Thoughtful web, data, and automation solutions built around the way your business works.
               </p>
             </div>
-            <div style="display:flex;gap:14px;flex-wrap:wrap;">
+            <div class="footer-cta-actions">
               <a href="${D.whatsappUrl}" target="_blank" rel="noopener" class="btn btn-lime">
-                Schedule via WhatsApp →
+                Start a WhatsApp chat <span aria-hidden="true">↗</span>
               </a>
               <button class="btn btn-outline" onclick="window.app.navigate('contact')">
-                Send a Message
+                Tell me about your project
               </button>
             </div>
           </div>
 
-          <div class="footer-grid">
-            <div>
-              ${C.renderBrandLogo()}
-              <p style="color:var(--yole-text-muted);font-size:14px;margin-top:14px;max-width:340px;">
-                Data analytics, business intelligence, workflow automation, and full-stack web development solutions engineered for clarity and scale.
-              </p>
-              <div class="social-icon-row">
-                <a href="${D.socials.github}" target="_blank" rel="noopener" class="social-btn">GitHub</a>
-                <a href="${D.socials.linkedin}" target="_blank" rel="noopener" class="social-btn">LinkedIn</a>
-                <a href="${D.socials.kaggle}" target="_blank" rel="noopener" class="social-btn">Kaggle</a>
-                <a href="${D.socials.youtube}" target="_blank" rel="noopener" class="social-btn">YouTube</a>
-                <a href="${D.socials.facebook}" target="_blank" rel="noopener" class="social-btn">Facebook</a>
-                <a href="${D.socials.whatsapp}" target="_blank" rel="noopener" class="social-btn" style="border-color:#C8E61E;color:#C8E61E;">WhatsApp</a>
+          <div class="footer-information">
+            <div class="footer-section-heading">
+              <div>
+                <span class="footer-kicker"><span class="eyebrow-dot"></span> YOLETECH</span>
+                <h2>Good work starts with a good conversation.</h2>
               </div>
+              <p>Explore the studio, services, and ways to connect.</p>
             </div>
 
-            <div>
-              <div class="footer-col-title"><span class="eyebrow-dot"></span> CORE SERVICES</div>
-              <ul class="footer-links">
-                <li><a onclick="window.app.navigate('services')">Full-Stack Web Development</a></li>
-                <li><a onclick="window.app.navigate('services')">Data Analytics &amp; BI Dashboards</a></li>
-                <li><a onclick="window.app.navigate('services')">AI &amp; Python/VBA Automation</a></li>
-                <li><a onclick="window.app.navigate('services')">Tech Tutorials &amp; Staff Training</a></li>
-                <li><a onclick="window.app.navigate('services')">Graphic Design &amp; Video Editing</a></li>
-                <li><a onclick="window.app.navigate('services')">IT &amp; Database Support</a></li>
-              </ul>
+            <div class="footer-tabs-nav" role="tablist" aria-label="Footer information">
+              ${tabs
+                .map(
+                  (tab) => `
+                <button
+                  type="button"
+                  id="footer-tab-${tab.id}"
+                  class="footer-tab-btn ${activeTab === tab.id ? 'active' : ''}"
+                  role="tab"
+                  aria-selected="${activeTab === tab.id}"
+                  aria-controls="footer-tab-panel"
+                  tabindex="${activeTab === tab.id ? '0' : '-1'}"
+                  onclick="window.app.selectFooterTab('${tab.id}')"
+                  onkeydown="window.app.handleFooterTabKeydown(event, '${tab.id}')"
+                >
+                  <span class="footer-tab-label">${tab.label}</span>
+                  <span class="footer-tab-detail">${tab.detail}</span>
+                </button>
+              `
+                )
+                .join('')}
             </div>
 
-            <div>
-              <div class="footer-col-title"><span class="eyebrow-dot"></span> NAVIGATION</div>
-              <ul class="footer-links">
-                <li><a onclick="window.app.navigate('about')">About</a></li>
-                <li><a onclick="window.app.navigate('portfolio')">Portfolio &amp; Case Studies</a></li>
-                <li><a onclick="window.app.navigate('testimonials')">Testimonials</a></li>
-                <li><a onclick="window.app.navigate('blog')">Blog &amp; Tutorials</a></li>
-                <li><a onclick="window.app.navigate('login')">Client Portal</a></li>
-                <li><a href="/cv.html" target="_blank">Curriculum Vitae</a></li>
-              </ul>
-            </div>
-
-            <div>
-              <div class="footer-col-title"><span class="eyebrow-dot"></span> CONTACT</div>
-              <div style="font-size:13.5px;color:var(--yole-text-muted);margin-bottom:8px;">
-                <strong style="color:#FFFFFF;">Email:</strong><br/>
-                <a href="mailto:${D.email}" style="color:#C8E61E;">${D.email}</a>
-              </div>
-              <div style="font-size:13.5px;color:var(--yole-text-muted);margin-bottom:8px;">
-                <strong style="color:#FFFFFF;">WhatsApp / Phone:</strong><br/>
-                <a href="${D.whatsappUrl}" target="_blank" style="color:#FFFFFF;">${D.phone}</a>
-              </div>
-              <div style="font-size:13.5px;color:var(--yole-text-muted);">
-                <strong style="color:#FFFFFF;">Hours:</strong><br/>
-                ${D.workingHours}
-              </div>
+            <div
+              id="footer-tab-panel"
+              class="footer-tab-panel"
+              role="tabpanel"
+              aria-labelledby="footer-tab-${activeTab}"
+              tabindex="0"
+            >
+              ${this.renderFooterTabContent(activeTab, D)}
             </div>
           </div>
 
-          <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;padding-top:24px;font-size:13px;color:var(--yole-text-subtle);">
-            <div>© 2026 YOLETECH. All rights reserved.</div>
-            <div>${D.location}</div>
+          <div class="footer-legal">
+            <span>© ${new Date().getFullYear()} YOLETECH. All rights reserved.</span>
+            <span>${D.location}</span>
           </div>
         </div>
       </footer>
@@ -1002,6 +996,133 @@ class YoletechApp {
         <span>Chat on WhatsApp</span>
       </a>
     `;
+  }
+
+  renderFooterTabContent(tab, owner = window.YOLETECH_DATA.owner) {
+    const content = {
+      overview: `
+        <div class="footer-overview">
+          <div class="footer-about-brand">
+            ${window.YOLETECH_COMPONENTS.renderBrandLogo()}
+            <p>Data analytics, business intelligence, workflow automation, and full-stack web solutions engineered for clarity and scale.</p>
+          </div>
+          <div class="footer-social-block">
+            <h3>Connect with YOLETECH</h3>
+            <p>Follow the work, explore projects, or start a conversation.</p>
+            <div class="social-icon-row">
+              <a href="${owner.socials.github}" target="_blank" rel="noopener noreferrer" class="social-btn">GitHub <span aria-hidden="true">↗</span></a>
+              <a href="${owner.socials.linkedin}" target="_blank" rel="noopener noreferrer" class="social-btn">LinkedIn <span aria-hidden="true">↗</span></a>
+              <a href="${owner.socials.kaggle}" target="_blank" rel="noopener noreferrer" class="social-btn">Kaggle <span aria-hidden="true">↗</span></a>
+              <a href="${owner.socials.youtube}" target="_blank" rel="noopener noreferrer" class="social-btn">YouTube <span aria-hidden="true">↗</span></a>
+              <a href="${owner.socials.facebook}" target="_blank" rel="noopener noreferrer" class="social-btn">Facebook <span aria-hidden="true">↗</span></a>
+              <a href="${owner.socials.whatsapp}" target="_blank" rel="noopener noreferrer" class="social-btn">WhatsApp <span aria-hidden="true">↗</span></a>
+            </div>
+          </div>
+        </div>
+      `,
+      services: `
+        <div class="footer-tab-content">
+          <div class="footer-tab-intro">
+            <span class="footer-panel-index">01 / WHAT WE DO</span>
+            <h3>Services built around your goals</h3>
+            <p>Practical expertise across modern web, data, and digital operations.</p>
+          </div>
+          <ul class="footer-link-grid">
+            <li><a onclick="window.app.navigate('services')"><span>Full-Stack Web Development</span><span aria-hidden="true">↗</span></a></li>
+            <li><a onclick="window.app.navigate('services')"><span>Data Analytics &amp; BI Dashboards</span><span aria-hidden="true">↗</span></a></li>
+            <li><a onclick="window.app.navigate('services')"><span>AI &amp; Python/VBA Automation</span><span aria-hidden="true">↗</span></a></li>
+            <li><a onclick="window.app.navigate('services')"><span>Tech Tutorials &amp; Staff Training</span><span aria-hidden="true">↗</span></a></li>
+            <li><a onclick="window.app.navigate('services')"><span>Graphic Design &amp; Video Editing</span><span aria-hidden="true">↗</span></a></li>
+            <li><a onclick="window.app.navigate('services')"><span>IT &amp; Database Support</span><span aria-hidden="true">↗</span></a></li>
+          </ul>
+        </div>
+      `,
+      explore: `
+        <div class="footer-tab-content">
+          <div class="footer-tab-intro">
+            <span class="footer-panel-index">02 / DISCOVER</span>
+            <h3>Explore the work and ideas</h3>
+            <p>See how thoughtful engineering turns complex challenges into clear outcomes.</p>
+          </div>
+          <ul class="footer-link-grid">
+            <li><a onclick="window.app.navigate('about')"><span>About YOLETECH</span><span aria-hidden="true">↗</span></a></li>
+            <li><a onclick="window.app.navigate('portfolio')"><span>Portfolio &amp; Case Studies</span><span aria-hidden="true">↗</span></a></li>
+            <li><a onclick="window.app.navigate('testimonials')"><span>Client Testimonials</span><span aria-hidden="true">↗</span></a></li>
+            <li><a onclick="window.app.navigate('blog')"><span>Blog &amp; Tutorials</span><span aria-hidden="true">↗</span></a></li>
+            <li><a onclick="window.app.navigate('login')"><span>Client Portal</span><span aria-hidden="true">↗</span></a></li>
+            <li><a href="/cv.html" target="_blank" rel="noopener"><span>Curriculum Vitae</span><span aria-hidden="true">↗</span></a></li>
+          </ul>
+        </div>
+      `,
+      contact: `
+        <div class="footer-tab-content">
+          <div class="footer-tab-intro">
+            <span class="footer-panel-index">03 / GET IN TOUCH</span>
+            <h3>Let's talk about what you need</h3>
+            <p>Reach out directly or send a project inquiry to get started.</p>
+          </div>
+          <div class="footer-contact-grid">
+            <a class="footer-contact-item" href="mailto:${owner.email}">
+              <span class="footer-contact-label">EMAIL</span>
+              <strong>${owner.email}</strong>
+              <span class="footer-contact-arrow" aria-hidden="true">↗</span>
+            </a>
+            <a class="footer-contact-item" href="${owner.whatsappUrl}" target="_blank" rel="noopener">
+              <span class="footer-contact-label">WHATSAPP / PHONE</span>
+              <strong>${owner.phone}</strong>
+              <span class="footer-contact-arrow" aria-hidden="true">↗</span>
+            </a>
+            <div class="footer-contact-item">
+              <span class="footer-contact-label">WORKING HOURS</span>
+              <strong>${owner.workingHours}</strong>
+            </div>
+            <div class="footer-contact-item">
+              <span class="footer-contact-label">LOCATION</span>
+              <strong>${owner.location}</strong>
+            </div>
+          </div>
+        </div>
+      `
+    };
+
+    return content[tab] || content.overview;
+  }
+
+  selectFooterTab(tab, shouldFocus = false) {
+    const tabIds = ['overview', 'services', 'explore', 'contact'];
+    if (!tabIds.includes(tab)) return;
+
+    this.footerTab = tab;
+    const panel = document.getElementById('footer-tab-panel');
+    const activeButton = document.getElementById(`footer-tab-${tab}`);
+    if (!panel || !activeButton) return;
+
+    panel.innerHTML = this.renderFooterTabContent(tab);
+    panel.setAttribute('aria-labelledby', `footer-tab-${tab}`);
+    tabIds.forEach((tabId) => {
+      const button = document.getElementById(`footer-tab-${tabId}`);
+      const isActive = tabId === tab;
+      button?.classList.toggle('active', isActive);
+      button?.setAttribute('aria-selected', String(isActive));
+      button?.setAttribute('tabindex', isActive ? '0' : '-1');
+    });
+
+    if (shouldFocus) activeButton.focus();
+  }
+
+  handleFooterTabKeydown(event, currentTab) {
+    const tabIds = ['overview', 'services', 'explore', 'contact'];
+    const currentIndex = tabIds.indexOf(currentTab);
+    let nextIndex;
+
+    if (event.key === 'ArrowRight') nextIndex = (currentIndex + 1) % tabIds.length;
+    else if (event.key === 'ArrowLeft') nextIndex = (currentIndex - 1 + tabIds.length) % tabIds.length;
+    else if (event.key === 'Home') nextIndex = 0;
+    else if (event.key === 'End') nextIndex = tabIds.length - 1;
+    else return;
+
+    event.preventDefault();
+    this.selectFooterTab(tabIds[nextIndex], true);
   }
 
   // ==========================================================================
