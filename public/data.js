@@ -20,7 +20,7 @@ window.YOLETECH_DATA = {
       whatsapp: "https://wa.me/2348025526389"
     },
     summary:
-      "Computer Scientist with over 5 years of experience specializing in data management, statistical analysis, business intelligence reporting, and full-stack web development. Proven track record in handling large datasets, ensuring data integrity, automating workflows, and delivering actionable insights for research and decision-making. Certified across Google Data Analytics, Business Intelligence, and AI specializations. Proficient in Python, SQL, R, Power BI, Tableau, Excel VBA, and modern web frameworks including React.js."
+      "To leverage 5+ years of expertise in data analytics, business intelligence, and full-stack development to build reliable, data-driven solutions that strengthen decisions and deliver measurable impact."
   },
 
   // 6 Dynamic Hero Slideshow Slides (Showcasing Services + Brand Overview)
