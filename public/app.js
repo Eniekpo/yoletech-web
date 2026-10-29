@@ -31,7 +31,7 @@ class YoletechApp {
     this.clients = [];
     this.inquiries = [];
     this.toastMessage = null;
-    this.notifyEmail = 'yoletech@yoletica.com';
+    this.notifyEmail = 'yoletech@yolestica.com';
     this.showPassword = false;
     this.lastContactSubmission = null;
     this.formConfirmations = {};
@@ -165,7 +165,7 @@ class YoletechApp {
   }
 
   async sendEmailToYoletech({ subject, replyTo, fields }) {
-    const recipient = this.notifyEmail || 'yoletech@yoletica.com';
+    const recipient = this.notifyEmail || 'yoletech@yolestica.com';
     try {
       const res = await fetch(`https://formsubmit.co/ajax/${encodeURIComponent(recipient)}`, {
         method: 'POST',
@@ -176,7 +176,6 @@ class YoletechApp {
         body: JSON.stringify({
           _subject: subject,
           _replyto: replyTo || '',
-          _cc: 'yoletech@yolestica.com',
           _template: 'table',
           _captcha: 'false',
           ...fields
@@ -2321,7 +2320,7 @@ class YoletechApp {
                 </div>
 
                 <button type="submit" id="contact-submit-btn" class="btn btn-lime" style="width:100%;font-size:15px;padding:14px;">
-                  Send Message to yoletech@yoletica.com →
+                  Send Message to yoletech@yolestica.com →
                 </button>
                 ${this.renderFormConfirmation('contact')}
               </form>
@@ -2418,7 +2417,7 @@ class YoletechApp {
     const submitBtn = document.getElementById('contact-submit-btn');
     if (submitBtn) {
       submitBtn.disabled = true;
-      submitBtn.textContent = 'Sending to yoletech@yoletica.com...';
+      submitBtn.textContent = `Sending to ${this.notifyEmail}...`;
     }
 
     const selectedCategory = form.service_category ? form.service_category.value : this.contactServiceSelected;
@@ -2441,7 +2440,7 @@ class YoletechApp {
       payload.message
     ].join('\n');
 
-    const mailtoUrl = `mailto:${this.notifyEmail}?cc=yoletech@yolestica.com&subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(emailBody)}`;
+    const mailtoUrl = `mailto:${this.notifyEmail}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(emailBody)}`;
     const whatsappUrl = `https://wa.me/2348025526389?text=${encodeURIComponent(subject + '\n\n' + emailBody)}`;
 
     try {
@@ -2513,7 +2512,7 @@ class YoletechApp {
       this.showToast(err.message || 'Could not send message.', 'error');
       if (submitBtn) {
         submitBtn.disabled = false;
-        submitBtn.textContent = 'Send Message to yoletech@yoletica.com →';
+        submitBtn.textContent = `Send Message to ${this.notifyEmail} →`;
       }
     }
   }
@@ -2842,7 +2841,7 @@ class YoletechApp {
       const { token, user } = regData;
       this.saveLocalRegisteredUser(user, payload.password);
 
-      // Dispatch new client registration notification email to yoletech@yoletica.com
+      // Dispatch new client registration notification email to yoletech@yolestica.com
       await this.sendEmailToYoletech({
         subject: `[YOLETECH New Client Registration] ${user.name} — ${user.service_interest}`,
         replyTo: user.email,
@@ -3117,7 +3116,7 @@ class YoletechApp {
       'Project Scope & Deliverables:',
       payload.message
     ].join('\n');
-    const mailtoUrl = `mailto:${this.notifyEmail}?cc=yoletech@yolestica.com&subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(emailBody)}`;
+    const mailtoUrl = `mailto:${this.notifyEmail}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(emailBody)}`;
     const whatsappUrl = `https://wa.me/2348025526389?text=${encodeURIComponent(subject + '\n\n' + emailBody)}`;
 
     try {

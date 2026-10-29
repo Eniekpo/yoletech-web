@@ -12,7 +12,7 @@ try {
 
 const PORT = process.env.PORT || 4000;
 const JWT_SECRET = process.env.JWT_SECRET || 'yoletech-super-secret-jwt-key-2026-eniekpo';
-const ADMIN_NOTIFY_EMAIL = process.env.ADMIN_NOTIFY_EMAIL || 'yoletech@yoletica.com';
+const ADMIN_NOTIFY_EMAIL = process.env.ADMIN_NOTIFY_EMAIL || 'yoletech@yolestica.com';
 const DB_PATH = path.join(__dirname, 'yoletech.db');
 const PUBLIC_DIR = path.join(__dirname, '..', 'public');
 const BLOG_DIR = path.join(__dirname, '..', 'content', 'blog');
@@ -669,9 +669,9 @@ function seedDatabase() {
 
 seedDatabase();
 
-// Server-side Email Notification Dispatcher -> sends all emails to yoletech@yoletica.com
+// Server-side Email Notification Dispatcher -> sends all emails to yoletech@yolestica.com
 async function sendEmailToYoletech({ subject, replyTo, fields }) {
-  const recipient = ADMIN_NOTIFY_EMAIL; // "yoletech@yoletica.com"
+  const recipient = ADMIN_NOTIFY_EMAIL;
   const results = { recipient, sent: false };
 
   // 1. Optional Resend API if RESEND_API_KEY is configured in environment
@@ -688,7 +688,7 @@ async function sendEmailToYoletech({ subject, replyTo, fields }) {
         },
         body: JSON.stringify({
           from: process.env.RESEND_FROM_EMAIL || 'YOLETECH Portal <onboarding@resend.dev>',
-          to: [recipient, 'yoletech@yolestica.com'],
+          to: [recipient],
           reply_to: replyTo || recipient,
           subject,
           html: `<h2>${subject}</h2><table style="border-collapse:collapse;width:100%;max-width:600px;">${htmlRows}</table>`
@@ -700,12 +700,11 @@ async function sendEmailToYoletech({ subject, replyTo, fields }) {
     }
   }
 
-  // 2. FormSubmit AJAX Relay to yoletech@yoletica.com (and CC yoletech@yolestica.com)
+  // 2. FormSubmit AJAX Relay to the configured admin email
   try {
     const formPayload = {
       _subject: subject,
       _replyto: replyTo || '',
-      _cc: 'yoletech@yolestica.com',
       _template: 'table',
       _captcha: 'false',
       ...fields
