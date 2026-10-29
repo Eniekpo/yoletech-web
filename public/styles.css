@@ -1867,3 +1867,412 @@ button, input, select, textarea {
     transform: translateY(0);
   }
 }
+
+/* ============================================================================
+   ABOUT PAGE PROFESSIONAL PROFILE TABS
+   ============================================================================ */
+.about-profile {
+  margin-top: 74px;
+}
+
+.about-profile-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 20px;
+  margin-bottom: 26px;
+}
+
+.about-profile-heading .section-title {
+  margin-bottom: 8px;
+}
+
+.about-profile-heading p,
+.about-panel-heading p {
+  color: var(--yole-text-muted);
+  font-size: 14px;
+}
+
+.about-tabs-nav {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.about-tab-btn {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  padding: 16px 18px;
+  text-align: left;
+  color: var(--yole-text-muted);
+  background: linear-gradient(145deg, rgba(31, 28, 82, 0.88), rgba(21, 18, 56, 0.86));
+  border: 1px solid rgba(255, 255, 255, 0.13);
+  border-radius: 14px;
+  cursor: pointer;
+  transition: background 0.2s ease, border-color 0.2s ease, transform 0.2s ease, color 0.2s ease;
+}
+
+.about-tab-btn:hover {
+  color: var(--yole-white);
+  border-color: rgba(200, 230, 30, 0.48);
+  transform: translateY(-2px);
+}
+
+.about-tab-btn.active {
+  color: var(--yole-white);
+  background: linear-gradient(145deg, rgba(47, 43, 115, 0.98), rgba(31, 28, 82, 0.98));
+  border-color: rgba(200, 230, 30, 0.75);
+  box-shadow: inset 0 -3px 0 var(--yole-lime), 0 10px 24px rgba(8, 6, 26, 0.24);
+}
+
+.about-tab-number {
+  width: 38px;
+  height: 38px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  border-radius: 11px;
+  color: var(--yole-lime);
+  background: rgba(200, 230, 30, 0.1);
+  border: 1px solid rgba(200, 230, 30, 0.24);
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+}
+
+.about-tab-copy {
+  min-width: 0;
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.about-tab-label {
+  color: var(--yole-white);
+  font-size: 14px;
+  font-weight: 800;
+  line-height: 1.3;
+}
+
+.about-tab-detail {
+  color: var(--yole-text-subtle);
+  font-size: 11.5px;
+  line-height: 1.35;
+}
+
+.about-tab-arrow {
+  color: var(--yole-text-subtle);
+  font-size: 16px;
+  transition: color 0.2s ease, transform 0.2s ease;
+}
+
+.about-tab-btn.active .about-tab-arrow {
+  color: var(--yole-lime);
+  transform: translate(2px, -2px);
+}
+
+.about-tab-btn:focus-visible {
+  outline: 2px solid var(--yole-lime);
+  outline-offset: 3px;
+}
+
+.about-tab-panel {
+  padding: clamp(20px, 3vw, 34px);
+  border-color: rgba(255, 255, 255, 0.14);
+  min-height: 330px;
+}
+
+.about-tab-panel:focus {
+  outline: none;
+}
+
+.about-panel-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 16px;
+  padding-bottom: 20px;
+  margin-bottom: 22px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.about-panel-heading .eyebrow {
+  margin-bottom: 8px;
+}
+
+.about-panel-heading h3 {
+  margin-bottom: 5px;
+  color: var(--yole-white);
+  font-size: clamp(21px, 2.4vw, 27px);
+  font-weight: 900;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+}
+
+.about-skill-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.about-info-card {
+  min-width: 0;
+  padding: 20px;
+  background: rgba(15, 13, 44, 0.48);
+  border: 1px solid rgba(255, 255, 255, 0.11);
+  border-radius: 14px;
+}
+
+.about-info-card h4 {
+  margin-bottom: 15px;
+  color: var(--yole-white);
+  font-size: 16px;
+  font-weight: 800;
+  line-height: 1.35;
+}
+
+.about-accent-lime {
+  color: var(--yole-lime) !important;
+}
+
+.about-accent-orange {
+  color: var(--yole-orange) !important;
+}
+
+.about-skill-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+
+.about-skill-list .tech-pill {
+  white-space: normal;
+  line-height: 1.35;
+}
+
+.about-competencies {
+  grid-column: span 2;
+}
+
+.about-competency-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px 20px;
+}
+
+.about-competency,
+.about-cert-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.about-check,
+.about-star {
+  flex: 0 0 auto;
+  color: var(--yole-lime);
+  font-size: 14px;
+  font-weight: 900;
+}
+
+.about-star {
+  color: var(--yole-orange);
+}
+
+.about-competency strong {
+  display: block;
+  margin-bottom: 3px;
+  color: var(--yole-white);
+  font-size: 13px;
+}
+
+.about-competency p {
+  color: var(--yole-text-muted);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.about-experience-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.about-experience-card {
+  padding: 22px;
+  border-top: 2px solid rgba(200, 230, 30, 0.72);
+}
+
+.about-experience-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.about-experience-heading h4 {
+  margin-bottom: 4px;
+  font-size: 19px;
+}
+
+.about-company {
+  color: var(--yole-lime);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.about-company span {
+  padding: 0 3px;
+  color: var(--yole-text-subtle);
+}
+
+.about-period {
+  display: inline-flex;
+  flex: 0 0 auto;
+  padding: 5px 10px;
+  color: var(--yole-lime);
+  background: rgba(200, 230, 30, 0.09);
+  border: 1px solid rgba(200, 230, 30, 0.22);
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1.4;
+}
+
+.about-highlights {
+  padding-left: 18px;
+  color: var(--yole-text-muted);
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.about-highlights li + li {
+  margin-top: 9px;
+}
+
+.about-highlights li::marker {
+  color: var(--yole-lime);
+}
+
+.about-credentials-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: start;
+  gap: 16px;
+}
+
+.about-education-list,
+.about-cert-group {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.about-education-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 13px 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.about-education-item h5,
+.about-cert-group h5 {
+  color: var(--yole-white);
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.about-education-item p {
+  margin-top: 3px;
+  color: var(--yole-text-muted);
+  font-size: 12px;
+}
+
+.about-cert-group + .about-cert-group {
+  margin-top: 20px;
+  padding-top: 17px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.about-cert-group h5 {
+  margin-bottom: 11px;
+  color: var(--yole-lime);
+}
+
+.about-cert-group:last-child h5 {
+  color: var(--yole-orange);
+}
+
+.about-cert-item {
+  color: var(--yole-text-muted);
+  font-size: 12.5px;
+  line-height: 1.5;
+}
+
+.about-cert-item + .about-cert-item {
+  margin-top: 9px;
+}
+
+@media (max-width: 900px) {
+  .about-skill-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .about-competencies {
+    grid-column: auto;
+  }
+}
+
+@media (max-width: 640px) {
+  .about-profile {
+    margin-top: 54px;
+  }
+
+  .about-tabs-nav {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .about-tab-btn {
+    padding: 12px 14px;
+  }
+
+  .about-tab-number {
+    width: 34px;
+    height: 34px;
+  }
+
+  .about-tab-arrow {
+    display: none;
+  }
+
+  .about-tab-panel {
+    min-height: 0;
+    padding: 18px;
+  }
+
+  .about-skill-grid,
+  .about-experience-list,
+  .about-credentials-grid,
+  .about-competency-list {
+    grid-template-columns: 1fr;
+  }
+
+  .about-info-card {
+    padding: 16px;
+  }
+
+  .about-education-item {
+    flex-direction: column;
+    gap: 6px;
+  }
+}

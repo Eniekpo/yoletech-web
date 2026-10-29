@@ -12,6 +12,7 @@ class YoletechApp {
     this.blogFilter = 'ALL';
     this.activeBlogPost = null;
     this.showcaseTab = 'dashboard';
+    this.aboutTab = 'skills';
     this.serviceScopeTab = 0;
     this.authMode = 'login';
     this.adminTab = 'clients';
@@ -1322,6 +1323,12 @@ class YoletechApp {
   renderAboutPage() {
     const D = window.YOLETECH_DATA;
     const C = window.YOLETECH_COMPONENTS;
+    const tabs = [
+      { id: 'skills', number: '01', label: 'Skills & Competencies', detail: 'Technical strengths' },
+      { id: 'experience', number: '02', label: 'Experience', detail: 'Career history' },
+      { id: 'education', number: '03', label: 'Education & Credentials', detail: 'Academic & certifications' }
+    ];
+    const activeTab = tabs.some((tab) => tab.id === this.aboutTab) ? this.aboutTab : 'skills';
 
     return `
       <section class="section">
@@ -1349,140 +1356,204 @@ class YoletechApp {
             </div>
           </div>
 
-          <!-- CORE TECHNICAL PROFICIENCIES -->
-          <div class="section-header">
-            <div class="eyebrow"><span class="eyebrow-dot"></span> TECHNICAL ARSENAL</div>
-            <h2 class="section-title">Core Technical Proficiencies</h2>
-          </div>
-
-          <div class="grid-3 section-block-gap">
-            ${D.coreProficiencies
-              .map(
-                (prof) => `
-              <div class="glass-card">
-                <h3 style="font-size:18px;font-weight:800;color:${
-                  prof.accent === 'lime' ? '#C8E61E' : '#F7941D'
-                };margin-bottom:14px;">
-                  ${prof.category}
-                </h3>
-                <div style="display:flex;flex-wrap:wrap;gap:8px;">
-                  ${prof.skills.map((s) => `<span class="tech-pill">${s}</span>`).join('')}
-                </div>
+          <section class="about-profile" aria-label="Professional profile">
+            <header class="about-profile-heading">
+              <div>
+                <div class="eyebrow"><span class="eyebrow-dot"></span> CAREER PROFILE</div>
+                <h2 class="section-title">Experience, expertise &amp; education</h2>
+                <p>Explore the capabilities and credentials behind my work.</p>
               </div>
-            `
-              )
-              .join('')}
+            </header>
 
-            <div class="glass-card">
-              <h3 style="font-size:18px;font-weight:800;color:#C8E61E;margin-bottom:14px;">
-                Professional Competencies
-              </h3>
-              ${D.competencies
+            <div class="about-tabs-nav" role="tablist" aria-label="Professional profile sections">
+              ${tabs
                 .map(
-                  (comp) => `
-                <div style="margin-bottom:12px;">
-                  <div style="font-weight:800;font-size:14px;color:#FFFFFF;">✓ ${comp.title}</div>
-                  <div style="font-size:12.5px;color:var(--yole-text-muted);">${comp.description}</div>
-                </div>
+                  (tab) => `
+                <button
+                  id="about-tab-${tab.id}"
+                  class="about-tab-btn ${activeTab === tab.id ? 'active' : ''}"
+                  type="button"
+                  role="tab"
+                  aria-selected="${activeTab === tab.id}"
+                  aria-controls="about-panel"
+                  tabindex="${activeTab === tab.id ? '0' : '-1'}"
+                  onclick="window.app.selectAboutTab('${tab.id}')"
+                  onkeydown="window.app.handleAboutTabKeydown(event, '${tab.id}')"
+                >
+                  <span class="about-tab-number">${tab.number}</span>
+                  <span class="about-tab-copy">
+                    <span class="about-tab-label">${tab.label}</span>
+                    <span class="about-tab-detail">${tab.detail}</span>
+                  </span>
+                  <span class="about-tab-arrow" aria-hidden="true">↗</span>
+                </button>
               `
                 )
                 .join('')}
             </div>
-          </div>
 
-          <!-- PROFESSIONAL EXPERIENCE TIMELINE -->
-          <div class="section-header">
-            <div class="eyebrow"><span class="eyebrow-dot"></span> CAREER TRACK RECORD</div>
-            <h2 class="section-title">Professional Experience</h2>
-          </div>
-
-          <div class="grid-2 section-block-gap">
-            ${D.experience
-              .map(
-                (exp) => `
-              <div class="glass-card">
-                <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:8px;margin-bottom:12px;">
+            <div id="about-panel" class="about-tab-panel glass-card" role="tabpanel" aria-labelledby="about-tab-${activeTab}" tabindex="0">
+              ${
+                activeTab === 'skills'
+                  ? `
+                <div class="about-panel-heading">
                   <div>
-                    <h3 style="font-size:21px;font-weight:900;color:#FFFFFF;">${exp.role}</h3>
-                    <div style="font-size:15px;font-weight:700;color:#C8E61E;">${exp.company} — ${exp.location}</div>
+                    <div class="eyebrow"><span class="eyebrow-dot"></span> TECHNICAL ARSENAL</div>
+                    <h3>Core technical proficiencies</h3>
+                    <p>A versatile toolkit for solving data, technology, and business challenges.</p>
                   </div>
-                  <span class="tech-pill orange">${exp.period}</span>
                 </div>
-                <ul style="padding-left:18px;color:var(--yole-text-muted);font-size:14px;display:flex;flex-direction:column;gap:8px;">
-                  ${exp.highlights.map((h) => `<li>${h}</li>`).join('')}
-                </ul>
-              </div>
-            `
-              )
-              .join('')}
-          </div>
-
-          <!-- EDUCATION & PROFESSIONAL CERTIFICATIONS -->
-          <div class="grid-2">
-            <div class="glass-card">
-              <div class="eyebrow"><span class="eyebrow-dot"></span> ACADEMIC CREDENTIALS</div>
-              <h3 style="font-size:24px;font-weight:900;margin-bottom:20px;">Education</h3>
-              <div style="display:flex;flex-direction:column;gap:16px;">
-                ${D.education
-                  .map(
-                    (ed) => `
-                  <div style="padding:14px;background:rgba(15,13,44,0.65);border:1px solid rgba(255,255,255,0.12);border-radius:12px;">
-                    <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:4px;">
-                      <span style="font-weight:800;font-size:15px;color:#FFFFFF;">${ed.degree}</span>
-                      <span class="tech-pill lime" style="font-size:11px;">${ed.period}</span>
-                    </div>
-                    <div style="font-size:13.5px;color:var(--yole-text-muted);">${ed.institution}</div>
-                  </div>
-                `
-                  )
-                  .join('')}
-              </div>
-            </div>
-
-            <div class="glass-card">
-              <div class="eyebrow"><span class="eyebrow-dot"></span> VERIFIED SPECIALIZATIONS</div>
-              <h3 style="font-size:24px;font-weight:900;margin-bottom:20px;">Certifications &amp; Specializations</h3>
-
-              <div style="margin-bottom:20px;">
-                <h4 style="font-size:15px;font-weight:800;color:#C8E61E;margin-bottom:10px;">
-                  Google &amp; Coursera Professional Credentials
-                </h4>
-                <div style="display:flex;flex-direction:column;gap:8px;">
-                  ${D.certifications.googleCoursera
+                <div class="about-skill-grid">
+                  ${D.coreProficiencies
                     .map(
-                      (c) => `
-                    <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:rgba(15,13,44,0.65);border-radius:10px;font-size:13.5px;">
-                      <span style="color:#C8E61E;font-weight:900;">✓</span>
-                      <span>${c}</span>
+                      (prof) => `
+                    <article class="about-info-card">
+                      <h4 class="about-accent-${prof.accent}">${prof.category}</h4>
+                      <div class="about-skill-list">
+                        ${prof.skills.map((skill) => `<span class="tech-pill">${skill}</span>`).join('')}
+                      </div>
+                    </article>
+                  `
+                    )
+                    .join('')}
+                  <article class="about-info-card about-competencies">
+                    <h4 class="accent-lime">Professional competencies</h4>
+                    <div class="about-competency-list">
+                      ${D.competencies
+                        .map(
+                          (comp) => `
+                        <div class="about-competency">
+                          <span class="about-check" aria-hidden="true">✓</span>
+                          <div>
+                            <strong>${comp.title}</strong>
+                            <p>${comp.description}</p>
+                          </div>
+                        </div>
+                      `
+                        )
+                        .join('')}
                     </div>
+                  </article>
+                </div>
+              `
+                  : activeTab === 'experience'
+                    ? `
+                <div class="about-panel-heading">
+                  <div>
+                    <div class="eyebrow"><span class="eyebrow-dot"></span> CAREER TRACK RECORD</div>
+                    <h3>Professional experience</h3>
+                    <p>Hands-on experience delivering accurate analysis and dependable systems.</p>
+                  </div>
+                </div>
+                <div class="about-experience-list">
+                  ${D.experience
+                    .map(
+                      (exp) => `
+                    <article class="about-info-card about-experience-card">
+                      <div class="about-experience-heading">
+                        <div>
+                          <h4>${exp.role}</h4>
+                          <p class="about-company">${exp.company} <span>·</span> ${exp.location}</p>
+                        </div>
+                        <span class="about-period">${exp.period}</span>
+                      </div>
+                      <ul class="about-highlights">
+                        ${exp.highlights.map((highlight) => `<li>${highlight}</li>`).join('')}
+                      </ul>
+                    </article>
                   `
                     )
                     .join('')}
                 </div>
-              </div>
-
-              <div>
-                <h4 style="font-size:15px;font-weight:800;color:#F7941D;margin-bottom:10px;">
-                  Kaggle Technical Certifications
-                </h4>
-                <div style="display:flex;flex-direction:column;gap:8px;">
-                  ${D.certifications.kaggle
-                    .map(
-                      (c) => `
-                    <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:rgba(15,13,44,0.65);border-radius:10px;font-size:13.5px;">
-                      <span style="color:#F7941D;font-weight:900;">★</span>
-                      <span>${c}</span>
-                    </div>
-                  `
-                    )
-                    .join('')}
+              `
+                    : `
+                <div class="about-panel-heading">
+                  <div>
+                    <div class="eyebrow"><span class="eyebrow-dot"></span> EDUCATION &amp; CREDENTIALS</div>
+                    <h3>Learning backed by credentials</h3>
+                    <p>Academic foundations and professional certifications supporting continued growth.</p>
+                  </div>
                 </div>
-              </div>
+                <div class="about-credentials-grid">
+                  <section class="about-info-card">
+                    <h4>Education</h4>
+                    <div class="about-education-list">
+                      ${D.education
+                        .map(
+                          (ed) => `
+                        <article class="about-education-item">
+                          <div>
+                            <h5>${ed.degree}</h5>
+                            <p>${ed.institution}</p>
+                          </div>
+                          <span class="about-period">${ed.period}</span>
+                        </article>
+                      `
+                        )
+                        .join('')}
+                    </div>
+                  </section>
+                  <section class="about-info-card">
+                    <h4>Certifications &amp; specializations</h4>
+                    <div class="about-cert-group">
+                      <h5>Google &amp; Coursera professional credentials</h5>
+                      ${D.certifications.googleCoursera
+                        .map(
+                          (certification) => `
+                        <div class="about-cert-item">
+                          <span class="about-check" aria-hidden="true">✓</span>
+                          <span>${certification}</span>
+                        </div>
+                      `
+                        )
+                        .join('')}
+                    </div>
+                    <div class="about-cert-group">
+                      <h5>Kaggle technical certifications</h5>
+                      ${D.certifications.kaggle
+                        .map(
+                          (certification) => `
+                        <div class="about-cert-item">
+                          <span class="about-star" aria-hidden="true">★</span>
+                          <span>${certification}</span>
+                        </div>
+                      `
+                        )
+                        .join('')}
+                    </div>
+                  </section>
+                </div>
+              `
+              }
             </div>
-          </div>
+          </section>
         </div>
       </section>
     `;
+  }
+
+  selectAboutTab(tab) {
+    if (!['skills', 'experience', 'education'].includes(tab)) return;
+    const scrollPosition = window.scrollY;
+    this.aboutTab = tab;
+    this.render();
+    window.scrollTo(0, scrollPosition);
+    document.getElementById(`about-tab-${tab}`)?.focus({ preventScroll: true });
+  }
+
+  handleAboutTabKeydown(event, currentTab) {
+    const tabIds = ['skills', 'experience', 'education'];
+    const currentIndex = tabIds.indexOf(currentTab);
+    let nextIndex;
+
+    if (event.key === 'ArrowRight') nextIndex = (currentIndex + 1) % tabIds.length;
+    else if (event.key === 'ArrowLeft') nextIndex = (currentIndex - 1 + tabIds.length) % tabIds.length;
+    else if (event.key === 'Home') nextIndex = 0;
+    else if (event.key === 'End') nextIndex = tabIds.length - 1;
+    else return;
+
+    event.preventDefault();
+    this.selectAboutTab(tabIds[nextIndex]);
   }
 
   // ==========================================================================
