@@ -21,6 +21,8 @@ class YoletechApp {
     this.clientStatusFilter = 'ALL';
     this.adminClientPage = 1;
     this.adminClientLimit = 30;
+    this.testimonialPage = 1;
+    this.testimonialLimit = 8;
     this.contactServiceSelected = 'Data Analysis & Analytics';
     this.mobileMenuOpen = false;
     this.editingBlogPost = null;
@@ -2107,7 +2109,57 @@ ${C.renderRoiCalculatorWidget ? C.renderRoiCalculatorWidget() : ""}
   // ==========================================================================
   // PAGE 5: TESTIMONIALS
   // ==========================================================================
+
+  setTestimonialPage(page) {
+    this.testimonialPage = Math.max(1, page);
+    this.render();
+    const el = document.getElementById('testimonials-wall');
+    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
   renderTestimonialsPage() {
+    const list = this.testimonials || [];
+    const pageSize = 8;
+    const totalCount = list.length;
+    const totalPages = Math.max(1, Math.ceil(totalCount / pageSize));
+    if (!this.testimonialPage || this.testimonialPage < 1) this.testimonialPage = 1;
+    if (this.testimonialPage > totalPages) this.testimonialPage = totalPages;
+    const cur = this.testimonialPage;
+    const startIdx = (cur - 1) * pageSize;
+    const endIdx = Math.min(startIdx + pageSize, totalCount);
+    const paginatedTestimonials = list.slice(startIdx, endIdx);
+
+    const delta = 2;
+    const range = [];
+    for (let i = Math.max(2, cur - delta); i <= Math.min(totalPages - 1, cur + delta); i++) {
+      range.push(i);
+    }
+    if (cur - delta > 2) range.unshift('...');
+    if (cur + delta < totalPages - 1) range.push('...');
+    range.unshift(1);
+    if (totalPages > 1) range.push(totalPages);
+
+    const pagerHtml = totalPages > 1 ? `
+      <div class="testimonials-pager" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:14px;margin-bottom:48px;padding:14px 20px;background:var(--yole-indigo-card);border:1px solid var(--yole-border-subtle);border-radius:14px;box-shadow:var(--shadow-card);">
+        <div style="font-size:13.5px;color:var(--yole-text-muted);">
+          Showing <strong>${totalCount > 0 ? startIdx + 1 : 0}–${endIdx}</strong> of <strong>${totalCount}</strong> verified client testimonies (8 per page)
+        </div>
+        <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+          <button type="button" class="btn btn-outline btn-sm" style="padding:6px 14px;font-size:12.5px;" ${cur <= 1 ? 'disabled' : ''} onclick="window.app.setTestimonialPage(${cur - 1})">
+            ← Prev
+          </button>
+          ${range.map(p => {
+            if (p === '...') return '<span style="padding:0 4px;color:var(--yole-text-muted);">…</span>';
+            const active = p === cur;
+            return `<button type="button" class="btn ${active ? 'btn-lime' : 'btn-outline'} btn-sm" style="padding:6px 12px;font-size:12px;min-width:34px;" onclick="window.app.setTestimonialPage(${p})">${p}</button>`;
+          }).join('')}
+          <button type="button" class="btn btn-outline btn-sm" style="padding:6px 14px;font-size:12.5px;" ${cur >= totalPages ? 'disabled' : ''} onclick="window.app.setTestimonialPage(${cur + 1})">
+            Next →
+          </button>
+        </div>
+      </div>
+    ` : '';
+
     return `
       <section class="section">
         <div class="container">
@@ -2119,8 +2171,8 @@ ${C.renderRoiCalculatorWidget ? C.renderRoiCalculatorWidget() : ""}
             </p>
           </div>
 
-          <div class="grid-2 section-block-gap">
-            ${this.testimonials
+          <div id="testimonials-wall" class="grid-2" style="margin-bottom:28px;">
+            ${paginatedTestimonials
               .map(
                 (t) => `
               <div class="glass-card" style="display:flex;flex-direction:column;justify-content:space-between;">
@@ -2149,6 +2201,7 @@ ${C.renderRoiCalculatorWidget ? C.renderRoiCalculatorWidget() : ""}
               )
               .join('')}
           </div>
+          ${pagerHtml}
 
           <!-- SUBMIT A TESTIMONIAL CARD (FULL CONTAINER WIDTH) -->
           <div class="glass-card testimonial-form-card" style="width:100%;max-width:100%;padding:clamp(36px, 4.5vw, 60px);border-radius:24px;">
