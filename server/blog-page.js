@@ -43,6 +43,12 @@ function replaceMeta(html, attribute, name, content) {
   return html.replace(pattern, `<meta ${attribute}="${name}" content="${escapeHtml(content)}" />`);
 }
 
+function removeMeta(html, attribute, name) {
+  const escapedName = name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const pattern = new RegExp(`<meta\\s+${attribute}="${escapedName}"\\s+content="[^"]*"\\s*\\/?>\\s*`);
+  return html.replace(pattern, '');
+}
+
 function renderBlogPage(slug) {
   if (!slug || path.basename(slug) !== slug || slug === '.' || slug === '..') return null;
 
@@ -52,24 +58,33 @@ function renderBlogPage(slug) {
   const post = readFrontmatter(postPath);
   const title = post.title || slug;
   const description = post.summary || '';
-  const imagePath = post.coverImage || '/assets/dashboard-preview.jpg';
-  let imageUrl;
-  try {
-    imageUrl = new URL(imagePath, `${SITE_ORIGIN}/`).href;
-  } catch {
-    imageUrl = new URL('/assets/dashboard-preview.jpg', `${SITE_ORIGIN}/`).href;
+  const imagePath = String(post.coverImage || '').trim();
+  let imageUrl = '';
+  if (imagePath) {
+    try {
+      const parsedImageUrl = new URL(imagePath, `${SITE_ORIGIN}/`);
+      if (parsedImageUrl.protocol === 'http:' || parsedImageUrl.protocol === 'https:') imageUrl = parsedImageUrl.href;
+    } catch (error) {
+      console.warn(`Invalid cover image URL for blog post "${slug}":`, error.message);
+    }
   }
   const pageUrl = new URL(`/blog/${encodeURIComponent(slug)}`, `${SITE_ORIGIN}/`).href;
 
   let html = fs.readFileSync(INDEX_PATH, 'utf8');
+  html = removeMeta(html, 'property', 'og:image');
+  html = removeMeta(html, 'name', 'twitter:image');
   html = replaceMeta(html, 'property', 'og:type', 'article');
   html = replaceMeta(html, 'property', 'og:title', title);
   html = replaceMeta(html, 'property', 'og:description', description);
-  html = replaceMeta(html, 'property', 'og:image', imageUrl);
+  if (imageUrl) {
+    html = html.replace(
+      '</head>',
+      `<meta property="og:image" content="${escapeHtml(imageUrl)}" />\n<meta name="twitter:image" content="${escapeHtml(imageUrl)}" />\n</head>`
+    );
+  }
   html = replaceMeta(html, 'property', 'og:url', pageUrl);
   html = replaceMeta(html, 'name', 'twitter:title', title);
   html = replaceMeta(html, 'name', 'twitter:description', description);
-  html = replaceMeta(html, 'name', 'twitter:image', imageUrl);
   html = html.replace(/<title>[^<]*<\/title>/, `<title>${escapeHtml(title)} | YOLETECH</title>`);
   html = html.replace(
     /<link rel="canonical" href="[^"]*"\s*\/>/,

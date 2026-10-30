@@ -938,7 +938,7 @@ function parseMarkdownFile(filePath) {
     category: frontmatter.category || 'Data Analytics & BI',
     readTime: frontmatter.readTime || '5 min read',
     author: frontmatter.author || 'John Oruebi Eniekpo',
-    coverImage: frontmatter.coverImage || '/assets/dashboard-preview.jpg',
+    coverImage: frontmatter.coverImage || '',
     summary: frontmatter.summary || '',
     tags: parseYamlArray(frontmatter.tags, ['Python', 'SQL', 'Power BI']),
     featured: String(frontmatter.featured) === 'true',
@@ -947,6 +947,9 @@ function parseMarkdownFile(filePath) {
 }
 
 function writeMarkdownFile(slug, data) {
+  if (!String(data.coverImage || '').trim()) {
+    throw new Error('A cover image is required for every blog article.');
+  }
   const safeSlug = slug
     .toLowerCase()
     .replace(/[^a-z0-9-_]/g, '-')
@@ -960,7 +963,7 @@ date: "${data.date || new Date().toISOString().slice(0, 10)}"
 category: "${data.category || 'Data Analytics & BI'}"
 readTime: "${data.readTime || '5 min read'}"
 author: "${data.author || 'John Oruebi Eniekpo'}"
-coverImage: "${data.coverImage || '/assets/dashboard-preview.jpg'}"
+coverImage: "${String(data.coverImage).trim().replace(/"/g, '\\"')}"
 summary: "${String(data.summary || '').replace(/"/g, '\\"')}"
 tags: ${JSON.stringify(tagsArray)}
 featured: ${data.featured ? 'true' : 'false'}
@@ -1768,8 +1771,8 @@ const requestHandler = async (req, res) => {
         return sendJson(res, 403, { error: 'Admin access required to publish articles.' });
       }
       const body = await parseBody(req);
-      if (!body.title || !body.body) {
-        return sendJson(res, 400, { error: 'Title and Markdown body are required.' });
+      if (!body.title || !body.body || !String(body.coverImage || '').trim()) {
+        return sendJson(res, 400, { error: 'Title, Markdown body, and a post-specific cover image are required.' });
       }
       const slug = body.slug || body.title;
       const post = writeMarkdownFile(slug, body);
@@ -1790,6 +1793,9 @@ const requestHandler = async (req, res) => {
         ...body,
         featured: body.featured !== undefined ? body.featured : existingData.featured
       };
+      if (!String(merged.coverImage || '').trim()) {
+        return sendJson(res, 400, { error: 'A cover image is required for every blog article.' });
+      }
       const post = writeMarkdownFile(slug, merged);
       return sendJson(res, 200, { post });
     }

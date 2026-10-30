@@ -308,7 +308,7 @@ class YoletechApp {
               category: meta.category || 'Data Analytics & BI',
               readTime: meta.readTime || '5 min read',
               author: meta.author || 'John Oruebi Eniekpo',
-              coverImage: meta.coverImage || '/assets/dashboard-preview.jpg',
+              coverImage: meta.coverImage || '',
               summary: meta.summary || body.slice(0, 180),
               tags,
               featured: meta.featured === 'true' || meta.featured === true,
@@ -2413,9 +2413,7 @@ ${C.renderRoiCalculatorWidget ? C.renderRoiCalculatorWidget() : ""}
                 (post) => `
               <div class="glass-card blog-card" onclick="window.app.navigate('blog-detail', '${post.slug}')">
                 <div>
-                  <div class="blog-card-image" style="aspect-ratio:1/1;">
-                    <img src="${post.coverImage}" alt="${post.title}" loading="lazy" decoding="async" />
-                  </div>
+                  ${post.coverImage ? `<div class="blog-card-image" style="aspect-ratio:1/1;"><img src="${post.coverImage}" alt="${post.title}" loading="lazy" decoding="async" /></div>` : ''}
                   <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
                     <span class="tech-pill lime">${post.category}</span>
                     <span style="font-size:12.5px;color:var(--yole-text-muted);">${post.date} • ${post.readTime}</span>
@@ -2603,9 +2601,7 @@ ${C.renderRoiCalculatorWidget ? C.renderRoiCalculatorWidget() : ""}
               </div>
             </div>
 
-            <div style="border-radius:14px;overflow:hidden;margin-bottom:28px;max-height:340px;border:1px solid rgba(255,255,255,0.15);">
-              <img src="${post.coverImage}" alt="${post.title}" style="width:100%;height:100%;object-fit:cover;" />
-            </div>
+            ${post.coverImage ? `<div style="border-radius:14px;overflow:hidden;margin-bottom:28px;max-height:340px;border:1px solid rgba(255,255,255,0.15);"><img src="${post.coverImage}" alt="${post.title}" style="width:100%;height:100%;object-fit:cover;" /></div>` : ''}
 
             <div class="article-content">
               ${this.formatMarkdownToHtml(post.body)}
@@ -4212,8 +4208,8 @@ ${C.renderRoiCalculatorWidget ? C.renderRoiCalculatorWidget() : ""}
               </div>
             </div>
             <div class="form-group">
-              <label class="form-label">Cover Image</label>
-              <input type="text" name="coverImage" class="form-control" value="${editing ? editing.coverImage || '/assets/dashboard-preview.jpg' : '/assets/dashboard-preview.jpg'}" placeholder="/assets/dashboard-preview.jpg" />
+              <label class="form-label">Cover Image *</label>
+              <input type="text" name="coverImage" required class="form-control" value="${editing ? (editing.coverImage || '').replace(/"/g, '&quot;') : ''}" placeholder="/assets/blog/your-article-cover.jpg" />
             </div>
             <div class="form-group">
               <label class="form-label">Executive Summary *</label>
@@ -4279,7 +4275,7 @@ ${C.renderRoiCalculatorWidget ? C.renderRoiCalculatorWidget() : ""}
       title: form.title.value,
       category: form.category.value,
       readTime: form.readTime.value,
-      coverImage: form.coverImage?.value || '/assets/dashboard-preview.jpg',
+      coverImage: form.coverImage.value.trim(),
       summary: form.summary.value,
       body: form.body.value
     };

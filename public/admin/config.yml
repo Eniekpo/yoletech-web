@@ -81,7 +81,7 @@ collections:
           - "AI & Workflow Automation"
           - "Tech Tutorials & Mentorship"
         default: "Data Analytics & BI"
-      - { label: "Cover Image", name: "coverImage", widget: "image", choose_url: true, default: "/assets/dashboard-preview.jpg", hint: "Upload an image or insert an image URL." }
+      - { label: "Cover Image", name: "coverImage", widget: "image", choose_url: true, required: true, hint: "Choose an image for this article. Upload an image or insert an image URL." }
       - { label: "Executive Summary", name: "summary", widget: "text", required: true }
       - { label: "Featured Article", name: "featured", widget: "boolean", default: false }
       - { label: "Article Body (Markdown)", name: "body", widget: "markdown", required: true }

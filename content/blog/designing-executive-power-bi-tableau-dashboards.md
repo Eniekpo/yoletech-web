@@ -4,7 +4,7 @@ title: Designing Executive Power BI & Tableau Dashboards That Drive
   Institutional Decisions
 date: 2026-10-15
 category: Data Analytics & BI
-coverImage: /assets/dashboard-preview.jpg
+coverImage: /assets/about-analytics-workspace.jpg
 summary: How structured data validation, SQL modeling, and KPI hierarchy
   transform raw multi-departmental spreadsheets into actionable executive
   Business Intelligence dashboards.
