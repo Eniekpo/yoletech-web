@@ -292,10 +292,26 @@ button, input, select, textarea {
 
 .hero-slide-grid {
   display: grid;
-  grid-template-columns: 1.08fr 0.92fr;
-  gap: 44px;
+  grid-template-columns: minmax(0, 45fr) minmax(0, 55fr);
+  gap: clamp(24px, 2.5vw, 44px);
   align-items: center;
-  min-height: 430px;
+  min-height: 440px;
+  width: 100%;
+}
+
+.hero-visual-box,
+.hero-slide-grid > div:last-child {
+  width: 100%;
+  max-width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.hero-visual-box > *,
+.hero-slide-grid > div:last-child > * {
+  width: 100%;
+  max-width: 100%;
 }
 
 .hero-slide-badge {
@@ -389,7 +405,7 @@ button, input, select, textarea {
 .portrait-orbit-card {
   position: relative;
   width: 100%;
-  max-width: 490px;
+  max-width: 100%;
   border-radius: 24px;
   overflow: hidden;
   border: 2px solid rgba(200, 230, 30, 0.35);
@@ -399,7 +415,9 @@ button, input, select, textarea {
 
 .portrait-orbit-card img {
   width: 100%;
-  height: auto;
+  height: 480px;
+  object-fit: cover;
+  object-position: center;
   display: block;
 }
 
@@ -1309,22 +1327,34 @@ a.footer-contact-item:hover {
 }
 
 .social-btn {
-  padding: 8px 13px;
+  padding: 9px 15px;
   border-radius: 10px;
-  background: rgba(47, 43, 115, 0.65);
-  border: 1px solid rgba(255, 255, 255, 0.18);
-  font-size: 12.5px;
+  background: rgba(47, 43, 115, 0.90);
+  border: 1.5px solid rgba(255, 255, 255, 0.25);
+  font-size: 13px;
   font-weight: 700;
-  color: var(--yole-white);
+  color: #FFFFFF !important;
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
+  text-decoration: none;
+  transition: all 0.22s ease;
+  user-select: none;
+}
+
+.social-btn svg {
+  width: 15px;
+  height: 15px;
+  flex-shrink: 0;
+  fill: currentColor;
 }
 
 .social-btn:hover {
+  background: var(--yole-indigo-surface);
   border-color: var(--yole-lime);
-  color: var(--yole-lime);
+  color: var(--yole-lime) !important;
   transform: translateY(-2px);
+  box-shadow: 0 4px 14px rgba(200, 230, 30, 0.28);
 }
 
 .status-badge-card {
@@ -4060,4 +4090,29 @@ details > summary {
 
 [data-theme="light"] circle[stroke="#2F2B73"] {
   stroke: #CBD5E1 !important;
+}
+
+
+/* Contact & Footer Social Buttons in Light Mode */
+[data-theme="light"] .social-btn {
+  background: #FFFFFF !important;
+  border: 1.5px solid #CBD5E1 !important;
+  color: #0F172A !important;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.05);
+}
+
+[data-theme="light"] .social-btn svg {
+  fill: #1E1B54 !important;
+}
+
+[data-theme="light"] .social-btn:hover {
+  background: #F8FAFD !important;
+  border-color: #1E1B54 !important;
+  color: #1E1B54 !important;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.12);
+}
+
+[data-theme="light"] .social-btn:hover svg {
+  fill: #1E1B54 !important;
 }
