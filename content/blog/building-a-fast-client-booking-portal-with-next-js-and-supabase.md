@@ -8,7 +8,7 @@ summary: Service businesses lose up to 35 percent of prospective leads when
   This guide shows you how to build a live booking portal using Next.js,
   TypeScript, and Supabase that validates availability and locks client slots in
   under two seconds.
-featured: true
+featured: false
 ---
 ## How Slow Booking Workflows Cost Service Businesses Revenue
 
