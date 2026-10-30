@@ -874,6 +874,7 @@
         </div>
         ${this.renderDashDataNotes()}
       `;
+      window.YOLETECH_COMPONENTS?.decorateCardIcons(body);
       this.initKpiCounters(body);
     },
 
@@ -1306,6 +1307,7 @@
       const input = document.getElementById('dash-search');
       const pos = keepFocus && input ? input.selectionStart : null;
       mount.innerHTML = this.renderDashTable();
+      window.YOLETECH_COMPONENTS?.decorateCardIcons(mount);
       if (keepFocus) {
         const again = document.getElementById('dash-search');
         if (again) {

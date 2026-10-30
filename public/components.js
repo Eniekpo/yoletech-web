@@ -2,6 +2,20 @@
 // YOLETECH — REUSABLE UI COMPONENTS & INTERACTIVE SAMPLE MOCKUPS
 // ============================================================================
 
+const YOLETECH_EXTRA_ICON_PATHS = {
+  users: '<circle cx="9" cy="8" r="3"/><path d="M3.5 19v-1.5a5.5 5.5 0 0 1 11 0V19z"/><path d="M16 5.2a3 3 0 0 1 0 5.6M17 14a5 5 0 0 1 3.5 4.8V19h-3"/>',
+  briefcase: '<rect x="3" y="7" width="18" height="14" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m-13 5h18m-11 0v2h4v-2"/>',
+  clock: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+  star: '<path d="m12 3 2.8 5.7 6.2.9-4.5 4.4 1.1 6.2-5.6-3-5.6 3 1.1-6.2L3 9.6l6.2-.9z"/>',
+  quote: '<path d="M3 20c4-1 6-4 6-9V5H3v6h3c0 3-1 5-3 6zm12 0c4-1 6-4 6-9V5h-6v6h3c0 3-1 5-3 6z"/>',
+  message: '<path d="M21 11.5a8.4 8.4 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.4 8.4 0 0 1-3.8-.9L3 21l1.9-5.7a8.4 8.4 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.4 8.4 0 0 1 3.8-.9h.5a8.5 8.5 0 0 1 8 8z"/>',
+  document: '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M8 13h8m-8 4h8"/>',
+  database: '<ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5v14c0 1.7 4 3 9 3s9-1.3 9-3V5M3 12c0 1.7 4 3 9 3s9-1.3 9-3"/>',
+  workflow: '<rect x="3" y="3" width="6" height="6" rx="1"/><rect x="15" y="15" width="6" height="6" rx="1"/><path d="M6 9v3a3 3 0 0 0 3 3h6m-3-3 3 3-3 3"/>',
+  graduation: '<path d="m2 10 10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5m4-2v6"/>',
+  globe: '<circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15 15 0 0 1 0 20M12 2a15 15 0 0 0 0 20"/>'
+};
+
 window.YOLETECH_COMPONENTS = {
   renderBrandLogo() {
     return `
@@ -32,7 +46,57 @@ window.YOLETECH_COMPONENTS = {
       settings: `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>`,
       check: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#C8E61E" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>`
     };
-    return icons[name] || icons.code;
+    const icon = icons[name] || YOLETECH_EXTRA_ICON_PATHS[name] || icons.code;
+    return icon.startsWith('<svg')
+      ? icon.replace('<svg ', '<svg aria-hidden="true" focusable="false" ')
+      : `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">${icon}</svg>`;
+  },
+
+  cardIconName(title) {
+    const text = String(title || '').toLowerCase();
+    if (/testimonial|review|feedback|quote/.test(text)) return 'quote';
+    if (/rating|star|satisfaction/.test(text)) return 'star';
+    if (/client|team|people|user|community/.test(text)) return 'users';
+    if (/lead|inquir|contact|message|conversation/.test(text)) return 'message';
+    if (/onboard|timeline|duration|time|schedule|booking|history/.test(text)) return 'clock';
+    if (/project|portfolio|case stud|completed|delivery|work experience/.test(text)) return 'briefcase';
+    if (/blog|article|guide|report|document|resource|policy|note/.test(text)) return 'document';
+    if (/database|sql|records|data quality|audit|governance/.test(text)) return 'database';
+    if (/workflow|automation|process|method|pipeline|integration/.test(text)) return 'workflow';
+    if (/training|learn|education|certif|mentor|intern|tutorial|skill/.test(text)) return 'graduation';
+    if (/global|remote|location|region|country/.test(text)) return 'globe';
+    if (/setting|admin|management|service|support|roi|saving|cost/.test(text)) return 'settings';
+    if (/analytics|dashboard|metric|performance|data|chart|intelligence|insight|rate|conversion|funnel|trend/.test(text)) return 'chart';
+    if (/code|developer|technical|software|web|technology|platform/.test(text)) return 'code';
+    return 'briefcase';
+  },
+
+  decorateCardIcons(root = document) {
+    if (!root || !root.querySelectorAll) return;
+    const cardSelector = '.metric-cell, .mini-kpi-card, .glass-card, .dash-card, .dash-insights, .scope-subcard, .about-info-card, .portfolio-project-card, .testimonial-card, .blog-card, .service-card';
+    root.querySelectorAll(cardSelector).forEach((card) => {
+      if (card.querySelector('.site-card-icon, .dash-kpi-icon')) return;
+      const label = [...card.querySelectorAll('.metric-label, .mini-kpi-title, .dash-card-title, .scope-subcard-title, h1, h2, h3, h4, h5')]
+        .find((candidate) => candidate.closest(cardSelector) === card);
+      if (!label || !label.textContent.trim()) return;
+
+      const icon = document.createElement('span');
+      icon.className = `site-card-icon${/inquir|contact|message|workflow|automation|service|support|saving|cost/i.test(label.textContent) ? ' site-card-icon-orange' : ''}`;
+      icon.setAttribute('aria-hidden', 'true');
+      icon.innerHTML = this.getIcon(this.cardIconName(label.textContent));
+
+      if (label.classList.contains('metric-label')) {
+        card.insertBefore(icon, card.querySelector('.metric-number') || label);
+      } else if (label.classList.contains('mini-kpi-title')) {
+        label.classList.add('site-card-title-with-icon');
+        label.prepend(icon);
+      } else {
+        const heading = document.createElement('div');
+        heading.className = 'site-card-heading';
+        label.parentNode.insertBefore(heading, label);
+        heading.append(icon, label);
+      }
+    });
   },
 
   // 1. Portrait Hero Widget

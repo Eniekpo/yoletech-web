@@ -726,6 +726,7 @@ class YoletechApp {
     const container = document.getElementById('hero-slideshow-mount');
     if (container) {
       container.innerHTML = this.renderHeroSlideInner();
+      window.YOLETECH_COMPONENTS?.decorateCardIcons(container);
       this.initKpiCounters(container);
     }
   }
@@ -1255,6 +1256,7 @@ class YoletechApp {
     if (!panel || !activeButton) return;
 
     panel.innerHTML = this.renderFooterTabContent(tab);
+    window.YOLETECH_COMPONENTS?.decorateCardIcons(panel);
     panel.setAttribute('aria-labelledby', `footer-tab-${tab}`);
     tabIds.forEach((tabId) => {
       const button = document.getElementById(`footer-tab-${tabId}`);
@@ -4635,6 +4637,7 @@ ${C.renderRoiCalculatorWidget ? C.renderRoiCalculatorWidget() : ""}
       }
     }
     this.renderToast();
+    window.YOLETECH_COMPONENTS?.decorateCardIcons(root);
     this.initKpiCounters(root);
     if (this.currentPage === 'dashboard' && typeof this.mountDashboard === 'function') {
       this.mountDashboard();
