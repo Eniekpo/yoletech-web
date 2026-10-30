@@ -847,6 +847,7 @@ class YoletechApp {
   renderHeader() {
     const C = window.YOLETECH_COMPONENTS;
     const navItems = [
+      { id: 'dashboard', label: 'Dashboard' },
       { id: 'about', label: 'About' },
       { id: 'services', label: 'Services' },
       { id: 'portfolio', label: 'Portfolio' },
@@ -4211,6 +4212,9 @@ class YoletechApp {
       case 'home':
         pageContent = this.renderHomePage();
         break;
+      case 'dashboard':
+        pageContent = typeof this.renderDashboardPage === 'function' ? this.renderDashboardPage() : this.renderHomePage();
+        break;
       case 'about':
         pageContent = this.renderAboutPage();
         break;
@@ -4266,6 +4270,9 @@ class YoletechApp {
     }
     this.renderToast();
     this.initKpiCounters(root);
+    if (this.currentPage === 'dashboard' && typeof this.mountDashboard === 'function') {
+      this.mountDashboard();
+    }
 
     if (preserveSearchFocus) {
       const searchInput = document.getElementById('admin-client-search');

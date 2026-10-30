@@ -1353,6 +1353,84 @@ const requestHandler = async (req, res) => {
       return sendJson(res, 200, { deleted: true });
     }
 
+    // --- ANALYTICS DASHBOARD ENDPOINT (read-only, privacy-safe) ---
+    // Public visitors receive anonymised client records (no names, emails, phones or notes).
+    // Admins receive client names and companies for operational use.
+    if (pathname === '/api/analytics' && req.method === 'GET') {
+      const viewer = getAuthUser(req);
+      const isAdmin = !!viewer && viewer.role === 'ADMIN';
+      const normName = (v) => String(v || '').trim().toLowerCase().replace(/\s+/g, ' ');
+
+      const userRows = db
+        .prepare(
+          `SELECT id, name, email, company, service_interest, status, created_at
+           FROM users WHERE role = 'CLIENT' ORDER BY id ASC`
+        )
+        .all()
+        .filter((u) => String(u.role || 'CLIENT').toUpperCase() === 'CLIENT')
+        .sort((a, b) => Number(a.id) - Number(b.id));
+      const inquiryRows = db
+        .prepare('SELECT id, user_id, email, service_category, status, project_progress, created_at FROM inquiries ORDER BY id ASC')
+        .all()
+        .sort((a, b) => Number(a.id) - Number(b.id));
+      const testimonialRows = db
+        .prepare(
+          `SELECT id, author_name, author_role, company, service_track, rating, content, created_at
+           FROM testimonials WHERE approved = 1 ORDER BY id ASC`
+        )
+        .all()
+        .sort((a, b) => Number(a.id) - Number(b.id));
+
+      const byEmail = new Map(userRows.map((u) => [String(u.email || '').toLowerCase(), u.id]));
+      const byId = new Set(userRows.map((u) => u.id));
+      const byName = new Map(userRows.map((u) => [normName(u.name), u.id]));
+
+      const contactKeys = new Map();
+      const inquiries = inquiryRows.map((i) => {
+        const email = String(i.email || '').toLowerCase();
+        if (!contactKeys.has(email)) contactKeys.set(email, contactKeys.size + 1);
+        const clientId = byId.has(i.user_id) ? i.user_id : byEmail.get(email) || null;
+        return {
+          id: i.id,
+          client_id: clientId,
+          contact_key: contactKeys.get(email),
+          service_category: i.service_category || 'Unspecified',
+          status: String(i.status || 'NEW').toUpperCase(),
+          project_progress: Number.isFinite(Number(i.project_progress)) ? Number(i.project_progress) : null,
+          created_at: i.created_at
+        };
+      });
+
+      const clients = userRows.map((u) => ({
+        id: u.id,
+        label: isAdmin ? u.name : `Client #${String(u.id).padStart(3, '0')}`,
+        company: isAdmin ? u.company || '' : '',
+        service_interest: u.service_interest || 'Unspecified',
+        status: String(u.status || 'UNSPECIFIED').toUpperCase(),
+        created_at: u.created_at
+      }));
+
+      const testimonials = testimonialRows.map((t) => ({
+        id: t.id,
+        client_id: byName.get(normName(t.author_name)) || null,
+        author_name: t.author_name,
+        author_role: t.author_role,
+        company: t.company,
+        service_track: t.service_track,
+        rating: Number.isFinite(Number(t.rating)) ? Number(t.rating) : null,
+        content: t.content,
+        created_at: t.created_at
+      }));
+
+      return sendJson(res, 200, {
+        generated_at: new Date().toISOString(),
+        anonymised: !isAdmin,
+        clients,
+        inquiries,
+        testimonials
+      });
+    }
+
     // --- TESTIMONIALS ENDPOINTS ---
     if (pathname === '/api/testimonials' && req.method === 'GET') {
       const user = getAuthUser(req);
