@@ -8,7 +8,7 @@ summary: Manually combining weekly Excel sales files can consume hours and
   tutorial shows you how to use Python and Pandas to combine multiple Excel
   files, clean the data, calculate sales values, and create a Power BI-ready CSV
   automatically.
-featured: true
+featured: false
 ---
 ## Automate Excel Sales Reports With Python and Pandas
 
