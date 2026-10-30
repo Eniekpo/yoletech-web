@@ -38,13 +38,13 @@ window.YOLETECH_COMPONENTS = {
   // 1. Portrait Hero Widget
   renderPortraitHeroWidget(mode = 'home') {
     const isAbout = mode === 'about';
-    const imgSrc = isAbout ? '/assets/john-portrait.png' : '/assets/home-hero-analyst.jpg';
+    const imgSrc = isAbout ? '/assets/about-analytics-workspace.jpg' : '/assets/home-hero-analyst.jpg';
     const imgAlt = isAbout
-      ? 'John Oruebi Eniekpo — YOLETECH'
+      ? 'Analytics workspace with a laptop displaying business intelligence dashboards'
       : 'Data Analyst analyzing live Business Intelligence dashboard on computer screen — YOLETECH';
-    const badgeTitle = isAbout ? 'John Oruebi Eniekpo' : 'Live BI &amp; Data Analytics Studio';
+    const badgeTitle = isAbout ? 'Data Analytics &amp; Business Intelligence' : 'Live BI &amp; Data Analytics Studio';
     const badgeSub = isAbout
-      ? 'Data Analyst • BI Specialist • Full-Stack Dev'
+      ? 'Turning data into clear, actionable insight'
       : 'Data Analytics • Power BI • Full-Stack Dev';
 
     return `
