@@ -2,7 +2,7 @@
 title: "Automating Customer Support: Node.js WhatsApp and Email Alerts"
 date: 2026-10-30
 category: AI & Workflow Automation
-coverImage: http://googleusercontent.com/image_generation_content/5_888
+coverImage: /assets/blog/automating-customer-support.jpg
 summary: Manual webform triaging often delays customer support response times by
   hours. This guide demonstrates how to build a Node.js and Express webhook
   handler that routes incoming inquiry data to WhatsApp and email in under 30
