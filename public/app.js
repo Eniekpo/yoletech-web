@@ -1883,7 +1883,6 @@ class YoletechApp {
               <div class="glass-card" style="display:flex;flex-direction:column;justify-content:space-between;">
                 <div>
                   <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
-                    <div class="service-strip-icon">${C.getIcon(srv.icon)}</div>
                     <span class="tech-pill ${idx % 2 === 0 ? 'lime' : 'orange'}">${srv.category}</span>
                   </div>
                   <h3 style="font-size:22px;font-weight:900;margin-bottom:6px;">${srv.title}</h3>
