@@ -12,6 +12,18 @@
   // Constants & small utilities
   // ---------------------------------------------------------------------------
   const STATUS_ORDER = ['LEAD', 'ONBOARDING', 'ACTIVE', 'COMPLETED'];
+  const KPI_ICONS = {
+    clients: '<circle cx="9" cy="8" r="3"/><path d="M3.5 19v-1.5a5.5 5.5 0 0 1 11 0V19z"/><path d="M16 5.2a3 3 0 0 1 0 5.6M17 14a5 5 0 0 1 3.5 4.8V19h-3"/>',
+    active: '<circle cx="10" cy="8" r="3"/><path d="M4.5 19v-1.5a5.5 5.5 0 0 1 11 0V19z"/><path d="m16 11 2 2 4-4"/>',
+    onboarding: '<circle cx="9" cy="8" r="3"/><path d="M3.5 19v-1.5a5.5 5.5 0 0 1 9.5-3.7"/><circle cx="17" cy="16" r="4"/><path d="M17 14v2l1.5 1"/>',
+    leads: '<circle cx="9" cy="8" r="3"/><path d="M3.5 19v-1.5a5.5 5.5 0 0 1 9.5-3.7"/><path d="M18 11v6m-3-3h6"/>',
+    completed: '<rect x="3" y="5" width="18" height="14" rx="2"/><path d="M8 5V3h8v2m-9 5h4m-4 4 2 2 4-4"/>',
+    completion: '<path d="M4 19V5m0 14h17"/><path d="m7 15 4-4 3 2 6-7"/><path d="M16 6h4v4"/>',
+    testimonials: '<path d="M20 11.5a6.5 6.5 0 0 1-6.5 6.5H7l-4 3v-6.5a6.5 6.5 0 0 1 6.5-6.5h4A6.5 6.5 0 0 1 20 14.5z"/><path d="M9 8V6.5A3.5 3.5 0 0 1 12.5 3h4A3.5 3.5 0 0 1 20 6.5V9"/>',
+    rating: '<path d="m12 3 2.8 5.7 6.2.9-4.5 4.4 1.1 6.2-5.6-3-5.6 3 1.1-6.2L3 9.6l6.2-.9z"/>',
+    ratedClients: '<circle cx="9" cy="8" r="3"/><path d="M3.5 19v-1.5a5.5 5.5 0 0 1 9.5-3.7"/><circle cx="17" cy="16" r="4"/><path d="m15.5 16 1 1 2-2"/>',
+    conversion: '<path d="M4 7h15m0 0-4-4m4 4-4 4"/><path d="M20 17H5m0 0 4 4m-4-4 4-4"/>'
+  };
   const STATUS_META = {
     LEAD: { label: 'Lead', color: '#8B85FF' },
     ONBOARDING: { label: 'Onboarding', color: '#F7941D' },
@@ -943,14 +955,17 @@
       this.updateDashboardBody();
     },
 
-    kpiCard({ label, value, decimals = 0, suffix = '', na = false, sub = '', tone = '', hint = '' }) {
+    kpiCard({ label, value, decimals = 0, suffix = '', na = false, sub = '', tone = '', hint = '', icon = '' }) {
       const valueHtml = na
         ? '<span class="dash-kpi-value dash-na">N/A</span>'
         : `<span class="dash-kpi-value" data-kpi-target="${value}" data-kpi-decimals="${decimals}" data-kpi-comma="true" data-kpi-suffix="${esc(suffix)}">${
             decimals ? Number(value).toFixed(decimals) : value
           }${esc(suffix)}</span>`;
       return `<div class="dash-kpi ${tone}" ${hint ? `title="${esc(hint)}"` : ''}>
-          <span class="dash-kpi-label">${esc(label)}</span>
+          <div class="dash-kpi-heading">
+            <span class="dash-kpi-label">${esc(label)}</span>
+            ${KPI_ICONS[icon] ? `<svg class="dash-kpi-icon ${tone}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${KPI_ICONS[icon]}</svg>` : ''}
+          </div>
           ${valueHtml}
           ${sub ? `<span class="dash-kpi-sub">${sub}</span>` : ''}
         </div>`;
@@ -965,11 +980,11 @@
           : `<span class="dash-delta ${delta > 0 ? 'up' : 'down'}">${delta > 0 ? '▲' : '▼'} ${m.currNew} new in ${m.periodLabel} vs ${m.prevNew} prior</span>`;
       return `
         <div class="dash-kpi-grid" role="list" aria-label="Key performance indicators">
-          ${this.kpiCard({ label: 'Total Clients', value: m.total, sub: deltaHtml, tone: 'tone-lime', hint: 'Count of client accounts matching the filters.' })}
-          ${this.kpiCard({ label: 'Active Clients', value: m.counts.ACTIVE, sub: share(m.counts.ACTIVE) })}
-          ${this.kpiCard({ label: 'In Onboarding', value: m.counts.ONBOARDING, sub: share(m.counts.ONBOARDING) })}
-          ${this.kpiCard({ label: 'Leads', value: m.counts.LEAD, sub: share(m.counts.LEAD) })}
-          ${this.kpiCard({ label: 'Completed Projects', value: m.counts.COMPLETED, sub: share(m.counts.COMPLETED) })}
+          ${this.kpiCard({ label: 'Total Clients', value: m.total, sub: deltaHtml, tone: 'tone-lime', hint: 'Count of client accounts matching the filters.', icon: 'clients' })}
+          ${this.kpiCard({ label: 'Active Clients', value: m.counts.ACTIVE, sub: share(m.counts.ACTIVE), icon: 'active' })}
+          ${this.kpiCard({ label: 'In Onboarding', value: m.counts.ONBOARDING, sub: share(m.counts.ONBOARDING), icon: 'onboarding' })}
+          ${this.kpiCard({ label: 'Leads', value: m.counts.LEAD, sub: share(m.counts.LEAD), icon: 'leads' })}
+          ${this.kpiCard({ label: 'Completed Projects', value: m.counts.COMPLETED, sub: share(m.counts.COMPLETED), icon: 'completed' })}
           ${this.kpiCard({
             label: 'Completion Rate',
             value: m.completionRate ?? 0,
@@ -978,9 +993,10 @@
             na: m.completionRate === null,
             sub: 'Completed ÷ engaged clients',
             tone: 'tone-orange',
-            hint: 'Completed ÷ (Onboarding + Active + Completed). Leads are excluded because they have not started a project.'
+            hint: 'Completed ÷ (Onboarding + Active + Completed). Leads are excluded because they have not started a project.',
+            icon: 'completion'
           })}
-          ${this.kpiCard({ label: 'Testimonials', value: m.testimonialCount, sub: `${m.testimonialsLinked} linked to client accounts` })}
+          ${this.kpiCard({ label: 'Testimonials', value: m.testimonialCount, sub: `${m.testimonialsLinked} linked to client accounts`, icon: 'testimonials' })}
           ${this.kpiCard({
             label: 'Average Rating',
             value: m.avgRating ?? 0,
@@ -988,9 +1004,10 @@
             suffix: ' / 5',
             na: m.avgRating === null,
             sub: `Across ${m.ratings.length} rated testimonial${m.ratings.length === 1 ? '' : 's'}`,
-            tone: 'tone-lime'
+            tone: 'tone-lime',
+            icon: 'rating'
           })}
-          ${this.kpiCard({ label: 'Rated Clients', value: m.ratedClients, sub: `of ${m.total} clients have a rating` })}
+          ${this.kpiCard({ label: 'Rated Clients', value: m.ratedClients, sub: `of ${m.total} clients have a rating`, icon: 'ratedClients' })}
           ${this.kpiCard({
             label: 'Inquiry → Client Conversion',
             value: m.conversionRate ?? 0,
@@ -999,7 +1016,8 @@
             na: m.conversionRate === null,
             sub: `${m.convertedContacts} of ${m.uniqueContacts} unique inquirers registered`,
             tone: 'tone-orange',
-            hint: 'Unique inquiry contacts that hold a client account ÷ all unique inquiry contacts.'
+            hint: 'Unique inquiry contacts that hold a client account ÷ all unique inquiry contacts.',
+            icon: 'conversion'
           })}
         </div>`;
     },

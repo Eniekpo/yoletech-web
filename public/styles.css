@@ -2976,7 +2976,11 @@ details > summary {
 }
 .dash-kpi.tone-lime { border-top-color: var(--yole-lime); }
 .dash-kpi.tone-orange { border-top-color: var(--yole-orange); }
+.dash-kpi-heading { display: flex; align-items: center; justify-content: space-between; gap: 8px; min-height: 22px; }
 .dash-kpi-label { font-size: 12.5px; font-weight: 700; color: var(--yole-text-muted); }
+.dash-kpi-icon { width: 20px; height: 20px; flex: 0 0 auto; color: var(--yole-text-subtle); opacity: 0.9; }
+.dash-kpi-icon.tone-lime { color: var(--yole-lime); }
+.dash-kpi-icon.tone-orange { color: var(--yole-orange); }
 .dash-kpi-value { font-size: 28px; font-weight: 900; line-height: 1.1; color: var(--yole-white); font-variant-numeric: tabular-nums; }
 .dash-kpi-value.dash-na { color: var(--yole-text-subtle); }
 .dash-kpi-sub { font-size: 12px; color: var(--yole-text-subtle); line-height: 1.4; }
