@@ -461,6 +461,193 @@ function ensureAccount(account) {
   }
 }
 
+
+function seedSyntheticRecords(dbInstance, currentClientCount = 0) {
+  const firstNames = [
+    'Preye', 'Amaka', 'Marcus', 'Ebiowei', 'Sarah', 'Babatunde', 'Chiamaka',
+    'Olumide', 'Ngozi', 'Tunde', 'Fatima', 'Emeka', 'Zainab', 'Damilola', 'Kemi',
+    'David', 'Priya', 'Alexander', 'Elena', 'Chloe', 'Michael', 'Liam', 'Sofia',
+    'James', 'Lucas', 'Tari', 'Folake', 'Ibrahim', 'Grace', 'Chidi', 'Blessing',
+    'Oluwaseun', 'Aisha', 'Victor', 'Chinonso', 'Daniel', 'Esther', 'Samuel', 'Joy',
+    'Emma', 'Noah', 'Olivia', 'Ethan', 'Ava', 'Mason', 'Isabella', 'William',
+    'Sophia', 'Benjamin', 'Mia', 'Lucas', 'Charlotte', 'Henry', 'Amelia', 'Sebastian'
+  ];
+
+  const lastNames = [
+    'Alagoa', 'Nwosu', 'Vance', 'Dickson', 'Adeleke', 'Okonkwo', 'Bakare', 'Eze',
+    'Olatunji', 'Bello', 'Nnamdi', 'Aliyu', 'Adeyemi', 'Balogun', 'Jenkins', 'Mueller',
+    'Sharma', 'Wright', 'Rostova', 'Dupont', 'Chen', 'O\'Connor', 'Rodriguez', 'Kensington',
+    'Silva', 'Boma', 'Oghenekaro', 'Danladi', 'Umar', 'Ezekiel', 'Obi', 'Okafor',
+    'Adeboye', 'Suleiman', 'Okoro', 'Oluwole', 'Agabi', 'Williams', 'Brown', 'Davis',
+    'Miller', 'Wilson', 'Moore', 'Taylor', 'Anderson', 'Thomas', 'Jackson', 'White'
+  ];
+
+  const companies = [
+    'Global EduMetrix', 'SulPhil Analytics Cohort', 'Prime Logistics & Supply Ltd',
+    'Bayelsa Tech Ventures', 'Horizon Data Solutions', 'Apex Financial Group',
+    'Crestline Analytics', 'Metrix BioLabs', 'Zenith Oil & Energy', 'Sterling Retail Group',
+    'Pulse Health Systems', 'Beacon Cloud Labs', 'Delta Capital Partners', 'NexaTech Solutions',
+    'Velocity Logistics', 'Vanguard Microfinance', 'Krypton Media Network', 'OmniScope Insights',
+    'BioMetric Health', 'Summit AgroTech', 'Strata Advisory Services', 'Urban Grid Infrastructure',
+    'Pinnacle Merchant Bank', 'SilverLine Maritime', 'Aura Retail Global', 'NextGen Academy'
+  ];
+
+  const serviceTracks = [
+    'Data Analytics & BI',
+    'Full-Stack Web Development',
+    'AI & Workflow Automation',
+    'Tech Tutorials & Mentorship',
+    'IT & Database Support'
+  ];
+
+  const serviceWeights = [0.38, 0.26, 0.18, 0.12, 0.06];
+
+  const pickService = (idx) => {
+    const r = ((idx + 1) * 0.137) % 1;
+    let acc = 0;
+    for (let i = 0; i < serviceTracks.length; i++) {
+      acc += serviceWeights[i];
+      if (r <= acc) return serviceTracks[i];
+    }
+    return serviceTracks[0];
+  };
+
+  const pickStatus = (idx) => {
+    const r = ((idx + 1) * 0.293) % 1;
+    if (r < 0.38) return 'ACTIVE';
+    if (r < 0.68) return 'COMPLETED';
+    if (r < 0.86) return 'ONBOARDING';
+    return 'LEAD';
+  };
+
+  const pickDate = (idx) => {
+    const start = new Date(2025, 8, 1).getTime();
+    const end = new Date(2026, 9, 28).getTime();
+    const factor = Math.pow((idx + 1) / 1000, 0.75);
+    const t = start + factor * (end - start);
+    return new Date(t).toISOString().replace('T', ' ').slice(0, 19);
+  };
+
+  const pickRating = (idx) => {
+    const r = ((idx + 1) * 0.419) % 1;
+    if (r < 0.68) return 5;
+    if (r < 0.90) return 4;
+    if (r < 0.96) return 3;
+    if (r < 0.985) return 2;
+    return 1;
+  };
+
+  const positiveReviews = [
+    'Exceptional Power BI reporting suite and automated data workflows. Transformed executive decision-making speed.',
+    'John delivered a robust full-stack dashboard with automated SQL ingestion that eliminated 20 hours of manual work weekly.',
+    'Outstanding training in Python and data analytics. Our analysts are now building custom predictive dashboards with ease.',
+    'The predictive student metrics and automated Excel VBA models exceeded our expectations. Strict data validation and high speed.',
+    'Delivered an intuitive, responsive executive portal and seamless SQLite API integration on tight deadlines.',
+    'Highly skilled in business intelligence, database administration, and workflow automation. Highly recommended partner.',
+    'Superb execution on our supply chain KPI reporting. Real-time accuracy and crystal-clear visual hierarchy.',
+    'Great collaboration, dependable communication, and top-tier technical delivery on our departmental analytics.'
+  ];
+
+  const mixedReviews = [
+    'Solid dashboard architecture and good SQL performance. Initial setup needed a minor tweak but was quickly resolved.',
+    'Great reporting features and reliable data pipelines. Would love more advanced charting options in the next sprint.',
+    'Delivered the automated Excel sheets and training as promised. Very responsive during project handoff.'
+  ];
+
+  const criticalReviews = [
+    'The dashboard met the core requirements though deployment took a few extra days due to internal security checks.',
+    'Good data modeling but required extra documentation for our junior IT team to maintain independently.'
+  ];
+
+  const pickReview = (rating, idx) => {
+    if (rating >= 4) return positiveReviews[idx % positiveReviews.length];
+    if (rating === 3) return mixedReviews[idx % mixedReviews.length];
+    return criticalReviews[idx % criticalReviews.length];
+  };
+
+  const defaultHash = hashPassword('Client@2026');
+
+  const insertUser = dbInstance.prepare(`
+    INSERT INTO users (name, email, password_hash, phone, company, service_interest, role, status, admin_notes, created_at)
+    VALUES (?, ?, ?, ?, ?, ?, 'CLIENT', ?, ?, ?)
+  `);
+
+  const needed = 1000 - currentClientCount;
+  if (needed > 0) {
+    for (let i = currentClientCount; i < 1000; i++) {
+      const fn = firstNames[i % firstNames.length];
+      const ln = lastNames[Math.floor(i / firstNames.length) % lastNames.length];
+      const name = `${fn} ${ln}`;
+      const email = `client_${i + 1}@${companies[i % companies.length].toLowerCase().replace(/[^a-z0-9]/g, '')}.com`;
+      const phone = `+234 80${(10000000 + i * 37) % 90000000}`;
+      const company = companies[i % companies.length];
+      const service = pickService(i);
+      const status = pickStatus(i);
+      const created = pickDate(i);
+      const notes = `Synthetic client partner record #${i + 1}. Engagement focus: ${service}.`;
+      try {
+        insertUser.run(name, email, defaultHash, phone, company, service, status, notes, created);
+      } catch {
+        // Skip duplicate email if any
+      }
+    }
+  }
+
+  const inqCount = dbInstance.prepare('SELECT COUNT(*) as count FROM inquiries').get().count;
+  if (inqCount < 680) {
+    const insertInquiry = dbInstance.prepare(`
+      INSERT INTO inquiries (user_id, name, email, phone, service_category, budget, message, status, project_progress, admin_response, created_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `);
+    const clients = dbInstance.prepare("SELECT id, name, email, phone, service_interest, created_at FROM users WHERE role = 'CLIENT' ORDER BY id ASC").all();
+    const inqStatuses = ['NEW', 'IN_PROGRESS', 'COMPLETED'];
+    for (let i = inqCount; i < 680; i++) {
+      const client = clients[i % clients.length];
+      const status = inqStatuses[i % 3];
+      const progress = status === 'COMPLETED' ? 100 : status === 'IN_PROGRESS' ? (30 + (i % 6) * 10) : (10 + (i % 3) * 5);
+      const created = pickDate(Math.min(999, Math.floor(i * 1.47)));
+      const msg = `Inquiry #${i + 1}: Project scope for ${client ? client.service_interest : 'Data Analytics'} and business reporting infrastructure.`;
+      insertInquiry.run(
+        client ? client.id : null,
+        client ? client.name : `Lead Contact ${i + 1}`,
+        client ? client.email : `inquiry_${i + 1}@prospective-client.org`,
+        client ? client.phone : '+234 800 000 0000',
+        client ? client.service_interest : 'Data Analytics & BI',
+        'Standard Enterprise Engagement',
+        msg,
+        status,
+        progress,
+        status === 'COMPLETED' ? 'Project deliverables finalized and handed over.' : 'Active correspondence with client.',
+        created
+      );
+    }
+  }
+
+  const testCount = dbInstance.prepare('SELECT COUNT(*) as count FROM testimonials').get().count;
+  if (testCount < 420) {
+    const insertTestimonial = dbInstance.prepare(`
+      INSERT INTO testimonials (author_name, author_role, company, service_track, rating, content, approved, created_at)
+      VALUES (?, ?, ?, ?, ?, ?, 1, ?)
+    `);
+    const clients = dbInstance.prepare("SELECT id, name, company, service_interest FROM users WHERE role = 'CLIENT' ORDER BY id ASC").all();
+    for (let i = testCount; i < 420; i++) {
+      const client = clients[i % clients.length];
+      const rating = pickRating(i);
+      const review = pickReview(rating, i);
+      const created = pickDate(Math.min(999, 100 + Math.floor(i * 2.1)));
+      insertTestimonial.run(
+        client ? client.name : `Verified Client ${i + 1}`,
+        i % 4 === 0 ? 'Managing Director' : i % 4 === 1 ? 'Head of Business Analytics' : i % 4 === 2 ? 'Operations Supervisor' : 'Project Sponsor',
+        client ? client.company : 'Client Partner Organization',
+        client ? client.service_interest : 'Data Analytics & BI',
+        rating,
+        review,
+        created
+      );
+    }
+  }
+}
+
 function seedDatabase() {
   // Always ensure Master Admin accounts (both yoletech@yoletica.com and yoletech@yolestica.com) & Demo Client exist
   ensureAccount({
@@ -502,59 +689,9 @@ function seedDatabase() {
     created_at: '2026-09-01 10:00:00'
   });
 
-  const userCount = db.prepare('SELECT COUNT(*) as count FROM users').get().count;
-  if (userCount <= 3) {
-    ensureAccount({
-      name: 'Engr. Ebiowei Dickson',
-      email: 'ebiowei@bayelsatechventures.ng',
-      password: 'Client@2026',
-      phone: '+234 806 118 3340',
-      company: 'Bayelsa Tech Ventures',
-      service_interest: 'Full-Stack Web Development',
-      role: 'CLIENT',
-      status: 'ACTIVE',
-      admin_notes: 'React.js + SQL client operations portal and automated reporting integration.',
-      created_at: '2026-09-02 14:15:00'
-    });
-
-    ensureAccount({
-      name: 'Amaka Nwosu',
-      email: 'a.nwosu@primelogistics.com',
-      password: 'Client@2026',
-      phone: '+234 812 904 5512',
-      company: 'Prime Logistics & Supply Ltd',
-      service_interest: 'AI & Workflow Automation',
-      role: 'CLIENT',
-      status: 'ONBOARDING',
-      admin_notes: 'Automating multi-departmental Excel VBA workbooks into SQL Server.',
-      created_at: '2026-09-21 16:40:00'
-    });
-
-    ensureAccount({
-      name: 'Marcus Vance',
-      email: 'mvance@globaledumetrix.io',
-      password: 'Client@2026',
-      phone: '+44 7700 900412',
-      company: 'Global EduMetrix (UK Remote)',
-      service_interest: 'Data Analytics & BI',
-      role: 'CLIENT',
-      status: 'COMPLETED',
-      admin_notes: 'Delivered student performance predictive ML model & Tableau executive views.',
-      created_at: '2026-10-05 10:20:00'
-    });
-
-    ensureAccount({
-      name: 'Preye Alagoa',
-      email: 'preye.alagoa@sulphilcohort.org',
-      password: 'Client@2026',
-      phone: '+234 705 339 8172',
-      company: 'SulPhil Analytics Cohort Alumni',
-      service_interest: 'Tech Tutorials & Mentorship',
-      role: 'CLIENT',
-      status: 'ACTIVE',
-      admin_notes: 'Corporate team training in Python (Pandas), SQL querying, and Power BI.',
-      created_at: '2026-10-19 08:50:00'
-    });
+  const clientCount = db.prepare("SELECT COUNT(*) as count FROM users WHERE role = 'CLIENT'").get().count;
+  if (clientCount < 1000) {
+    seedSyntheticRecords(db, clientCount);
   }
 
   // 2. Seed Inquiries
@@ -1363,7 +1500,7 @@ const requestHandler = async (req, res) => {
 
       const userRows = db
         .prepare(
-          `SELECT id, name, email, company, service_interest, status, created_at
+          `SELECT id, name, email, company, service_interest, status, role, created_at
            FROM users WHERE role = 'CLIENT' ORDER BY id ASC`
         )
         .all()
