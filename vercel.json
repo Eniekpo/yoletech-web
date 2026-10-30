@@ -3,6 +3,9 @@
   "functions": {
     "api/index.js": {
       "includeFiles": "{content/**,server/**,public/**}"
+    },
+    "api/blog-page.js": {
+      "includeFiles": "{content/**,server/**,public/**}"
     }
   },
   "rewrites": [
@@ -11,7 +14,7 @@
     { "source": "/admin/", "destination": "/admin/index.html" },
     { "source": "/portfolio", "destination": "/index.html" },
     { "source": "/blog", "destination": "/index.html" },
-    { "source": "/blog/(.*)", "destination": "/index.html" },
+    { "source": "/blog/(.*)", "destination": "/api/blog-page?slug=$1" },
     { "source": "/about", "destination": "/index.html" },
     { "source": "/services", "destination": "/index.html" },
     { "source": "/testimonials", "destination": "/index.html" },
@@ -22,4 +25,3 @@
     { "source": "/admin-dashboard", "destination": "/index.html" }
   ]
 }
-

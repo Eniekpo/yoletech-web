@@ -3,6 +3,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const crypto = require('node:crypto');
 const os = require('node:os');
+const { renderBlogPage } = require('./blog-page.js');
 let DatabaseSync = null;
 try {
   ({ DatabaseSync } = require('node:sqlite'));
@@ -1176,6 +1177,19 @@ const requestHandler = async (req, res) => {
   }
 
   try {
+    if (pathname.startsWith('/blog/') && (req.method === 'GET' || req.method === 'HEAD')) {
+      const slug = decodeURIComponent(pathname.slice('/blog/'.length));
+      const html = renderBlogPage(slug);
+      if (html) {
+        res.writeHead(200, {
+          'Content-Type': 'text/html; charset=utf-8',
+          'Cache-Control': 'public, max-age=0, s-maxage=300, stale-while-revalidate=3600'
+        });
+        res.end(req.method === 'HEAD' ? undefined : html);
+        return;
+      }
+    }
+
     // --- AUTH ENDPOINTS ---
     if (pathname === '/api/auth/register' && req.method === 'POST') {
       const body = await parseBody(req);
