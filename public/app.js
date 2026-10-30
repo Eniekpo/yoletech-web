@@ -67,6 +67,7 @@ class YoletechApp {
 
     const validPages = [
       'home',
+      'dashboard',
       'about',
       'services',
       'portfolio',
