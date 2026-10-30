@@ -1403,8 +1403,9 @@ const requestHandler = async (req, res) => {
 
       const clients = userRows.map((u) => ({
         id: u.id,
-        label: isAdmin ? u.name : `Client #${String(u.id).padStart(3, '0')}`,
-        company: isAdmin ? u.company || '' : '',
+        name: u.name,
+        label: u.name,
+        company: u.company || '',
         service_interest: u.service_interest || 'Unspecified',
         status: String(u.status || 'UNSPECIFIED').toUpperCase(),
         created_at: u.created_at

@@ -305,23 +305,24 @@
         .filter((c) => c && c.id !== undefined && !seenC.has(c.id) && seenC.add(c.id))
         .map((c) => ({
           id: c.id,
-          label: c.label || `Client #${String(c.id).padStart(3, '0')}`,
+          label: c.name || c.label || `Client #${String(c.id).padStart(3, '0')}`,
+          name: c.name || c.label || `Client #${String(c.id).padStart(3, '0')}`,
           company: c.company || '',
-          service: c.service_interest || 'Unspecified',
+          service: c.service_interest || c.service || 'Unspecified',
           status: normStatus(c.status),
-          created: toDate(c.created_at)
+          created: toDate(c.created_at || c.created)
         }));
       const seenI = new Set();
       const inquiries = (data.inquiries || [])
         .filter((i) => i && !seenI.has(i.id) && seenI.add(i.id))
         .map((i) => ({
           id: i.id,
-          clientId: i.client_id ?? null,
-          contactKey: i.contact_key ?? `i${i.id}`,
-          service: i.service_category || 'Unspecified',
+          clientId: i.client_id ?? i.clientId ?? null,
+          contactKey: i.contact_key ?? i.contactKey ?? `i${i.id}`,
+          service: i.service_category || i.service || 'Unspecified',
           status: String(i.status || 'NEW').toUpperCase(),
-          progress: Number.isFinite(Number(i.project_progress)) ? Number(i.project_progress) : null,
-          created: toDate(i.created_at)
+          progress: Number.isFinite(Number(i.project_progress ?? i.progress)) ? Number(i.project_progress ?? i.progress) : null,
+          created: toDate(i.created_at || i.created)
         }));
       const seenT = new Set();
       const testimonials = (data.testimonials || [])
@@ -330,19 +331,19 @@
           const r = Number(t.rating);
           return {
             id: t.id,
-            clientId: t.client_id ?? null,
-            author: t.author_name || 'Anonymous',
-            role: t.author_role || '',
+            clientId: t.client_id ?? t.clientId ?? null,
+            author: t.author_name || t.author || 'Anonymous',
+            role: t.author_role || t.role || '',
             company: t.company || '',
-            service: t.service_track || 'Unspecified',
+            service: t.service_track || t.service || 'Unspecified',
             rating: Number.isFinite(r) && r >= 1 && r <= 5 ? r : null,
             content: t.content || '',
-            created: toDate(t.created_at)
+            created: toDate(t.created_at || t.created)
           };
         });
       return {
         source,
-        anonymised: data.anonymised !== false,
+        anonymised: data.anonymised === true,
         generatedAt: toDate(data.generated_at) || new Date(),
         clients,
         inquiries,
@@ -350,32 +351,71 @@
       };
     },
 
-    // Offline fallback: uses data already held by the app (admin cache or local cache)
+    // Offline fallback: uses data already held by the app (admin cache, local storage, or seeded backend records)
     buildDashboardFallback() {
-      const isAdmin = this.user?.role === 'ADMIN';
       const norm = (v) => String(v || '').trim().toLowerCase().replace(/\s+/g, ' ');
-      const sourceClients = (isAdmin && this.clients.length ? this.clients : this.getLocalRegisteredUsers()).filter(
-        (c) => String(c.role || 'CLIENT').toUpperCase() === 'CLIENT'
-      );
-      const byEmail = new Map(sourceClients.map((c) => [String(c.email || '').toLowerCase(), c.id]));
-      const byName = new Map(sourceClients.map((c) => [norm(c.name), c.id]));
-      const keys = new Map();
-      const inquiries = (isAdmin ? this.inquiries : this.getLocalInquiries()).map((i, idx) => {
-        const email = String(i.email || '').toLowerCase();
-        if (!keys.has(email)) keys.set(email, keys.size + 1);
-        return { ...i, id: i.id ?? `local-${idx}`, client_id: byEmail.get(email) || null, contact_key: keys.get(email) };
+      const seedClients = [
+        { id: 1, name: 'Demo Client Partner', company: 'Demo Client Organization', service_interest: 'Data Analytics & BI', status: 'ACTIVE', created_at: '2026-09-01 10:00:00', role: 'CLIENT' },
+        { id: 2, name: 'Engr. Ebiowei Dickson', company: 'Bayelsa Tech Ventures', service_interest: 'Full-Stack Web Development', status: 'ACTIVE', created_at: '2026-09-02 14:15:00', role: 'CLIENT' },
+        { id: 3, name: 'Amaka Nwosu', company: 'Prime Logistics & Supply Ltd', service_interest: 'AI & Workflow Automation', status: 'ONBOARDING', created_at: '2026-09-21 16:40:00', role: 'CLIENT' },
+        { id: 4, name: 'Marcus Vance', company: 'Global EduMetrix (UK Remote)', service_interest: 'Data Analytics & BI', status: 'COMPLETED', created_at: '2026-10-05 10:20:00', role: 'CLIENT' },
+        { id: 5, name: 'Preye Alagoa', company: 'SulPhil Analytics Cohort Alumni', service_interest: 'Tech Tutorials & Mentorship', status: 'ACTIVE', created_at: '2026-10-19 08:50:00', role: 'CLIENT' }
+      ];
+      const localUsers = this.getLocalRegisteredUsers().filter((c) => String(c.role || 'CLIENT').toUpperCase() === 'CLIENT');
+      const baseClients = (this.clients && this.clients.length)
+        ? this.clients.filter((c) => String(c.role || 'CLIENT').toUpperCase() === 'CLIENT')
+        : seedClients;
+      const mergedClients = [...baseClients];
+      localUsers.forEach((lu) => {
+        if (!mergedClients.some((c) => String(c.email || c.name).toLowerCase() === String(lu.email || lu.name).toLowerCase())) {
+          mergedClients.unshift(lu);
+        }
       });
+
+      const seedInquiries = [
+        { id: 1, client_id: 2, service_category: 'Web Development', status: 'IN_PROGRESS', project_progress: 60, created_at: '2026-10-18 15:30:00' },
+        { id: 2, client_id: 3, service_category: 'AI & Automation', status: 'NEW', project_progress: 20, created_at: '2026-10-24 13:10:00' },
+        { id: 3, client_id: null, service_category: 'Tech Tutorials & Training', status: 'NEW', project_progress: 10, created_at: '2026-10-27 20:52:15' }
+      ];
+      const localInq = this.getLocalInquiries();
+      const baseInquiries = (this.inquiries && this.inquiries.length) ? this.inquiries : seedInquiries;
+      const mergedInquiries = [...baseInquiries];
+      localInq.forEach((li) => {
+        if (!mergedInquiries.some((i) => i.id === li.id || (i.email && i.email === li.email && i.message === li.message))) {
+          mergedInquiries.unshift(li);
+        }
+      });
+
+      const byEmail = new Map(mergedClients.map((c) => [String(c.email || '').toLowerCase(), c.id]));
+      const byName = new Map(mergedClients.map((c) => [norm(c.name), c.id]));
+      const keys = new Map();
+      const inquiries = mergedInquiries.map((i, idx) => {
+        const email = String(i.email || '').toLowerCase();
+        if (email && !keys.has(email)) keys.set(email, keys.size + 1);
+        const contactKey = email ? keys.get(email) : i.contact_key || i.contactKey || `inq-${idx}`;
+        return {
+          ...i,
+          id: i.id ?? `local-${idx}`,
+          clientId: i.client_id ?? i.clientId ?? (email ? byEmail.get(email) : null),
+          contactKey
+        };
+      });
+
       return this.normaliseDashboardRaw(
         {
-          anonymised: !isAdmin,
-          clients: sourceClients.map((c, idx) => ({
+          anonymised: false,
+          clients: mergedClients.map((c, idx) => ({
             ...c,
             id: c.id ?? `local-${idx}`,
-            label: isAdmin ? c.name : `Client #${String(c.id ?? idx + 1).padStart(3, '0')}`,
-            company: isAdmin ? c.company : ''
+            label: c.name || `Client #${String(c.id ?? idx + 1).padStart(3, '0')}`,
+            name: c.name || '',
+            company: c.company || ''
           })),
           inquiries,
-          testimonials: (this.testimonials || []).map((t) => ({ ...t, client_id: byName.get(norm(t.author_name)) || null }))
+          testimonials: (this.testimonials && this.testimonials.length ? this.testimonials : (window.YOLETECH_DATA?.defaultTestimonials || [])).map((t) => ({
+            ...t,
+            client_id: byName.get(norm(t.author_name)) || null
+          }))
         },
         'cache'
       );

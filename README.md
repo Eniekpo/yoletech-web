@@ -3,7 +3,7 @@
 **Owner:** John Oruebi Eniekpo, B.Sc. (M.Sc. IT In-View)  
 **Roles:** Data Analyst | Business Intelligence Specialist | Full-Stack Web Developer  
 **Location:** Yenagoa, Bayelsa State, Nigeria (Available for Global Remote)  
-**Contact:** `+234 802 552 6389` | `yoletech@yolestica.com`
+**Contact:** `+234 802 552 6389` | `yoletech@yoletica.com`
 
 ---
 
@@ -37,7 +37,7 @@ The server starts on **`http://localhost:4000`**.
 
 ### Master Administrator Account
 * **Portal URL:** `http://localhost:4000/login`
-* **Email:** `yoletech@yolestica.com`
+* **Email:** `yoletech@yoletica.com`
 * **Password:** `YoleTech@2026#Admin`
 
 ### Demo Client Account

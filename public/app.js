@@ -47,6 +47,13 @@ class YoletechApp {
     if (this.token) {
       await this.verifySession();
     }
+    if (typeof this.loadDashboardData === 'function') {
+      try {
+        await this.loadDashboardData(true);
+      } catch (e) {
+        console.warn('Dashboard pre-load notice:', e);
+      }
+    }
     this.render();
     this.startSlideshow();
   }
@@ -644,6 +651,8 @@ class YoletechApp {
       await this.loadAdminData();
     } else if (this.currentPage === 'portal' && this.user) {
       await this.loadClientData();
+    } else if (this.currentPage === 'dashboard' && typeof this.loadDashboardData === 'function') {
+      await this.loadDashboardData(true);
     }
 
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -3040,6 +3049,7 @@ class YoletechApp {
       localStorage.setItem('yoletech_token', token);
       localStorage.setItem('yoletech_user', JSON.stringify(user));
       await this.loadClientData();
+      if (typeof this.loadDashboardData === 'function') await this.loadDashboardData(true);
 
       this.setFormConfirmation('register', {
         title: 'Registration Confirmed!',
@@ -3675,6 +3685,7 @@ class YoletechApp {
         body: JSON.stringify(updates)
       });
       await this.loadAdminData();
+      if (typeof this.loadDashboardData === 'function') await this.loadDashboardData(true);
       this.showToast('Client record updated.');
       this.render();
     } catch (err) {
@@ -3686,6 +3697,7 @@ class YoletechApp {
     try {
       await this.api(`/api/clients/${clientId}`, { method: 'DELETE' });
       await this.loadAdminData();
+      if (typeof this.loadDashboardData === 'function') await this.loadDashboardData(true);
       this.showToast('Client removed.');
       this.render();
     } catch (err) {
