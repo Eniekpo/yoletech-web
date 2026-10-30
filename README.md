@@ -31,21 +31,6 @@ The server starts on **`http://localhost:4000`**.
 | `http://localhost:4000/admin/` | **Decap CMS Bridge** — Standalone Git/Markdown Content Manager |
 | `http://localhost:4000/cv.html` | **Official Printable CV** — Print/Save-to-PDF Curriculum Vitae |
 
----
-
-## 2. Backend Login Credentials
-
-### Master Administrator Account
-* **Portal URL:** `http://localhost:4000/login`
-* **Email:** `yoletech@yoletica.com`
-* **Password:** `YoleTech@2026#Admin`
-
-### Demo Client Account
-* **Portal URL:** `http://localhost:4000/login`
-* **Email:** `client@example.com`
-* **Password:** `Client@2026`
-
----
 
 ## 3. Brand Color System
 

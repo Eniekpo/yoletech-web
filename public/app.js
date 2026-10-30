@@ -1982,6 +1982,8 @@ class YoletechApp {
             })()}
           </div>
 
+${C.renderRoiCalculatorWidget ? C.renderRoiCalculatorWidget() : ""}
+
           <!-- HOW WE WORK 4-STEP PROCESS -->
           <div class="section-header">
             <div class="eyebrow"><span class="eyebrow-dot"></span> PROVEN METHODOLOGY</div>
@@ -3679,6 +3681,64 @@ class YoletechApp {
     `;
   }
 
+
+
+  updateRoiCalculation() {
+    const hoursEl = document.getElementById('roi-hours');
+    const staffEl = document.getElementById('roi-staff');
+    const rateEl = document.getElementById('roi-rate');
+    if (!hoursEl || !staffEl || !rateEl) return;
+
+    const hours = parseInt(hoursEl.value, 10);
+    const staff = parseInt(staffEl.value, 10);
+    const rate = parseInt(rateEl.value, 10);
+
+    const hoursVal = document.getElementById('roi-hours-val');
+    const staffVal = document.getElementById('roi-staff-val');
+    const rateVal = document.getElementById('roi-rate-val');
+    const currentCostEl = document.getElementById('roi-current-cost');
+    const hoursSavedEl = document.getElementById('roi-hours-saved');
+    const netSavingsEl = document.getElementById('roi-net-savings');
+
+    if (hoursVal) hoursVal.textContent = `${hours} hrs / wk`;
+    if (staffVal) staffVal.textContent = `${staff} Staff`;
+    if (rateVal) rateVal.textContent = `${rate} / hr`;
+
+    const totalHoursPerYear = hours * staff * 52;
+    const annualCost = totalHoursPerYear * rate;
+    const hoursSaved = Math.round(totalHoursPerYear * 0.75);
+    const netSavings = Math.round(annualCost * 0.75);
+
+    if (currentCostEl) currentCostEl.innerHTML = `${annualCost.toLocaleString()} <span style="font-size:15px;color:var(--yole-text-muted);font-weight:500;">/ year</span>`;
+    if (hoursSavedEl) hoursSavedEl.textContent = `${hoursSaved.toLocaleString()} hrs`;
+    if (netSavingsEl) netSavingsEl.textContent = `${netSavings.toLocaleString()} / yr`;
+  }
+
+  applyRoiEstimateToInquiry() {
+    const hoursEl = document.getElementById('roi-hours');
+    const staffEl = document.getElementById('roi-staff');
+    const rateEl = document.getElementById('roi-rate');
+
+    const hours = hoursEl ? hoursEl.value : 15;
+    const staff = staffEl ? staffEl.value : 3;
+    const rate = rateEl ? rateEl.value : 35;
+    const totalHoursPerYear = hours * staff * 52;
+    const annualCost = (totalHoursPerYear * rate).toLocaleString();
+    const netSavings = Math.round(totalHoursPerYear * rate * 0.75).toLocaleString();
+
+    this.contactServiceSelected = 'Data Analysis & Analytics';
+    this.pendingInquiryMessage = `Hi John, based on your interactive ROI calculator, our team spends approximately ${hours} hrs/week across ${staff} staff on manual reporting (approx. ${annualCost}/year). We would like to discuss implementing an automated Power BI & SQL pipeline to reclaim operational time and achieve an estimated ${netSavings}/year in savings.`;
+
+    this.navigate('contact');
+    setTimeout(() => {
+      const msgArea = document.querySelector('textarea[name="message"]');
+      if (msgArea) {
+        msgArea.value = this.pendingInquiryMessage;
+        msgArea.focus();
+        msgArea.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+    }, 120);
+  }
 
   setAdminClientPage(page) {
     this.adminClientPage = Math.max(1, page);

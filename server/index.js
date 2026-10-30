@@ -1116,6 +1116,9 @@ const MIME_TYPES = {
   '.json': 'application/json; charset=utf-8',
   '.yml': 'text/yaml; charset=utf-8',
   '.yaml': 'text/yaml; charset=utf-8',
+  '.xml': 'application/xml; charset=utf-8',
+  '.txt': 'text/plain; charset=utf-8',
+  '.webp': 'image/webp',
   '.png': 'image/png',
   '.jpg': 'image/jpeg',
   '.jpeg': 'image/jpeg',
@@ -1123,16 +1126,54 @@ const MIME_TYPES = {
   '.ico': 'image/x-icon'
 };
 
+// Zero-dependency in-memory rate limiter
+const rateLimitMap = new Map();
+function checkRateLimit(ip, action, limit = 15, windowMs = 15 * 60 * 1000) {
+  const key = `${ip || 'unknown'}:${action}`;
+  const now = Date.now();
+  const entry = rateLimitMap.get(key) || { count: 0, resetAt: now + windowMs };
+  if (now > entry.resetAt) {
+    entry.count = 1;
+    entry.resetAt = now + windowMs;
+  } else {
+    entry.count += 1;
+  }
+  rateLimitMap.set(key, entry);
+  return entry.count <= limit;
+}
+
 // ============================================================================
 // 5. MAIN SERVER & API ROUTER
 // ============================================================================
 const requestHandler = async (req, res) => {
+  // Enterprise Security Headers
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('X-Frame-Options', 'SAMEORIGIN');
+  res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+
   if (req.method === 'OPTIONS') {
     return sendJson(res, 200, { ok: true });
   }
 
   const parsedUrl = new URL(req.url, `http://${req.headers.host || 'localhost'}`);
   const pathname = parsedUrl.pathname;
+  const clientIp = (req.headers['x-forwarded-for'] || '').split(',')[0].trim() || req.socket?.remoteAddress || '127.0.0.1';
+
+  // Direct Sitemap & Robots routes
+  if (pathname === '/sitemap.xml') {
+    const sitemapPath = path.join(PUBLIC_DIR, 'sitemap.xml');
+    if (fs.existsSync(sitemapPath)) {
+      res.writeHead(200, { 'Content-Type': 'application/xml; charset=utf-8' });
+      return fs.createReadStream(sitemapPath).pipe(res);
+    }
+  }
+  if (pathname === '/robots.txt') {
+    const robotsPath = path.join(PUBLIC_DIR, 'robots.txt');
+    if (fs.existsSync(robotsPath)) {
+      res.writeHead(200, { 'Content-Type': 'text/plain; charset=utf-8' });
+      return fs.createReadStream(robotsPath).pipe(res);
+    }
+  }
 
   try {
     // --- AUTH ENDPOINTS ---
@@ -1195,6 +1236,9 @@ const requestHandler = async (req, res) => {
     }
 
     if (pathname === '/api/auth/login' && req.method === 'POST') {
+      if (!checkRateLimit(clientIp, 'login', 12, 15 * 60 * 1000)) {
+        return sendJson(res, 429, { error: 'Too many login attempts. Please wait 15 minutes before trying again.' });
+      }
       const body = await parseBody(req);
       const { email, password } = body;
       if (!email || !password) {

@@ -245,5 +245,96 @@ window.YOLETECH_COMPONENTS = {
         </div>
       </div>
     `;
+  },
+  // 5. Interactive Scope & ROI Calculator Widget
+  renderRoiCalculatorWidget() {
+    return `
+      <div class="glass-card roi-calculator-card" style="border-radius:24px;padding:clamp(24px, 3.5vw, 44px);margin:40px 0;">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:16px;margin-bottom:28px;">
+          <div>
+            <div class="eyebrow"><span class="eyebrow-dot"></span> INTERACTIVE VALUE ESTIMATOR</div>
+            <h2 style="font-size:clamp(24px, 3vw, 34px);font-weight:900;line-height:1.2;margin-bottom:8px;">
+              Calculate Your Organization's <span class="accent-lime">Automation ROI</span>
+            </h2>
+            <p style="font-size:15px;color:var(--yole-text-muted);max-width:640px;">
+              See how many hours and operational dollars your team reclaims each year by transitioning repetitive manual spreadsheets into automated Power BI &amp; SQL pipelines.
+            </p>
+          </div>
+          <span class="tech-pill lime" style="font-size:12px;padding:8px 16px;">Verified 70–80% Time Reclaimed</span>
+        </div>
+
+        <div class="grid-2" style="gap:32px;align-items:center;">
+          <!-- Sliders -->
+          <div style="display:flex;flex-direction:column;gap:22px;">
+            <div>
+              <div style="display:flex;justify-content:space-between;font-weight:700;font-size:14px;margin-bottom:8px;">
+                <span>Weekly Hours Spent on Manual Reports</span>
+                <span id="roi-hours-val" style="color:#C8E61E;font-size:16px;font-weight:900;">15 hrs / wk</span>
+              </div>
+              <input type="range" id="roi-hours" min="5" max="40" value="15" step="1" style="width:100%;accent-color:#C8E61E;cursor:pointer;" oninput="window.app.updateRoiCalculation()" />
+              <div style="display:flex;justify-content:space-between;font-size:11.5px;color:var(--yole-text-muted);margin-top:4px;">
+                <span>5 hrs (Light)</span>
+                <span>20 hrs (Typical)</span>
+                <span>40 hrs (Heavy)</span>
+              </div>
+            </div>
+
+            <div>
+              <div style="display:flex;justify-content:space-between;font-weight:700;font-size:14px;margin-bottom:8px;">
+                <span>Team Members Preparing Reports</span>
+                <span id="roi-staff-val" style="color:#C8E61E;font-size:16px;font-weight:900;">3 Staff</span>
+              </div>
+              <input type="range" id="roi-staff" min="1" max="10" value="3" step="1" style="width:100%;accent-color:#C8E61E;cursor:pointer;" oninput="window.app.updateRoiCalculation()" />
+              <div style="display:flex;justify-content:space-between;font-size:11.5px;color:var(--yole-text-muted);margin-top:4px;">
+                <span>1 Analyst</span>
+                <span>5 Staff</span>
+                <span>10+ Team</span>
+              </div>
+            </div>
+
+            <div>
+              <div style="display:flex;justify-content:space-between;font-weight:700;font-size:14px;margin-bottom:8px;">
+                <span>Average Loaded Hourly Salary Cost ($)</span>
+                <span id="roi-rate-val" style="color:#F7941D;font-size:16px;font-weight:900;">$35 / hr</span>
+              </div>
+              <input type="range" id="roi-rate" min="20" max="100" value="35" step="5" style="width:100%;accent-color:#F7941D;cursor:pointer;" oninput="window.app.updateRoiCalculation()" />
+              <div style="display:flex;justify-content:space-between;font-size:11.5px;color:var(--yole-text-muted);margin-top:4px;">
+                <span>$20/hr</span>
+                <span>$50/hr</span>
+                <span>$100/hr</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Dynamic Output Card -->
+          <div style="background:rgba(15,12,40,0.65);border:1.5px solid rgba(200,230,30,0.3);border-radius:18px;padding:28px;display:flex;flex-direction:column;gap:20px;">
+            <div>
+              <div style="font-size:12px;font-weight:800;text-transform:uppercase;color:var(--yole-text-muted);letter-spacing:0.05em;">Current Manual Labor Overhead</div>
+              <div id="roi-current-cost" style="font-size:clamp(28px, 3.5vw, 40px);font-weight:900;color:#FFFFFF;margin-top:4px;">$81,900 <span style="font-size:15px;color:var(--yole-text-muted);font-weight:500;">/ year</span></div>
+            </div>
+
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;border-top:1px solid rgba(255,255,255,0.1);border-bottom:1px solid rgba(255,255,255,0.1);padding:16px 0;">
+              <div>
+                <div style="font-size:12px;color:var(--yole-text-muted);">Annual Hours Reclaimed</div>
+                <div id="roi-hours-saved" style="font-size:24px;font-weight:900;color:#C8E61E;margin-top:2px;">1,755 hrs</div>
+              </div>
+              <div>
+                <div style="font-size:12px;color:var(--yole-text-muted);">Projected Net Savings</div>
+                <div id="roi-net-savings" style="font-size:24px;font-weight:900;color:#C8E61E;margin-top:2px;">$61,425 / yr</div>
+              </div>
+            </div>
+
+            <div>
+              <div style="font-size:12.5px;color:var(--yole-text-muted);margin-bottom:14px;">
+                Estimated Implementation Payback: <strong style="color:#C8E61E;">3–5 Weeks</strong> • Enforces 99.9% audit accuracy
+              </div>
+              <button type="button" class="btn btn-lime" style="width:100%;padding:14px 20px;font-size:15px;font-weight:800;border-radius:10px;" onclick="window.app.applyRoiEstimateToInquiry()">
+                Claim Custom Pipeline Proposal →
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
   }
 };
