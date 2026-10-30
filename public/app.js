@@ -1110,11 +1110,7 @@ class YoletechApp {
         </div>
       </footer>
 
-      <!-- FLOATING WHATSAPP QUICK CONNECT -->
-      <a href="${D.whatsappUrl}" target="_blank" rel="noopener" title="Chat on WhatsApp" class="floating-whatsapp-btn" style="position:fixed;bottom:22px;left:22px;z-index:990;background:#19164B;border:2px solid #C8E61E;color:#FFFFFF;padding:10px 16px;border-radius:999px;box-shadow:0 12px 30px rgba(0,0,0,0.55);display:inline-flex;align-items:center;gap:8px;font-size:13px;font-weight:800;">
-        <span style="width:9px;height:9px;border-radius:50%;background:#C8E61E;box-shadow:0 0 8px #C8E61E;"></span>
-        <span>Chat on WhatsApp</span>
-      </a>
+
     `;
   }
 
@@ -2150,34 +2146,37 @@ class YoletechApp {
               .join('')}
           </div>
 
-          <!-- SUBMIT A TESTIMONIAL CARD -->
-          <div class="glass-card" style="max-width:740px;margin:0 auto;">
+          <!-- SUBMIT A TESTIMONIAL CARD (FULL CONTAINER WIDTH) -->
+          <div class="glass-card testimonial-form-card" style="width:100%;max-width:100%;padding:clamp(36px, 4.5vw, 60px);border-radius:24px;">
             <div class="eyebrow"><span class="eyebrow-dot"></span> SHARE YOUR FEEDBACK</div>
-            <h3 style="font-size:24px;font-weight:900;margin-bottom:16px;">Share Your Experience with YOLETECH</h3>
+            <h2 style="font-size:clamp(26px, 3vw, 36px);font-weight:900;line-height:1.2;margin-bottom:10px;">Share Your Experience with YOLETECH</h2>
+            <p style="font-size:16px;color:var(--yole-text-muted);max-width:820px;margin-bottom:32px;line-height:1.6;">
+              Your feedback helps organizations, executives, and learners understand the quality and business impact of our data analytics, full-stack web applications, and automated workflow solutions.
+            </p>
             <form novalidate onsubmit="window.app.handleTestimonialSubmit(event)">
-              <div class="grid-2" style="gap:16px;">
-                <div class="form-group">
-                  <label class="form-label">Your Full Name *</label>
-                  <input type="text" name="author_name" required class="form-control" placeholder="Your full name" value="${
+              <div class="grid-2" style="gap:24px;margin-bottom:24px;">
+                <div class="form-group" style="margin-bottom:0;">
+                  <label class="form-label" style="font-size:14px;font-weight:700;margin-bottom:8px;display:block;">Your Full Name *</label>
+                  <input type="text" name="author_name" required class="form-control" style="min-height:52px;font-size:15px;padding:14px 18px;border-radius:12px;" placeholder="e.g. Marcus Vance" value="${
                     this.user ? this.user.name : ''
                   }" />
                 </div>
-                <div class="form-group">
-                  <label class="form-label">Your Role / Title</label>
-                  <input type="text" name="author_role" class="form-control" placeholder="Your role or title" />
+                <div class="form-group" style="margin-bottom:0;">
+                  <label class="form-label" style="font-size:14px;font-weight:700;margin-bottom:8px;display:block;">Your Role / Title</label>
+                  <input type="text" name="author_role" class="form-control" style="min-height:52px;font-size:15px;padding:14px 18px;border-radius:12px;" placeholder="e.g. Head of Data Operations, Lead Developer" />
                 </div>
               </div>
-              <div class="grid-2" style="gap:16px;">
-                <div class="form-group">
-                  <label class="form-label">Organization / Cohort</label>
-                  <input type="text" name="company" class="form-control" placeholder="Company or organization" value="${
+              <div class="grid-2" style="gap:24px;margin-bottom:24px;">
+                <div class="form-group" style="margin-bottom:0;">
+                  <label class="form-label" style="font-size:14px;font-weight:700;margin-bottom:8px;display:block;">Organization / Cohort</label>
+                  <input type="text" name="company" class="form-control" style="min-height:52px;font-size:15px;padding:14px 18px;border-radius:12px;" placeholder="e.g. Global EduMetrix, Prime Logistics, Bayelsa Tech" value="${
                     this.user ? this.user.company : ''
                   }" />
                 </div>
-                <div class="form-group">
-                  <label class="form-label">Service Track</label>
-                  <select name="service_track" class="form-control">
-                    <option value="Data Analytics & BI">Data Analytics &amp; BI</option>
+                <div class="form-group" style="margin-bottom:0;">
+                  <label class="form-label" style="font-size:14px;font-weight:700;margin-bottom:8px;display:block;">Service Track</label>
+                  <select name="service_track" class="form-control" style="min-height:52px;font-size:15px;padding:14px 18px;border-radius:12px;">
+                    <option value="Data Analytics & BI">Data Analytics &amp; Business Intelligence</option>
                     <option value="Full-Stack Web Development">Full-Stack Web Development</option>
                     <option value="AI & Workflow Automation">AI &amp; Workflow Automation</option>
                     <option value="Tech Tutorials & Mentorship">Tech Tutorials &amp; Mentorship</option>
@@ -2185,11 +2184,18 @@ class YoletechApp {
                   </select>
                 </div>
               </div>
-              <div class="form-group">
-                <label class="form-label">Your Testimonial *</label>
-                <textarea name="content" rows="3" required class="form-control" placeholder="Share how our dashboards, web development, automation, or training helped you..."></textarea>
+              <div class="form-group" style="margin-bottom:28px;">
+                <label class="form-label" style="font-size:14px;font-weight:700;margin-bottom:8px;display:block;">Your Testimonial *</label>
+                <textarea name="content" rows="6" required class="form-control" style="font-size:15px;padding:16px 18px;border-radius:14px;line-height:1.65;min-height:150px;" placeholder="Share your experience working with John Oruebi Eniekpo / YOLETECH: project outcomes, delivered dashboards, technical mentorship, or workflow efficiency gains..."></textarea>
               </div>
-              <button type="submit" id="testimonial-submit-btn" class="btn btn-lime">Submit Testimonial →</button>
+              <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:20px;padding-top:8px;">
+                <button type="submit" id="testimonial-submit-btn" class="btn btn-lime" style="padding:16px 40px;font-size:15.5px;font-weight:800;border-radius:12px;min-height:52px;">
+                  Submit Testimonial →
+                </button>
+                <span style="font-size:13.5px;color:var(--yole-text-muted);">
+                  Verified testimonials are published directly to the endorsements wall and platform dashboard.
+                </span>
+              </div>
               ${this.renderFormConfirmation('testimonial')}
             </form>
           </div>
