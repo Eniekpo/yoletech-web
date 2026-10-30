@@ -9,7 +9,7 @@ summary: How structured data validation, SQL modeling, and KPI hierarchy
   transform raw multi-departmental spreadsheets into actionable executive
   Business Intelligence dashboards.
 author: John Oruebi Eniekpo
-featured: true
+featured: false
 tags:
   - Power BI
   - Tableau
