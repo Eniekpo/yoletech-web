@@ -2370,13 +2370,13 @@ ${C.renderRoiCalculatorWidget ? C.renderRoiCalculatorWidget() : ""}
             </div>
           </div>
 
-          <div class="grid-2">
+          <div class="grid-3">
             ${filtered
               .map(
                 (post) => `
               <div class="glass-card blog-card" onclick="window.app.navigate('blog-detail', '${post.slug}')">
                 <div>
-                  <div class="blog-card-image" style="aspect-ratio:4/5;">
+                  <div class="blog-card-image" style="aspect-ratio:1/1;">
                     <img src="${post.coverImage}" alt="${post.title}" loading="lazy" decoding="async" />
                   </div>
                   <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
@@ -2388,9 +2388,6 @@ ${C.renderRoiCalculatorWidget ? C.renderRoiCalculatorWidget() : ""}
                 </div>
 
                 <div>
-                  <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px;">
-                    ${(post.tags || []).map((t) => `<span class="tech-pill">${t}</span>`).join('')}
-                  </div>
                   <div style="display:flex;justify-content:space-between;align-items:center;border-top:1px solid rgba(255,255,255,0.1);padding-top:12px;font-size:13.5px;font-weight:700;color:#C8E61E;">
                     <span>By ${post.author}</span>
                     <span>Read Full Article →</span>
@@ -2577,10 +2574,7 @@ ${C.renderRoiCalculatorWidget ? C.renderRoiCalculatorWidget() : ""}
               ${this.formatMarkdownToHtml(post.body)}
             </div>
 
-            <div style="margin-top:32px;padding-top:20px;border-top:1px solid rgba(255,255,255,0.12);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;">
-              <div style="display:flex;gap:8px;flex-wrap:wrap;">
-                ${(post.tags || []).map((t) => `<span class="tech-pill">${t}</span>`).join('')}
-              </div>
+            <div style="margin-top:32px;padding-top:20px;border-top:1px solid rgba(255,255,255,0.12);display:flex;justify-content:flex-end;align-items:center;">
               <button class="btn btn-lime btn-sm" onclick="window.app.navigate('contact')">
                 Discuss This Topic With John →
               </button>

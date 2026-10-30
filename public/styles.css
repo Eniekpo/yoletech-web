@@ -714,7 +714,7 @@ button, input, select, textarea {
 
 .blog-card-image {
   width: 100%;
-  aspect-ratio: 4 / 5;
+  aspect-ratio: 1 / 1;
   overflow: hidden;
   border-radius: 12px;
   margin-bottom: 16px;
