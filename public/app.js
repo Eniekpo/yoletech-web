@@ -2374,10 +2374,10 @@ ${C.renderRoiCalculatorWidget ? C.renderRoiCalculatorWidget() : ""}
             ${filtered
               .map(
                 (post) => `
-              <div class="glass-card" style="display:flex;flex-direction:column;justify-content:space-between;cursor:pointer;" onclick="window.app.navigate('blog-detail', '${post.slug}')">
+              <div class="glass-card blog-card" onclick="window.app.navigate('blog-detail', '${post.slug}')">
                 <div>
-                  <div style="border-radius:12px;overflow:hidden;margin-bottom:16px;height:200px;border:1px solid rgba(255,255,255,0.12);">
-                    <img src="${post.coverImage}" alt="${post.title}" style="width:100%;height:100%;object-fit:cover;" />
+                  <div class="blog-card-image" style="aspect-ratio:4/5;">
+                    <img src="${post.coverImage}" alt="${post.title}" loading="lazy" decoding="async" />
                   </div>
                   <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
                     <span class="tech-pill lime">${post.category}</span>
