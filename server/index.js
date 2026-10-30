@@ -1323,13 +1323,39 @@ const requestHandler = async (req, res) => {
       }
       const pageParam = parsedUrl.searchParams.get('page');
       const limitParam = parsedUrl.searchParams.get('limit');
+      const fromDate = parsedUrl.searchParams.get('from');
+      const toDate = parsedUrl.searchParams.get('to');
+      const hasDateFilter = fromDate !== null || toDate !== null;
+      const isValidDate = (value) =>
+        /^\d{4}-\d{2}-\d{2}$/.test(value) &&
+        new Date(`${value}T00:00:00.000Z`).toISOString().slice(0, 10) === value;
 
-      const allClients = db
-        .prepare(
-          `SELECT id, name, email, phone, company, service_interest, role, status, admin_notes, created_at
-           FROM users ORDER BY id DESC`
-        )
-        .all();
+      if (
+        (fromDate !== null && !isValidDate(fromDate)) ||
+        (toDate !== null && !isValidDate(toDate)) ||
+        (fromDate && toDate && fromDate > toDate)
+      ) {
+        return sendJson(res, 400, { error: 'Provide valid registration dates with the start date on or before the end date.' });
+      }
+
+      const clientQuery = [
+        `SELECT id, name, email, phone, company, service_interest, role, status, admin_notes, created_at
+         FROM users`
+      ];
+      const clientQueryParams = [];
+      if (hasDateFilter) {
+        clientQuery.push("WHERE role <> 'ADMIN'");
+        if (fromDate) {
+          clientQuery.push('AND date(created_at) >= date(?)');
+          clientQueryParams.push(fromDate);
+        }
+        if (toDate) {
+          clientQuery.push('AND date(created_at) <= date(?)');
+          clientQueryParams.push(toDate);
+        }
+      }
+      clientQuery.push('ORDER BY id DESC');
+      const allClients = db.prepare(clientQuery.join(' ')).all(...clientQueryParams);
       const inquiries = db.prepare('SELECT * FROM inquiries ORDER BY id DESC').all();
 
       if (pageParam !== null || limitParam !== null) {

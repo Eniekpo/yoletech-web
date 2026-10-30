@@ -19,6 +19,10 @@ class YoletechApp {
     this.footerTab = 'overview';
     this.clientSearch = '';
     this.clientStatusFilter = 'ALL';
+    this.adminClientDateFrom = '';
+    this.adminClientDateTo = '';
+    this.adminDateFilteredClients = null;
+    this.adminDateFilterError = '';
     this.adminClientPage = 1;
     this.adminClientLimit = 30;
     this.testimonialPage = 1;
@@ -379,12 +383,29 @@ class YoletechApp {
   async loadAdminData() {
     let apiClients = [];
     let apiInquiries = [];
+    let dateFilteredApiClients = null;
     try {
       const data = await this.api('/api/clients');
       apiClients = data.clients || [];
       apiInquiries = data.inquiries || [];
     } catch (err) {
       console.warn('Admin API fallback used:', err.message);
+    }
+
+    if (this.adminClientDateFrom || this.adminClientDateTo) {
+      const params = new URLSearchParams();
+      if (this.adminClientDateFrom) params.set('from', this.adminClientDateFrom);
+      if (this.adminClientDateTo) params.set('to', this.adminClientDateTo);
+      try {
+        const data = await this.api(`/api/clients?${params.toString()}`);
+        dateFilteredApiClients = data.clients || [];
+        this.adminDateFilterError = '';
+      } catch (err) {
+        this.adminDateFilterError = err.message || 'Could not filter clients by date.';
+        console.error('Admin date filter failed:', err);
+      }
+    } else {
+      this.adminDateFilterError = '';
     }
 
     const localUsers = this.getLocalRegisteredUsers();
@@ -395,6 +416,22 @@ class YoletechApp {
       }
     });
     this.clients = mergedClients;
+    this.adminDateFilteredClients = dateFilteredApiClients
+      ? [
+          ...dateFilteredApiClients,
+          ...localUsers.filter((lu) => {
+            if (dateFilteredApiClients.some((client) => String(client.email).toLowerCase() === String(lu.email).toLowerCase())) {
+              return false;
+            }
+            const createdDate = String(lu.created_at || '').slice(0, 10);
+            return (
+              /^\d{4}-\d{2}-\d{2}$/.test(createdDate) &&
+              (!this.adminClientDateFrom || createdDate >= this.adminClientDateFrom) &&
+              (!this.adminClientDateTo || createdDate <= this.adminClientDateTo)
+            );
+          })
+        ]
+      : null;
 
     const localInq = this.getLocalInquiries();
     const mergedInq = [...apiInquiries];
@@ -3638,7 +3675,11 @@ ${C.renderRoiCalculatorWidget ? C.renderRoiCalculatorWidget() : ""}
     const onboardingClients = this.clients.filter((c) => c.role !== 'ADMIN' && c.status === 'ONBOARDING').length;
     const completedClients = this.clients.filter((c) => c.role !== 'ADMIN' && c.status === 'COMPLETED').length;
 
-    const filteredClients = this.clients
+    const clientsForDisplay =
+      this.adminClientDateFrom || this.adminClientDateTo
+        ? this.adminDateFilteredClients || []
+        : this.clients;
+    const filteredClients = clientsForDisplay
       .filter((c) => c.role !== 'ADMIN')
       .filter((c) => {
         if (this.clientStatusFilter !== 'ALL' && c.status !== this.clientStatusFilter) return false;
@@ -3792,6 +3833,26 @@ ${C.renderRoiCalculatorWidget ? C.renderRoiCalculatorWidget() : ""}
     this.render();
   }
 
+  async setAdminClientDateFilter(field, value) {
+    if (field === 'from') this.adminClientDateFrom = value;
+    else if (field === 'to') this.adminClientDateTo = value;
+    else return;
+
+    this.adminClientPage = 1;
+    await this.loadAdminData();
+    this.render();
+  }
+
+  async resetAdminClientDateFilter() {
+    this.adminClientDateFrom = '';
+    this.adminClientDateTo = '';
+    this.adminDateFilteredClients = null;
+    this.adminDateFilterError = '';
+    this.adminClientPage = 1;
+    await this.loadAdminData();
+    this.render();
+  }
+
   renderAdminClientsTab(filteredClients, activeClients, onboardingClients, completedClients) {
     const pageSize = 30;
     const totalCount = filteredClients.length;
@@ -3857,6 +3918,18 @@ ${C.renderRoiCalculatorWidget ? C.renderRoiCalculatorWidget() : ""}
             <input id="admin-client-search" type="text" class="form-control" placeholder="Search client name, email, company..." value="${this.clientSearch}" oninput="window.app.clientSearch=this.value;window.app.adminClientPage=1;window.app.render();" />
           </div>
         </div>
+        <div style="display:flex;align-items:flex-end;gap:12px;flex-wrap:wrap;margin-top:16px;">
+          <div>
+            <label for="admin-client-date-from" style="display:block;margin-bottom:6px;font-size:12px;color:var(--yole-text-muted);">Registered from</label>
+            <input id="admin-client-date-from" type="date" class="form-control" value="${this.adminClientDateFrom}" max="${this.adminClientDateTo || ''}" onchange="window.app.setAdminClientDateFilter('from', this.value)" />
+          </div>
+          <div>
+            <label for="admin-client-date-to" style="display:block;margin-bottom:6px;font-size:12px;color:var(--yole-text-muted);">Registered to</label>
+            <input id="admin-client-date-to" type="date" class="form-control" value="${this.adminClientDateTo}" min="${this.adminClientDateFrom || ''}" onchange="window.app.setAdminClientDateFilter('to', this.value)" />
+          </div>
+          <button type="button" class="btn btn-outline btn-sm" ${this.adminClientDateFrom || this.adminClientDateTo ? '' : 'disabled'} onclick="window.app.resetAdminClientDateFilter()">Clear dates</button>
+        </div>
+        ${this.adminDateFilterError ? '<p role="alert" style="margin:12px 0 0;color:#F7941D;">Date filter could not be applied by the database. Please try again or clear the dates.</p>' : ''}
       </div>
 
       <!-- REGISTERED CLIENTS TABLE -->
