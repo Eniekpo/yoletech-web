@@ -7,7 +7,7 @@ summary: Manual webform triaging often delays customer support response times by
   hours. This guide demonstrates how to build a Node.js and Express webhook
   handler that routes incoming inquiry data to WhatsApp and email in under 30
   seconds.
-featured: true
+featured: false
 ---
 ## Why Delayed Support Responses Cost Your Business
 
