@@ -4211,15 +4211,9 @@ ${C.renderRoiCalculatorWidget ? C.renderRoiCalculatorWidget() : ""}
                 <input type="text" name="readTime" class="form-control" value="${editing ? editing.readTime : '5 min read'}" />
               </div>
             </div>
-            <div class="grid-2" style="gap:12px;">
-              <div class="form-group">
-                <label class="form-label">Tags (comma-separated)</label>
-                <input type="text" name="tags" class="form-control" value="${editing ? (editing.tags || []).join(', ') : 'Python, SQL, Power BI'}" />
-              </div>
-              <div class="form-group">
-                <label class="form-label">Cover Image</label>
-                <input type="text" name="coverImage" class="form-control" value="${editing ? editing.coverImage || '/assets/dashboard-preview.jpg' : '/assets/dashboard-preview.jpg'}" placeholder="/assets/dashboard-preview.jpg" />
-              </div>
+            <div class="form-group">
+              <label class="form-label">Cover Image</label>
+              <input type="text" name="coverImage" class="form-control" value="${editing ? editing.coverImage || '/assets/dashboard-preview.jpg' : '/assets/dashboard-preview.jpg'}" placeholder="/assets/dashboard-preview.jpg" />
             </div>
             <div class="form-group">
               <label class="form-label">Executive Summary *</label>
@@ -4285,7 +4279,6 @@ ${C.renderRoiCalculatorWidget ? C.renderRoiCalculatorWidget() : ""}
       title: form.title.value,
       category: form.category.value,
       readTime: form.readTime.value,
-      tags: form.tags.value,
       coverImage: form.coverImage?.value || '/assets/dashboard-preview.jpg',
       summary: form.summary.value,
       body: form.body.value
