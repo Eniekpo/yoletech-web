@@ -19,6 +19,8 @@ class YoletechApp {
     this.footerTab = 'overview';
     this.clientSearch = '';
     this.clientStatusFilter = 'ALL';
+    this.adminClientPage = 1;
+    this.adminClientLimit = 30;
     this.contactServiceSelected = 'Data Analysis & Analytics';
     this.mobileMenuOpen = false;
     this.editingBlogPost = null;
@@ -3677,34 +3679,85 @@ class YoletechApp {
     `;
   }
 
+
+  setAdminClientPage(page) {
+    this.adminClientPage = Math.max(1, page);
+    this.render();
+  }
+
   renderAdminClientsTab(filteredClients, activeClients, onboardingClients, completedClients) {
+    const pageSize = 30;
+    const totalCount = filteredClients.length;
+    const totalPages = Math.max(1, Math.ceil(totalCount / pageSize));
+    if (!this.adminClientPage || this.adminClientPage < 1) this.adminClientPage = 1;
+    if (this.adminClientPage > totalPages) this.adminClientPage = totalPages;
+    const startIdx = (this.adminClientPage - 1) * pageSize;
+    const endIdx = Math.min(startIdx + pageSize, totalCount);
+    const paginatedClients = filteredClients.slice(startIdx, endIdx);
+
+    const cur = this.adminClientPage;
+    const delta = 2;
+    const range = [];
+    for (let i = Math.max(2, cur - delta); i <= Math.min(totalPages - 1, cur + delta); i++) {
+      range.push(i);
+    }
+    if (cur - delta > 2) range.unshift('...');
+    if (cur + delta < totalPages - 1) range.push('...');
+    range.unshift(1);
+    if (totalPages > 1) range.push(totalPages);
+
+    const pagerHtml = totalPages > 1 ? `
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin-top:16px;padding:12px 18px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.08);border-radius:10px;">
+        <div style="font-size:13px;color:var(--yole-text-muted);">
+          Showing <strong>${totalCount > 0 ? startIdx + 1 : 0}–${endIdx}</strong> of <strong>${totalCount}</strong> clients (30 per page)
+        </div>
+        <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+          <button type="button" class="btn btn-outline btn-sm" style="padding:5px 12px;font-size:12px;" ${cur <= 1 ? 'disabled' : ''} onclick="window.app.setAdminClientPage(${cur - 1})">
+            ← Prev
+          </button>
+          ${range.map(p => {
+            if (p === '...') return '<span style="padding:0 4px;color:var(--yole-text-muted);">…</span>';
+            const active = p === cur;
+            return `<button type="button" class="btn ${active ? 'btn-lime' : 'btn-outline'} btn-sm" style="padding:5px 10px;font-size:12px;min-width:32px;" onclick="window.app.setAdminClientPage(${p})">${p}</button>`;
+          }).join('')}
+          <button type="button" class="btn btn-outline btn-sm" style="padding:5px 12px;font-size:12px;" ${cur >= totalPages ? 'disabled' : ''} onclick="window.app.setAdminClientPage(${cur + 1})">
+            Next →
+          </button>
+        </div>
+      </div>
+    ` : '';
+
     return `
       <!-- FILTER & SEARCH BAR -->
       <div class="glass-card" style="margin-bottom:24px;padding:20px;">
         <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:14px;">
           <div style="display:flex;gap:8px;flex-wrap:wrap;">
-            <button class="selector-pill ${this.clientStatusFilter === 'ALL' ? 'active' : ''}" onclick="window.app.clientStatusFilter='ALL';window.app.render();">
+            <button class="selector-pill ${this.clientStatusFilter === 'ALL' ? 'active' : ''}" onclick="window.app.clientStatusFilter='ALL';window.app.adminClientPage=1;window.app.render();">
               All Clients
             </button>
-            <button class="selector-pill ${this.clientStatusFilter === 'ACTIVE' ? 'active' : ''}" onclick="window.app.clientStatusFilter='ACTIVE';window.app.render();">
+            <button class="selector-pill ${this.clientStatusFilter === 'ACTIVE' ? 'active' : ''}" onclick="window.app.clientStatusFilter='ACTIVE';window.app.adminClientPage=1;window.app.render();">
               ● Active (${activeClients})
             </button>
-            <button class="selector-pill ${this.clientStatusFilter === 'ONBOARDING' ? 'active' : ''}" onclick="window.app.clientStatusFilter='ONBOARDING';window.app.render();">
+            <button class="selector-pill ${this.clientStatusFilter === 'ONBOARDING' ? 'active' : ''}" onclick="window.app.clientStatusFilter='ONBOARDING';window.app.adminClientPage=1;window.app.render();">
               ● Onboarding (${onboardingClients})
             </button>
-            <button class="selector-pill ${this.clientStatusFilter === 'COMPLETED' ? 'active' : ''}" onclick="window.app.clientStatusFilter='COMPLETED';window.app.render();">
+            <button class="selector-pill ${this.clientStatusFilter === 'COMPLETED' ? 'active' : ''}" onclick="window.app.clientStatusFilter='COMPLETED';window.app.adminClientPage=1;window.app.render();">
               ● Completed (${completedClients})
             </button>
           </div>
 
           <div style="flex:1;max-width:340px;">
-            <input id="admin-client-search" type="text" class="form-control" placeholder="Search client name, email, company..." value="${this.clientSearch}" oninput="window.app.clientSearch=this.value;window.app.render();" />
+            <input id="admin-client-search" type="text" class="form-control" placeholder="Search client name, email, company..." value="${this.clientSearch}" oninput="window.app.clientSearch=this.value;window.app.adminClientPage=1;window.app.render();" />
           </div>
         </div>
       </div>
 
       <!-- REGISTERED CLIENTS TABLE -->
-      <div class="table-wrapper" style="margin-bottom:32px;">
+      <div style="font-size:12.5px;color:var(--yole-text-muted);margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;">
+        <span>Page <strong>${cur}</strong> of <strong>${totalPages}</strong> (${totalCount} clients total)</span>
+        <span>Displaying 30 clients per page</span>
+      </div>
+      <div class="table-wrapper" style="margin-bottom:16px;">
         <table class="yole-table">
           <thead>
             <tr>
@@ -3717,7 +3770,7 @@ class YoletechApp {
             </tr>
           </thead>
           <tbody>
-            ${filteredClients
+            ${paginatedClients
               .map(
                 (c) => `
               <tr>
@@ -3762,6 +3815,8 @@ class YoletechApp {
           </tbody>
         </table>
       </div>
+      ${pagerHtml}
+      <div style="margin-bottom:32px;"></div>
 
       <!-- MANUALLY REGISTER A NEW CLIENT FROM ADMIN -->
       <div class="glass-card" style="max-width:740px;">

@@ -806,7 +806,6 @@
                 </p>
               </div>
               <div class="dash-header-actions">
-                <button class="btn btn-outline btn-sm" onclick="window.app.exportDashboardCSV()">⬇ Export CSV</button>
                 <button class="btn btn-lime btn-sm" onclick="window.app.loadDashboardData(true)">↻ Refresh</button>
               </div>
             </header>
@@ -861,7 +860,6 @@
           ${this.renderDashServices(m)}
           ${this.renderDashPipeline(m)}
         </div>
-        <div id="dash-table-mount">${this.renderDashTable()}</div>
         ${this.renderDashDataNotes()}
       `;
       this.initKpiCounters(body);

@@ -1263,14 +1263,36 @@ const requestHandler = async (req, res) => {
       if (!user || user.role !== 'ADMIN') {
         return sendJson(res, 403, { error: 'Admin access required.' });
       }
-      const clients = db
+      const pageParam = parsedUrl.searchParams.get('page');
+      const limitParam = parsedUrl.searchParams.get('limit');
+
+      const allClients = db
         .prepare(
           `SELECT id, name, email, phone, company, service_interest, role, status, admin_notes, created_at
            FROM users ORDER BY id DESC`
         )
         .all();
       const inquiries = db.prepare('SELECT * FROM inquiries ORDER BY id DESC').all();
-      return sendJson(res, 200, { clients, inquiries });
+
+      if (pageParam !== null || limitParam !== null) {
+        const page = Math.max(1, parseInt(pageParam, 10) || 1);
+        const limit = Math.max(1, parseInt(limitParam, 10) || 30);
+        const total = allClients.length;
+        const totalPages = Math.max(1, Math.ceil(total / limit));
+        const paginated = allClients.slice((page - 1) * limit, page * limit);
+        return sendJson(res, 200, {
+          clients: paginated,
+          inquiries,
+          pagination: {
+            page,
+            limit,
+            total,
+            totalPages
+          }
+        });
+      }
+
+      return sendJson(res, 200, { clients: allClients, inquiries });
     }
 
     if (pathname === '/api/clients' && req.method === 'POST') {
