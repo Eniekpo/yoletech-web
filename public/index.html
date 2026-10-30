@@ -9,6 +9,20 @@
     />
     <title>YOLETECH | Data Analytics, Business Intelligence &amp; Full-Stack Web Development</title>
     <link rel="icon" type="image/png" href="/assets/yoletech-icon.png" />
+    <script>
+      (function () {
+        try {
+          var saved = localStorage.getItem('yoletech_theme');
+          var theme = saved;
+          if (!theme) {
+            theme = window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+          }
+          document.documentElement.setAttribute('data-theme', theme);
+        } catch (e) {
+          document.documentElement.setAttribute('data-theme', 'dark');
+        }
+      })();
+    </script>
     <link rel="stylesheet" href="/styles.css" />
   </head>
   <body>

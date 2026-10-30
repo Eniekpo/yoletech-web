@@ -22,6 +22,7 @@
   const SERIES_COLORS = { clients: '#C8E61E', inquiries: '#F7941D', testimonials: '#38BDF8', cumulative: '#FFFFFF' };
   const PAGE_SIZE = 8;
   const DAY_MS = 24 * 60 * 60 * 1000;
+  const isLight = () => typeof document !== 'undefined' && document.documentElement && document.documentElement.getAttribute('data-theme') === 'light';
 
   const esc = (v) =>
     String(v ?? '')
@@ -180,11 +181,11 @@
       let line = '';
       if (cumulative) {
         const pts = cumulative.map((v, i) => [L + slot * i + slot / 2, T + ph - (v / cumTicks.top) * ph]);
-        line = `<polyline points="${pts.map((p) => p.join(',')).join(' ')}" fill="none" stroke="${SERIES_COLORS.cumulative}" stroke-width="2" stroke-dasharray="5 4"></polyline>
+        line = `<polyline points="${pts.map((p) => p.join(',')).join(' ')}" fill="none" stroke="${isLight() ? '#1E1B54' : '#FFFFFF'}" stroke-width="2" stroke-dasharray="5 4"></polyline>
           ${pts
             .map((p, i) => {
               const tip = `${monthLabel(months[i])} · Cumulative clients: ${cumulative[i]}`;
-              return `<circle cx="${p[0]}" cy="${p[1]}" r="4" fill="${SERIES_COLORS.cumulative}" class="dash-hit" tabindex="0" data-tip="${esc(tip)}"><title>${esc(tip)}</title></circle>`;
+              return `<circle cx="${p[0]}" cy="${p[1]}" r="4" fill="${isLight() ? '#1E1B54' : '#FFFFFF'}" class="dash-hit" tabindex="0" data-tip="${esc(tip)}"><title>${esc(tip)}</title></circle>`;
             })
             .join('')}`;
       }
@@ -955,7 +956,7 @@
         `Monthly Client Acquisition ${trendBadge(m.clientTrend)}`,
         'New client accounts per signup month, coloured by current status, with cumulative total',
         `${Charts.stackedMonthly(m.months, m.stacks, m.cumulative, { ariaLabel: 'Monthly new clients stacked by status with cumulative line' })}
-         ${Charts.legend([...m.stacks.map((s) => ({ label: s.label, color: s.color })), { label: 'Cumulative clients', color: '#fff', dashed: true }])}`,
+         ${Charts.legend([...m.stacks.map((s) => ({ label: s.label, color: s.color })), { label: 'Cumulative clients', color: isLight() ? '#1E1B54' : '#fff', dashed: true }])}`,
         'dash-span-2'
       );
       const activity = this.dashCard(
