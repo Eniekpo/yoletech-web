@@ -55,7 +55,7 @@ collections:
           - "Graphic Design & Video"
           - "IT & Customer Support"
         default: "Data Analytics & BI"
-      - { label: "Project Card Image URL", name: "preview_image", widget: "string", required: true, default: "/assets/dashboard-preview.jpg" }
+      - { label: "Project Card Image", name: "preview_image", widget: "image", choose_url: true, required: true, default: "/assets/dashboard-preview.jpg", hint: "Upload an image or insert an image URL." }
       - { label: "Live Demo Project URL (Optional)", name: "demo_url", widget: "string", required: false, hint: "Paste the live URL to your interactive demo, web app, Power BI/Tableau view, or deployed project" }
       - { label: "GitHub / Source Code URL (Optional)", name: "github_url", widget: "string", required: false, default: "https://github.com/Eniekpo" }
       - { label: "Feature on Home Page", name: "featured", widget: "boolean", default: true, hint: "Controls whether this project can appear in the featured project section on the home page." }
@@ -83,7 +83,7 @@ collections:
         default: "Data Analytics & BI"
       - { label: "Read Time (e.g. 6 min read)", name: "readTime", widget: "string", default: "5 min read" }
       - { label: "Author", name: "author", widget: "string", default: "John Oruebi Eniekpo" }
-      - { label: "Cover Image URL", name: "coverImage", widget: "string", default: "/assets/dashboard-preview.jpg" }
+      - { label: "Cover Image", name: "coverImage", widget: "image", choose_url: true, default: "/assets/dashboard-preview.jpg", hint: "Upload an image or insert an image URL." }
       - { label: "Executive Summary", name: "summary", widget: "text", required: true }
       - { label: "Tags (comma-separated)", name: "tags", widget: "list", default: ["Python", "Power BI", "SQL"] }
       - { label: "Featured Article", name: "featured", widget: "boolean", default: false }
