@@ -4414,12 +4414,20 @@ details > summary {
   fill: #1E1B54 !important;
 }
 
+[data-theme="light"] .footer-social-block .social-btn span {
+  color: #0F172A !important;
+}
+
 [data-theme="light"] .social-btn:hover {
   background: #F8FAFD !important;
   border-color: #1E1B54 !important;
   color: #1E1B54 !important;
   transform: translateY(-2px);
   box-shadow: 0 4px 14px rgba(15, 23, 42, 0.12);
+}
+
+[data-theme="light"] .footer-social-block .social-btn:hover span {
+  color: #0F172A !important;
 }
 
 [data-theme="light"] .social-btn:hover svg {
