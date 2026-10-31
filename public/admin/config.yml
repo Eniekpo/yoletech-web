@@ -32,7 +32,7 @@ public_folder: "/assets/blog"
 
 collections:
   - name: "portfolio"
-    label: "YOLETECH Portfolio Projects"
+    label: "Projects"
     label_singular: "Portfolio Project"
     folder: "content/portfolio"
     create: true
@@ -61,7 +61,7 @@ collections:
       - { label: "Feature on Home Page", name: "featured", widget: "boolean", default: true, hint: "Controls whether this project can appear in the featured project section on the home page." }
 
   - name: "blog"
-    label: "YOLETECH Blog Articles"
+    label: "Articles"
     label_singular: "Blog Article"
     folder: "content/blog"
     create: true
