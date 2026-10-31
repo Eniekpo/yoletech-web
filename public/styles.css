@@ -1241,6 +1241,7 @@ button, input, select, textarea {
 }
 
 .footer-social-block .social-btn {
+  background: transparent;
   justify-content: center;
   min-width: 0;
   padding: 7px 10px;
@@ -1406,6 +1407,10 @@ a.footer-contact-item:hover {
   color: var(--yole-lime) !important;
   transform: translateY(-2px);
   box-shadow: 0 4px 14px rgba(200, 230, 30, 0.28);
+}
+
+.footer-social-block .social-btn:hover {
+  background: transparent;
 }
 
 .status-badge-card {
@@ -4410,6 +4415,10 @@ details > summary {
   box-shadow: 0 2px 8px rgba(15, 23, 42, 0.05);
 }
 
+[data-theme="light"] .footer-social-block .social-btn {
+  background: transparent !important;
+}
+
 [data-theme="light"] .social-btn svg {
   fill: #1E1B54 !important;
 }
@@ -4424,6 +4433,10 @@ details > summary {
   color: #1E1B54 !important;
   transform: translateY(-2px);
   box-shadow: 0 4px 14px rgba(15, 23, 42, 0.12);
+}
+
+[data-theme="light"] .footer-social-block .social-btn:hover {
+  background: transparent !important;
 }
 
 [data-theme="light"] .footer-social-block .social-btn:hover span {
