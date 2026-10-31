@@ -35,7 +35,7 @@ You need Python 3.10 or later and three libraries:
 
 Open your terminal in VS Code and run:
 
-```bash
+```python
 pip install pandas openpyxl
 ```
 
