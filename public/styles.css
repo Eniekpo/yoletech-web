@@ -4003,6 +4003,105 @@ details > summary {
   color: #4D7C0F;
 }
 
+/* Service scope and ROI panels in light mode */
+[data-theme="light"] .scope-tab-btn {
+  background: #F1F5F9;
+  border-color: #CBD5E1;
+  color: #334155;
+}
+
+[data-theme="light"] .scope-tab-btn:hover {
+  background: #FFFFFF;
+  border-color: #84CC16;
+  color: #0F172A;
+}
+
+[data-theme="light"] .scope-tab-btn.active {
+  background: #C8E61E;
+  border-color: #84CC16;
+  color: #172033;
+}
+
+[data-theme="light"] .scope-tab-num {
+  background: rgba(30, 27, 84, 0.08);
+  color: #4D7C0F;
+}
+
+[data-theme="light"] .scope-tab-btn.active .scope-tab-num {
+  background: #1E1B54;
+  color: #C8E61E;
+}
+
+[data-theme="light"] .scope-tab-panel {
+  border-color: rgba(30, 27, 84, 0.14);
+}
+
+[data-theme="light"] .scope-track-step,
+[data-theme="light"] .scope-subcard-title {
+  color: #4D7C0F;
+}
+
+[data-theme="light"] .scope-track-title {
+  color: #0F172A;
+}
+
+[data-theme="light"] .scope-panel-header {
+  border-bottom-color: #E2E8F0;
+}
+
+[data-theme="light"] .scope-subcard {
+  background: #F8FAFC;
+  border-color: #E2E8F0;
+}
+
+[data-theme="light"] .scope-deliverables-list li {
+  color: #334155;
+}
+
+[data-theme="light"] .scope-check {
+  color: #4D7C0F;
+}
+
+[data-theme="light"] .scope-panel-footer {
+  border-top-color: #E2E8F0;
+}
+
+.roi-results-card {
+  background: rgba(15, 12, 40, 0.65);
+  border: 1.5px solid rgba(200, 230, 30, 0.3);
+  border-radius: 18px;
+  padding: 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+[data-theme="light"] .roi-results-card {
+  background: #F8FAFC;
+  border-color: #E2E8F0;
+  box-shadow: inset 0 0 0 1px rgba(30, 27, 84, 0.02);
+}
+
+[data-theme="light"] #roi-current-cost {
+  color: #0F172A !important;
+}
+
+[data-theme="light"] #roi-hours-saved,
+[data-theme="light"] #roi-net-savings {
+  color: #4D7C0F !important;
+}
+
+[data-theme="light"] .roi-results-metrics {
+  border-top-color: #E2E8F0 !important;
+  border-bottom-color: #E2E8F0 !important;
+}
+
+@media (max-width: 640px) {
+  .roi-results-card {
+    padding: 20px;
+  }
+}
+
 [data-theme="light"] .dash-filters {
   background: #FFFFFF;
   border-color: #E2E8F0;

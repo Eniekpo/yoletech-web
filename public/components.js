@@ -371,13 +371,13 @@ window.YOLETECH_COMPONENTS = {
           </div>
 
           <!-- Dynamic Output Card -->
-          <div style="background:rgba(15,12,40,0.65);border:1.5px solid rgba(200,230,30,0.3);border-radius:18px;padding:28px;display:flex;flex-direction:column;gap:20px;">
+          <div class="roi-results-card">
             <div>
               <div style="font-size:12px;font-weight:800;text-transform:uppercase;color:var(--yole-text-muted);letter-spacing:0.05em;">Current Manual Labor Overhead</div>
-              <div id="roi-current-cost" style="font-size:clamp(28px, 3.5vw, 40px);font-weight:900;color:#FFFFFF;margin-top:4px;">$81,900 <span style="font-size:15px;color:var(--yole-text-muted);font-weight:500;">/ year</span></div>
+              <div id="roi-current-cost" style="font-size:clamp(28px, 3.5vw, 40px);font-weight:900;margin-top:4px;">$81,900 <span style="font-size:15px;color:var(--yole-text-muted);font-weight:500;">/ year</span></div>
             </div>
 
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;border-top:1px solid rgba(255,255,255,0.1);border-bottom:1px solid rgba(255,255,255,0.1);padding:16px 0;">
+            <div class="roi-results-metrics" style="display:grid;grid-template-columns:1fr 1fr;gap:16px;border-top:1px solid rgba(255,255,255,0.1);border-bottom:1px solid rgba(255,255,255,0.1);padding:16px 0;">
               <div>
                 <div style="font-size:12px;color:var(--yole-text-muted);">Annual Hours Reclaimed</div>
                 <div id="roi-hours-saved" style="font-size:24px;font-weight:900;color:#C8E61E;margin-top:2px;">1,755 hrs</div>
