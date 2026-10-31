@@ -1242,6 +1242,7 @@ button, input, select, textarea {
 
 .footer-social-block .social-btn {
   background: transparent;
+  border-color: transparent;
   justify-content: center;
   min-width: 0;
   padding: 7px 10px;
@@ -1411,6 +1412,8 @@ a.footer-contact-item:hover {
 
 .footer-social-block .social-btn:hover {
   background: transparent;
+  border-color: transparent;
+  box-shadow: none;
 }
 
 .status-badge-card {
@@ -4417,6 +4420,8 @@ details > summary {
 
 [data-theme="light"] .footer-social-block .social-btn {
   background: transparent !important;
+  border-color: transparent !important;
+  box-shadow: none;
 }
 
 [data-theme="light"] .social-btn svg {
@@ -4437,6 +4442,8 @@ details > summary {
 
 [data-theme="light"] .footer-social-block .social-btn:hover {
   background: transparent !important;
+  border-color: transparent !important;
+  box-shadow: none;
 }
 
 [data-theme="light"] .footer-social-block .social-btn:hover span {
