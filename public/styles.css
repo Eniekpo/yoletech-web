@@ -744,8 +744,10 @@ button, input, select, textarea {
 }
 
 .portfolio-project-actions {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
   gap: 8px;
   margin-top: auto;
   padding-top: 13px;
@@ -753,16 +755,20 @@ button, input, select, textarea {
 }
 
 .portfolio-project-action {
+  flex: 1 1 180px;
+  max-width: 220px;
   min-width: 0;
-  width: 100%;
+  width: auto;
   min-height: 38px;
-  padding: 8px 10px;
+  padding: 8px 12px;
   gap: 5px;
   font-size: 12px;
+  justify-content: center;
 }
 
 .portfolio-project-action-wide {
-  grid-column: 1 / -1;
+  flex: 1 1 220px;
+  max-width: 260px;
 }
 
 .portfolio-featured-field {
