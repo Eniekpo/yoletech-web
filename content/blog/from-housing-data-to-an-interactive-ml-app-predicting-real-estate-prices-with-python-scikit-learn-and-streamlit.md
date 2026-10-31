@@ -251,7 +251,7 @@ It creates a repeatable preprocessing architecture in which numerical variables 
 
 It also reduces the risk of applying different preprocessing rules during training and prediction.
 
-Step 9: Building a Baseline Linear Regression Model
+**Step 9: Building a Baseline Linear Regression Model**
 
 I included Linear Regression as a baseline.
 
@@ -278,7 +278,7 @@ linear_pipeline.fit(
 
 ```
 
-Step 10: Building a Random Forest Regression Model
+**Step 10: Building a Random Forest Regression Model**
 
 Real estate relationships are not necessarily linear.
 
@@ -309,7 +309,7 @@ rf_pipeline.fit(
 
 Random Forest is useful because it can capture nonlinear relationships and interactions between predictors without requiring those relationships to be manually specified.
 
-Step 11: Adding Gradient Boosting Regression
+**Step 11: Adding Gradient Boosting Regression**
 
 I also included Gradient Boosting as another nonlinear model.
 
@@ -338,7 +338,7 @@ gb_pipeline.fit(
 
 Having several models in the application gave me an opportunity to compare different modelling approaches rather than assuming that one algorithm would automatically be the best.
 
-Step 12: Generating Predictions
+**Step 12: Generating Predictions**
 
 After training a model, predictions can be generated using the unseen testing observations.
 
@@ -355,7 +355,7 @@ Comparing the two provides the basis for model evaluation.
 
 ```
 
-Step 13: Evaluating Model Performance
+**Step 13: Evaluating Model Performance**
 
 I evaluated each model using three regression metrics:
 
@@ -400,7 +400,7 @@ A higher R² is generally preferable, while lower RMSE and MAE values indicate s
 
 Rather than relying on a single metric, I included all three in the Streamlit dashboard.
 
-Step 14: Examining Actual Versus Predicted Values
+**Step 14: Examining Actual Versus Predicted Values**
 
 Model evaluation becomes easier to understand when numerical metrics are supported by visual diagnostics.
 
@@ -440,7 +440,7 @@ Ideally, predictions should remain relatively close to the diagonal line represe
 
 This visualization makes systematic overprediction or underprediction easier to identify.
 
-Step 15: Analysing Prediction Residuals
+**Step 15: Analysing Prediction Residuals**
 
 I also examined model residuals.
 
@@ -467,7 +467,7 @@ st.plotly_chart(
 
 Residual analysis can provide additional insight into where a regression model performs well and where larger prediction errors occur.
 
-Step 16: Building the Interactive Streamlit Application
+**Step 16: Building the Interactive Streamlit Application**
 
 Training a model was only one part of the project.
 
@@ -500,7 +500,7 @@ page = st.sidebar.radio(
 
 This transformed the project from a single modelling script into a small interactive analytics application.
 
-Step 17: Creating an Interactive Data Explorer
+**Step 17: Creating an Interactive Data Explorer**
 
 One feature I wanted was the ability for users to investigate the underlyin data before making predictions.
 
@@ -570,7 +570,7 @@ st.download_button(
 
 This adds a practical data-analysis component beyond the prediction model itself.
 
-Step 18: Building the Prediction Form
+**Step 18: Building the Prediction Form**
 
 The main interactive feature allows a user to enter housing characteristics manually.
 
@@ -651,7 +651,7 @@ st.metric(
 
 One major advantage of using a complete Scikit-learn pipeline is that the user input automatically goes through the same imputation, scaling and encoding procedures used during model training.
 
-Step 19: Making Model Selection Interactive
+**Step 19: Making Model Selection Interactive**
 
 Rather than hard-coding one algorithm, I allowed users to select the regression model from the interface.
 
@@ -692,7 +692,7 @@ return RandomForestRegressor(
 
 This makes the application useful not only for prediction, but also for demonstrating how different algorithms approach the same regression problem.
 
-Step 20: Improving Application Performance with Streamlit Caching
+**Step 20: Improving Application Performance with Streamlit Caching**
 
 Machine-learning applications can become unnecessarily slow if the dataset is downloaded and the model is retrained every time a user interacts with a control.
 
@@ -726,7 +726,7 @@ return pipeline
 
 This allows Streamlit to reuse previously computed resources instead of repeating expensive operations unnecessarily.
 
-Step 21: Adding Geographic Visualization
+**Step 21: Adding Geographic Visualization**
 
 Because latitude and longitude are part of the dataset, I incorporated geographic visualization into the application.
 
@@ -746,7 +746,7 @@ When a user enters coordinates into the prediction interface, the selected geogr
 
 This gives the application a stronger connection between machine-learning predictions and the geographical nature of real estate data.
 
-Step 22: Designing the Application as a Data Product
+**Step 22: Designing the Application as a Data Product**
 
 One of my main objectives was not simply to produce a working model.
 
@@ -917,4 +917,4 @@ The result is an interactive real estate analytics application that allows users
 
 For me, this is also an example of how I approach data projects more broadly: the goal is not simply to build a model, but to turn data into an analytical solution that can be understood and used.
 
-Technologies used: Python | Pandas | NumPy | Scikit-learn | Streamlit | Plotly | Machine Learning | Regression | Data Visualization
+**Technologies used:** Python | Pandas | NumPy | Scikit-learn | Streamlit | Plotly | Machine Learning | Regression | Data Visualization
