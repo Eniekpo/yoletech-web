@@ -57,7 +57,6 @@ collections:
         default: "Data Analytics & BI"
       - { label: "Project Card Image", name: "preview_image", widget: "image", choose_url: true, required: true, default: "/assets/dashboard-preview.jpg", hint: "Upload an image or insert an image URL." }
       - { label: "Live Demo Project URL (Optional)", name: "demo_url", widget: "string", required: false, hint: "Paste the live URL to your interactive demo, web app, Power BI/Tableau view, or deployed project" }
-      - { label: "GitHub / Source Code URL (Optional)", name: "github_url", widget: "string", required: false, default: "https://github.com/Eniekpo" }
       - { label: "Feature on Home Page", name: "featured", widget: "boolean", default: true, hint: "Controls whether this project can appear in the featured project section on the home page." }
 
   - name: "blog"

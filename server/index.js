@@ -298,8 +298,7 @@ function createJsonFallbackDatabase() {
               tech_stack: args[6],
               preview_image: args[7],
               live_url: args[8],
-              github_url: args[9],
-              featured: args[10],
+              featured: args[9],
               created_at: now
             });
             saveState();
@@ -423,7 +422,6 @@ db.exec(`
     tech_stack TEXT NOT NULL,
     preview_image TEXT NOT NULL,
     live_url TEXT DEFAULT '',
-    github_url TEXT DEFAULT 'https://github.com/Eniekpo',
     featured INTEGER DEFAULT 1,
     created_at TEXT DEFAULT (datetime('now'))
   );
@@ -736,8 +734,8 @@ function seedDatabase() {
   const projectCount = db.prepare('SELECT COUNT(*) as count FROM portfolio_projects').get().count;
   if (projectCount === 0) {
     const insertProject = db.prepare(`
-      INSERT INTO portfolio_projects (title, category, organization, period, summary, impact_metrics, tech_stack, preview_image, live_url, github_url, featured)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      INSERT INTO portfolio_projects (title, category, organization, period, summary, impact_metrics, tech_stack, preview_image, live_url, featured)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `);
 
     insertProject.run(
@@ -750,7 +748,6 @@ function seedDatabase() {
       JSON.stringify(['Power BI', 'Tableau', 'SQL', 'Python', 'Data Governance']),
       '/assets/dashboard-preview.jpg',
       'https://kaggle.com/Yoletech',
-      'https://github.com/Eniekpo',
       1
     );
   }
@@ -1000,7 +997,6 @@ function parsePortfolioMarkdownFile(filePath) {
     preview_image: frontmatter.preview_image || '/assets/dashboard-preview.jpg',
     demo_url: demoUrl,
     live_url: demoUrl,
-    github_url: frontmatter.github_url || 'https://github.com/Eniekpo',
     impact_metrics: frontmatter.impact_metrics || '',
     tech_stack: parseYamlArray(frontmatter.tech_stack, ['Python', 'SQL', 'Power BI']),
     featured: frontmatter.featured === undefined ? true : String(frontmatter.featured) === 'true',
@@ -1026,7 +1022,6 @@ organization: "${String(data.organization || 'YOLETECH').replace(/"/g, '\\"')}"
 period: "${String(data.period || '2026').replace(/"/g, '\\"')}"
 preview_image: "${data.preview_image || '/assets/dashboard-preview.jpg'}"
 demo_url: "${String(demoUrl).replace(/"/g, '\\"')}"
-github_url: "${String(data.github_url || 'https://github.com/Eniekpo').replace(/"/g, '\\"')}"
 impact_metrics: "${String(data.impact_metrics || '').replace(/"/g, '\\"')}"
 tech_stack: ${JSON.stringify(techStackArray)}
 featured: ${data.featured === false ? 'false' : 'true'}

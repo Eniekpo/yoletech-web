@@ -293,7 +293,6 @@ class YoletechApp {
               preview_image: meta.preview_image || '/assets/dashboard-preview.jpg',
               demo_url: meta.demo_url || meta.live_url || '',
               live_url: meta.demo_url || meta.live_url || '',
-              github_url: meta.github_url || 'https://github.com/Eniekpo',
               featured: meta.featured !== 'false' && meta.featured !== false,
               body
             };
@@ -2120,13 +2119,6 @@ ${C.renderRoiCalculatorWidget ? C.renderRoiCalculatorWidget() : ""}
                       p.demo_url || p.live_url
                         ? `<a href="${p.demo_url || p.live_url}" target="_blank" rel="noopener noreferrer" class="btn btn-lime btn-sm portfolio-project-action">
                             Live Demo <span aria-hidden="true">↗</span>
-                          </a>`
-                        : ''
-                    }
-                    ${
-                      p.github_url
-                        ? `<a href="${p.github_url}" target="_blank" rel="noopener noreferrer" class="btn btn-outline btn-sm portfolio-project-action">
-                            GitHub / Source <span aria-hidden="true">↗</span>
                           </a>`
                         : ''
                     }
@@ -4401,15 +4393,9 @@ ${C.renderRoiCalculatorWidget ? C.renderRoiCalculatorWidget() : ""}
               <label class="form-label">Project Card Image URL *</label>
               <input type="text" name="preview_image" required class="form-control" value="${editing ? editing.preview_image : '/assets/dashboard-preview.jpg'}" placeholder="/assets/project-preview.jpg" />
             </div>
-            <div class="grid-2" style="gap:12px;">
-              <div class="form-group">
-                <label class="form-label">Live Demo Project URL (Optional)</label>
-                <input type="url" name="demo_url" class="form-control" value="${editing ? (editing.demo_url || editing.live_url || '').replace(/"/g, '&quot;') : ''}" placeholder="https://demo.yolestica.com or Kaggle/Dashboard link" />
-              </div>
-              <div class="form-group">
-                <label class="form-label">GitHub / Source URL (Optional)</label>
-                <input type="url" name="github_url" class="form-control" value="${editing ? (editing.github_url || '').replace(/"/g, '&quot;') : 'https://github.com/Eniekpo'}" placeholder="https://github.com/Eniekpo/..." />
-              </div>
+            <div class="form-group">
+              <label class="form-label">Live Demo Project URL (Optional)</label>
+              <input type="url" name="demo_url" class="form-control" value="${editing ? (editing.demo_url || editing.live_url || '').replace(/"/g, '&quot;') : ''}" placeholder="https://demo.yolestica.com or Kaggle/Dashboard link" />
             </div>
             <div class="form-group portfolio-featured-field">
               <label class="portfolio-featured-label">
@@ -4479,7 +4465,6 @@ ${C.renderRoiCalculatorWidget ? C.renderRoiCalculatorWidget() : ""}
       category: form.category.value,
       preview_image: form.preview_image?.value || '/assets/dashboard-preview.jpg',
       demo_url: form.demo_url?.value || '',
-      github_url: form.github_url?.value || '',
       featured: form.featured.checked
     };
     try {
