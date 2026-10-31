@@ -228,6 +228,7 @@ also helps prevent the prediction pipeline from failing if it encounters an unex
 
 Instead of manually preprocessing each type of variable, I used a `ColumnTransformer`.
 
+```
 preprocessor = ColumnTransformer(
     transformers=[
         (
@@ -242,6 +243,7 @@ preprocessor = ColumnTransformer(
         ),
     ]
 )
+```
 
 This is one of the aspects of the project I consider particularly important.
 
@@ -261,19 +263,20 @@ If a more sophisticated machine-learning algorithm cannot meaningfully outperfor
 
 The complete pipeline becomes:
 
+```
 linear_pipeline = Pipeline(
     steps=[
         ("preprocessor", preprocessor),
         ("model", linear_model)
     ]
 )
-
 I then trained it:
-
 linear_pipeline.fit(
     X_train,
     y_train
 )
+
+```
 
 Step 10: Building a Random Forest Regression Model
 
@@ -283,27 +286,26 @@ The influence of income, geographic location, housing age and population may int
 
 For this reason, I also implemented a Random Forest model.
 
+```
 random_forest = RandomForestRegressor(
     n_estimators=250,
     random_state=42,
     n_jobs=-1
 )
-
 I combined it with the same preprocessing pipeline.
-
 rf_pipeline = Pipeline(
     steps=[
         ("preprocessor", preprocessor),
         ("model", random_forest)
     ]
 )
-
 And trained the model.
-
 rf_pipeline.fit(
     X_train,
     y_train
 )
+
+```
 
 Random Forest is useful because it can capture nonlinear relationships and interactions between predictors without requiring those relationships to be manually specified.
 
@@ -311,6 +313,7 @@ Step 11: Adding Gradient Boosting Regression
 
 I also included Gradient Boosting as another nonlinear model.
 
+```
 gradient_boosting = GradientBoostingRegressor(
     n_estimators=180,
     learning_rate=0.05,
@@ -318,22 +321,20 @@ gradient_boosting = GradientBoostingRegressor(
     loss="squared_error",
     random_state=42
 )
-
 The model was placed inside the same pipeline architecture.
-
 gb_pipeline = Pipeline(
     steps=[
         ("preprocessor", preprocessor),
         ("model", gradient_boosting)
     ]
 )
-
 And trained with:
-
 gb_pipeline.fit(
     X_train,
     y_train
 )
+
+```
 
 Having several models in the application gave me an opportunity to compare different modelling approaches rather than assuming that one algorithm would automatically be the best.
 
@@ -343,19 +344,16 @@ After training a model, predictions can be generated using the unseen testing ob
 
 For example:
 
+```
 predictions = rf_pipeline.predict(X_test)
-
 At this point:
-
 y_test
-
 contains the actual median house values, while:
-
 predictions
-
 contains the values estimated by the machine-learning model.
-
 Comparing the two provides the basis for model evaluation.
+
+```
 
 Step 13: Evaluating Model Performance
 
@@ -369,26 +367,26 @@ Coefficient of Determination (R²)
 
 The implementation was:
 
+```
 rmse = np.sqrt(
     mean_squared_error(
         y_test,
         predictions
     )
 )
-
 mae = mean_absolute_error(
     y_test,
     predictions
 )
-
 r2 = r2_score(
     y_test,
     predictions
 )
-
 print("RMSE:", rmse)
 print("MAE:", mae)
 print("R²:", r2)
+
+```
 
 These metrics provide different perspectives on model performance.
 
@@ -408,18 +406,15 @@ Model evaluation becomes easier to understand when numerical metrics are support
 
 I created an evaluation dataframe.
 
+```
 evaluation = X_test.copy()
-
 evaluation["Actual"] = y_test.values
 evaluation["Predicted"] = predictions
-
 evaluation["Residual"] = (
     evaluation["Actual"]
     - evaluation["Predicted"]
 )
-
 I then visualized actual values against predicted values.
-
 fig = px.scatter(
     evaluation,
     x="Actual",
@@ -428,16 +423,18 @@ fig = px.scatter(
     labels={
         "Actual":
         "Actual median house value ($)",
-
-        "Predicted":
-        "Predicted median house value ($)"
-    }
+       "Predicted":
+    "Predicted median house value ($)"
+}
 )
-
 st.plotly_chart(
     fig,
     use_container_width=True
 )
+
+```
+
+
 
 Ideally, predictions should remain relatively close to the diagonal line representing perfect predictions.
 
@@ -449,10 +446,9 @@ I also examined model residuals.
 
 A residual is calculated as:
 
+```
 Residual = Actual Value - Predicted Value
-
 The visualization was generated using:
-
 fig = px.histogram(
     evaluation,
     x="Residual",
@@ -462,11 +458,12 @@ fig = px.histogram(
         "Actual - Predicted ($)"
     }
 )
-
 st.plotly_chart(
     fig,
     use_container_width=True
 )
+
+```
 
 Residual analysis can provide additional insight into where a regression model performs well and where larger prediction errors occur.
 
@@ -480,14 +477,15 @@ I therefore created a Streamlit web interface around the machine-learning pipeli
 
 The application contains five sections:
 
-Overview
-Data Explorer
-Model Performance
-Price Predictor
-Methodology
+* Overview
+* Data Explorer
+* Model Performance
+* Price Predictor
+* Methodology
 
 Navigation was created using:
 
+```
 page = st.sidebar.radio(
     "Navigate",
     [
@@ -498,30 +496,34 @@ page = st.sidebar.radio(
         "Methodology"
     ]
 )
+```
 
 This transformed the project from a single modelling script into a small interactive analytics application.
 
 Step 17: Creating an Interactive Data Explorer
 
-One feature I wanted was the ability for users to investigate the underlying data before making predictions.
+One feature I wanted was the ability for users to investigate the underlyin data before making predictions.
 
 For example, users can filter properties by ocean proximity.
 
+```
 ocean_options = sorted(
     data["ocean_proximity"]
     .dropna()
     .unique()
     .tolist()
 )
-
 selected_ocean = st.multiselect(
     "Ocean proximity",
     options=ocean_options,
     default=ocean_options
 )
 
+```
+
 They can also select a house-value range.
 
+```
 value_range = st.slider(
     "Median house value range ($)",
     min_value=int(
@@ -541,15 +543,21 @@ value_range = st.slider(
     step=5000
 )
 
+```
+
 The filtered records can then be displayed interactively.
 
+```
 st.dataframe(
     filtered,
     use_container_width=True
 )
 
+```
+
 I also included the option to download the resulting dataset.
 
+```
 st.download_button(
     "Download filtered CSV",
     data=filtered
@@ -558,6 +566,7 @@ st.download_button(
     file_name="filtered_housing_data.csv",
     mime="text/csv"
 )
+```
 
 This adds a practical data-analysis component beyond the prediction model itself.
 
@@ -567,45 +576,41 @@ The main interactive feature allows a user to enter housing characteristics manu
 
 For example:
 
+```
 longitude = st.number_input(
     "Longitude"
 )
-
 latitude = st.number_input(
     "Latitude"
 )
-
 housing_median_age = st.number_input(
     "Median housing age"
 )
-
 total_rooms = st.number_input(
     "Total rooms"
 )
-
 total_bedrooms = st.number_input(
     "Total bedrooms"
 )
-
 population = st.number_input(
     "Population"
 )
-
 households = st.number_input(
     "Households"
 )
-
 median_income = st.number_input(
     "Median income"
 )
-
 ocean_proximity = st.selectbox(
     "Ocean proximity",
     ocean_options
 )
 
+```
+
 The values entered by the user are converted into a Pandas dataframe.
 
+```
 prediction_input = pd.DataFrame(
     [
         {
@@ -624,19 +629,25 @@ prediction_input = pd.DataFrame(
         }
     ]
 )
+```
 
 The same trained pipeline can then predict the value.
 
+```
 predicted_value = pipeline.predict(
     prediction_input
 )[0]
+```
 
 The result is displayed within the application.
 
+```
 st.metric(
     "Estimated Median House Value",
     f"${predicted_value:,.0f}"
 )
+
+```
 
 One major advantage of using a complete Scikit-learn pipeline is that the user input automatically goes through the same imputation, scaling and encoding procedures used during model training.
 
@@ -644,6 +655,7 @@ Step 19: Making Model Selection Interactive
 
 Rather than hard-coding one algorithm, I allowed users to select the regression model from the interface.
 
+```
 model_name = st.selectbox(
     "Prediction model",
     [
@@ -653,26 +665,30 @@ model_name = st.selectbox(
     ]
 )
 
+```
+
 A model-selection function determines which estimator should be used.
 
 def make_estimator(model_name):
 
-    if model_name == "Linear Regression":
-        return LinearRegression()
+```
+if model_name == "Linear Regression":
+    return LinearRegression()
 
-    if model_name == "Gradient Boosting":
-        return GradientBoostingRegressor(
-            n_estimators=180,
-            learning_rate=0.05,
-            max_depth=3,
-            random_state=42
-        )
-
-    return RandomForestRegressor(
-        n_estimators=250,
-        random_state=42,
-        n_jobs=-1
+if model_name == "Gradient Boosting":
+    return GradientBoostingRegressor(
+        n_estimators=180,
+        learning_rate=0.05,
+        max_depth=3,
+        random_state=42
     )
+
+return RandomForestRegressor(
+    n_estimators=250,
+    random_state=42,
+    n_jobs=-1
+)
+```
 
 This makes the application useful not only for prediction, but also for demonstrating how different algorithms approach the same regression problem.
 
@@ -684,25 +700,29 @@ To reduce this overhead, I used Streamlit caching.
 
 For data:
 
+```
 @st.cache_data(
     show_spinner=False
 )
 def load_data():
 
-    return pd.read_csv(DATA_URL)
+return pd.read_csv(DATA_URL)
+```
 
 For the trained model:
 
+```
 @st.cache_resource(
     show_spinner=False
 )
 def train_model(model_name):
 
-    # preprocessing
-    # model training
-    # evaluation
+# preprocessing
+# model training
+# evaluation
 
-    return pipeline
+return pipeline
+```
 
 This allows Streamlit to reuse previously computed resources instead of repeating expensive operations unnecessarily.
 
@@ -710,15 +730,17 @@ Step 21: Adding Geographic Visualization
 
 Because latitude and longitude are part of the dataset, I incorporated geographic visualization into the application.
 
+```
 map_data = data[
     ["latitude", "longitude"]
 ].dropna()
-
 st.map(
     map_data,
     latitude="latitude",
     longitude="longitude"
 )
+
+```
 
 When a user enters coordinates into the prediction interface, the selected geographical point can also be displayed on a map.
 
@@ -751,28 +773,31 @@ I also used custom CSS to provide a cleaner visual hierarchy, improve spacing an
 
 For example:
 
+```
 st.markdown(
     """
     <style>
+.hero {
+    padding: 1.65rem 1.8rem;
+    border-radius: 20px;
 
-    .hero {
-        padding: 1.65rem 1.8rem;
-        border-radius: 20px;
+    background:
+        linear-gradient(
+            135deg,
+            #0f172a 0%,
+            #1e3a5f 100%
+        );
 
-        background:
-            linear-gradient(
-                135deg,
-                #0f172a 0%,
-                #1e3a5f 100%
-            );
+    color: #ffffff;
+}
 
-        color: #ffffff;
-    }
-
-    </style>
-    """,
-    unsafe_allow_html=True
+</style>
+""",
+unsafe_allow_html=True
 )
+```
+
+
 
 While visual design does not make a model more accurate, usability matters when analytical work needs to be communicated to decision-makers and nontechnical users.
 
@@ -780,6 +805,7 @@ The Complete Machine-Learning Workflow
 
 The architecture of the project can be summarized as:
 
+```
 Raw California Housing Data
               ↓
         Data Exploration
@@ -812,6 +838,7 @@ Standardization       One-Hot Encoding
        Streamlit Interface
                  ↓
       Interactive Prediction
+```
 
 Skills Demonstrated Through the Project
 
