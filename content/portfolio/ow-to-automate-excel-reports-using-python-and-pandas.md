@@ -1,5 +1,5 @@
 ---
-title: ow to Automate Excel Reports Using Python and Pandas
+title: How  to  Automate Excel Reports Using Python and Pandas
 date: 2026-10-31
 category: Data Analytics & BI
 preview_image: /assets/blog/automating-excel-reports-with-python-and-pandas.png
