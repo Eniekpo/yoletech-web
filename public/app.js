@@ -2450,11 +2450,11 @@ ${C.renderRoiCalculatorWidget ? C.renderRoiCalculatorWidget() : ""}
         .replace(/>/g, '&gt;')
         .trimEnd();
       const idx = codeBlocks.length;
-      const langBadge = lang
-        ? `<div style="font-size:11px;font-weight:800;text-transform:uppercase;color:#F7941D;margin-bottom:8px;letter-spacing:0.08em;">${lang}</div>`
-        : '';
+      const languageLabel = lang
+        ? `<span class="blog-code-language">${lang}</span>`
+        : '<span class="blog-code-language">Plain text</span>';
       codeBlocks.push(
-        `<pre style="background:#0B0920;border:1px solid rgba(200,230,30,0.35);padding:18px;border-radius:12px;overflow-x:auto;margin:18px 0;font-family:monospace;font-size:13px;color:#C8E61E;line-height:1.6;">${langBadge}<code>${escaped}</code></pre>`
+        `<div class="blog-code-block">${languageLabel}<button type="button" class="blog-code-copy" aria-label="Copy code snippet" onclick="window.app.copyBlogCode(this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="8" y="8" width="13" height="13" rx="2"/><path d="M16 8V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h3"/></svg><span>Copy</span></button><pre><code>${escaped}</code></pre></div>`
       );
       return `\n\n@@CODE_BLOCK_${idx}@@\n\n`;
     });
@@ -2568,6 +2568,61 @@ ${C.renderRoiCalculatorWidget ? C.renderRoiCalculatorWidget() : ""}
     flushList();
 
     return htmlParts.join('\n');
+  }
+
+  async copyBlogCode(button) {
+    const code = button.closest('.blog-code-block')?.querySelector('pre code');
+    if (!code) {
+      this.showToast('Could not find the code snippet to copy.', 'error');
+      return;
+    }
+
+    const copyWithFallback = () => {
+      const textarea = document.createElement('textarea');
+      textarea.value = code.textContent;
+      textarea.setAttribute('readonly', '');
+      textarea.style.position = 'fixed';
+      textarea.style.opacity = '0';
+      document.body.appendChild(textarea);
+      textarea.select();
+      try {
+        return document.execCommand('copy');
+      } finally {
+        textarea.remove();
+      }
+    };
+
+    const markCopied = () => {
+      const label = button.querySelector('span');
+      if (!label) return;
+      label.textContent = 'Copied!';
+      button.classList.add('is-copied');
+      window.setTimeout(() => {
+        label.textContent = 'Copy';
+        button.classList.remove('is-copied');
+      }, 1800);
+    };
+
+    try {
+      let copied = false;
+      if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(code.textContent);
+        copied = true;
+      } else {
+        copied = copyWithFallback();
+      }
+      if (!copied) throw new Error('Clipboard copy was denied.');
+      markCopied();
+    } catch (error) {
+      try {
+        if (!copyWithFallback()) throw new Error('Clipboard copy was denied.');
+        markCopied();
+        return;
+      } catch (fallbackError) {
+        console.warn('Could not copy blog code snippet:', fallbackError || error);
+      }
+      this.showToast('Could not copy code. Please select and copy it manually.', 'error');
+    }
   }
 
   renderBlogPostDetail() {
