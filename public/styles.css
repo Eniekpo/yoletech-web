@@ -2983,8 +2983,9 @@ details > summary {
   }
 
   .footer-legal {
-    align-items: flex-start;
+    align-items: center;
     flex-direction: column;
+    text-align: center;
   }
 }
 
