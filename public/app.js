@@ -2474,30 +2474,21 @@ ${C.renderRoiCalculatorWidget ? C.renderRoiCalculatorWidget() : ""}
         continue;
       }
 
-      if (line.startsWith('### ')) {
+      const headingMatch = line.match(/^(#{1,6})\s+(.+?)\s*#*$/);
+      if (headingMatch) {
         flushParagraph();
         flushList();
-        htmlParts.push(
-          `<h3 style="font-size:20px;font-weight:800;color:#C8E61E;margin:24px 0 10px;">${formatInline(line.slice(4))}</h3>`
-        );
-        continue;
-      }
-
-      if (line.startsWith('## ')) {
-        flushParagraph();
-        flushList();
-        htmlParts.push(
-          `<h2 style="font-size:25px;font-weight:900;color:#FFFFFF;margin:30px 0 12px;border-bottom:1px solid rgba(255,255,255,0.12);padding-bottom:8px;">${formatInline(line.slice(3))}</h2>`
-        );
-        continue;
-      }
-
-      if (line.startsWith('# ')) {
-        flushParagraph();
-        flushList();
-        htmlParts.push(
-          `<h2 style="font-size:27px;font-weight:900;color:#FFFFFF;margin:30px 0 12px;">${formatInline(line.slice(2))}</h2>`
-        );
+        const level = headingMatch[1].length;
+        const headingText = formatInline(headingMatch[2]);
+        const headingStyles = {
+          1: 'font-size:27px;font-weight:900;color:#FFFFFF;margin:30px 0 12px;',
+          2: 'font-size:25px;font-weight:900;color:#FFFFFF;margin:30px 0 12px;border-bottom:1px solid rgba(255,255,255,0.12);padding-bottom:8px;',
+          3: 'font-size:20px;font-weight:800;color:#C8E61E;margin:24px 0 10px;',
+          4: 'font-size:18px;font-weight:800;color:#C8E61E;margin:22px 0 10px;',
+          5: 'font-size:16px;font-weight:800;color:#FFFFFF;margin:20px 0 8px;',
+          6: 'font-size:15px;font-weight:800;color:#FFFFFF;margin:18px 0 8px;'
+        };
+        htmlParts.push(`<h${level} style="${headingStyles[level]}">${headingText}</h${level}>`);
         continue;
       }
 
