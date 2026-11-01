@@ -4613,7 +4613,7 @@ ${C.renderRoiCalculatorWidget ? C.renderRoiCalculatorWidget() : ""}
 
     root.innerHTML = `
       ${this.renderHeader()}
-      <main class="${pageChanged ? 'page-enter' : ''}">${pageContent}</main>
+      <main class="${pageChanged ? 'page-enter' : ''}">${this.currentPage === 'home' ? this.renderServicesTicker() : ''}${pageContent}</main>
       ${this.renderFooter()}
       <div id="toast-container"></div>
     `;
