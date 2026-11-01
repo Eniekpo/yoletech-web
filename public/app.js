@@ -1567,6 +1567,22 @@ class YoletechApp {
   // ==========================================================================
   // PAGE 2: ABOUT
   // ==========================================================================
+  renderServicesTicker() {
+    const services = window.YOLETECH_DATA.eightServicesStrip;
+    const items = services
+      .map((service) => `<span class="services-ticker-item">${service.title}<span aria-hidden="true">↗</span></span>`)
+      .join('');
+
+    return `
+      <div class="services-ticker" role="region" aria-label="YOLETECH services">
+        <div class="services-ticker-track">
+          <div class="services-ticker-group">${items}</div>
+          <div class="services-ticker-group" aria-hidden="true">${items}</div>
+        </div>
+      </div>
+    `;
+  }
+
   renderAboutPage() {
     const D = window.YOLETECH_DATA;
     const C = window.YOLETECH_COMPONENTS;
@@ -1602,6 +1618,8 @@ class YoletechApp {
               ${C.renderPortraitHeroWidget('about')}
             </div>
           </div>
+
+          ${this.renderServicesTicker()}
 
           <section class="about-profile" aria-label="Professional profile">
             <header class="about-profile-heading">
@@ -1833,6 +1851,8 @@ class YoletechApp {
               ${C.renderDataOverviewWidget()}
             </div>
           </div>
+
+          ${this.renderServicesTicker()}
 
           <div class="section-header">
             <div class="eyebrow"><span class="eyebrow-dot"></span> OUR SERVICES</div>

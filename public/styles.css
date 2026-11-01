@@ -1482,6 +1482,57 @@ a.footer-contact-item:hover {
   margin-bottom: 64px;
 }
 
+.services-ticker {
+  width: 100vw;
+  margin: 0 0 52px calc(50% - 50vw);
+  overflow: hidden;
+  padding: 16px 0;
+  background: #c89100;
+  color: #171515;
+}
+
+.services-ticker-track,
+.services-ticker-group {
+  display: flex;
+  width: max-content;
+  align-items: center;
+}
+
+.services-ticker-track {
+  animation: services-ticker-scroll 48s linear infinite;
+}
+
+.services-ticker:hover .services-ticker-track {
+  animation-play-state: paused;
+}
+
+.services-ticker-group {
+  flex-shrink: 0;
+  gap: 42px;
+  padding-right: 42px;
+}
+
+.services-ticker-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 18px;
+  white-space: nowrap;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.services-ticker-item > span {
+  font-size: 11px;
+}
+
+@keyframes services-ticker-scroll {
+  to {
+    transform: translateX(-50%);
+  }
+}
+
 .article-detail-card {
   padding: 40px;
 }
@@ -2962,6 +3013,10 @@ details > summary {
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .services-ticker-track {
+    animation: none;
+  }
+
   html {
     scroll-behavior: auto !important;
   }
