@@ -31,7 +31,6 @@ window.YOLETECH_DATA = {
       titleHtml: `Build better.<br/>Work smarter.<br/><span class="accent-lime">Grow your skills.</span>`,
       subtitle:
         "Practical digital services for businesses, professionals, and learners—delivering full-stack web applications, executive business intelligence, and automated workflows.",
-      tags: ["React.js", "Python & Pandas", "Power BI & Tableau", "SQL Databases", "Excel VBA", "AI Automation"],
       primaryCta: { label: "View Services →", page: "services" },
       secondaryCta: { label: "Contact Us", page: "contact" },
       visualType: "portrait"
@@ -42,7 +41,6 @@ window.YOLETECH_DATA = {
       titleHtml: `Turn Complex Datasets Into <span class="accent-lime">Executive Clarity.</span>`,
       subtitle:
         "End-to-end data cleaning, statistical auditing, and interactive Power BI & Tableau dashboards that empower leadership to make fast, high-confidence decisions.",
-      tags: ["Power BI", "Tableau", "Python (Pandas)", "R & SPSS", "SQL Server & MySQL", "Statistical Auditing"],
       primaryCta: { label: "Explore BI Services →", page: "services" },
       secondaryCta: { label: "View Portfolio", page: "portfolio" },
       visualType: "dashboard"
@@ -53,7 +51,6 @@ window.YOLETECH_DATA = {
       titleHtml: `Modern Full-Stack <span class="accent-lime">Web Applications</span> &amp; Portals.`,
       subtitle:
         "Responsive frontend and backend systems built with React.js, modern JavaScript, HTML/CSS, WordPress, and relational SQL databases—engineered for speed, security, and scalability.",
-      tags: ["React.js", "JavaScript (ES6+)", "HTML5 & CSS3", "WordPress", "Full-Stack Architecture", "REST APIs"],
       primaryCta: { label: "Start a Web Project →", page: "contact" },
       secondaryCta: { label: "See Web Projects", page: "portfolio" },
       visualType: "codesync"
@@ -64,7 +61,6 @@ window.YOLETECH_DATA = {
       titleHtml: `Eliminate Bottlenecks With <span class="accent-lime">AI &amp; Automation.</span>`,
       subtitle:
         "Predictive machine learning models for forecasting outcomes, automated Excel VBA macros, and custom Python scripts that cut manual reporting time from hours to seconds.",
-      tags: ["Predictive Modeling", "Machine Learning", "Excel VBA Macros", "Python Automation", "AI Ethics", "Reinforcement Learning"],
       primaryCta: { label: "Automate Your Workflow →", page: "contact" },
       secondaryCta: { label: "Explore Services", page: "services" },
       visualType: "workflow"
@@ -75,7 +71,6 @@ window.YOLETECH_DATA = {
       titleHtml: `Practical Training in <span class="accent-lime">Python, SQL &amp; Data Analytics.</span>`,
       subtitle:
         "Backed by proven experience training and mentoring over 200 interns and corporate staff in Python programming, SQL database querying, Power BI, and data governance standards.",
-      tags: ["Python Bootcamps", "SQL Mastery", "Power BI & Excel", "Corporate Staff Training", "200+ Interns Mentored"],
       primaryCta: { label: "Book Training →", page: "contact" },
       secondaryCta: { label: "Read Blog", page: "blog" },
       visualType: "portrait"
@@ -86,7 +81,6 @@ window.YOLETECH_DATA = {
       titleHtml: `Visual Branding, Media &amp; <span class="accent-lime">Reliable IT Support.</span>`,
       subtitle:
         "From cohesive brand visuals and video editing to database administration, system setup, troubleshooting, and responsive customer support that keeps your organization running.",
-      tags: ["Graphic Design", "Video Editing", "IT Systems Setup", "Database Administration", "Customer Support"],
       primaryCta: { label: "Request Support →", page: "contact" },
       secondaryCta: { label: "View All Services", page: "services" },
       visualType: "dashboard"

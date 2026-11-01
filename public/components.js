@@ -119,7 +119,7 @@ window.YOLETECH_COMPONENTS = {
             <div style="font-weight:800;font-size:14px;color:#FFFFFF;">${badgeTitle}</div>
             <div style="font-size:12px;color:#C8E61E;font-weight:600;">${badgeSub}</div>
           </div>
-          <span class="tech-pill orange" style="font-size:11px;" data-kpi-target="5" data-kpi-suffix="+ Yrs Exp">5+ Yrs Exp</span>
+          <span style="font-size:11px;" data-kpi-target="5" data-kpi-suffix="+ Yrs Exp">5+ Yrs Exp</span>
         </div>
       </div>
     `;
@@ -140,7 +140,6 @@ window.YOLETECH_COMPONENTS = {
               YOLE<span style="color:#C8E61E;">TECH</span> • BI &amp; DATA OVERVIEW
             </span>
           </div>
-          <span class="tech-pill lime" style="font-size:11px;padding:3px 10px;">Power BI / Tableau / SQL</span>
         </div>
 
         <div class="dashboard-main">
@@ -280,7 +279,6 @@ window.YOLETECH_COMPONENTS = {
           <span class="eyebrow" style="margin:0;font-size:11.5px;">
             <span class="eyebrow-dot"></span> AUTOMATED DATA &amp; ML PIPELINE ARCHITECTURE
           </span>
-          <span class="tech-pill orange" style="font-size:11px;">Excel VBA • SQL • Python</span>
         </div>
 
         <div class="workflow-diagram-grid">
@@ -324,7 +322,6 @@ window.YOLETECH_COMPONENTS = {
               See how many hours and operational dollars your team reclaims each year by transitioning repetitive manual spreadsheets into automated Power BI &amp; SQL pipelines.
             </p>
           </div>
-          <span class="tech-pill lime" style="font-size:12px;padding:8px 16px;">Verified 70–80% Time Reclaimed</span>
         </div>
 
         <div class="grid-2" style="gap:32px;align-items:center;">

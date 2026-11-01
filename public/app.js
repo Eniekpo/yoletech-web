@@ -1312,14 +1312,6 @@ class YoletechApp {
           </div>
           <h1 class="hero-title">${slide.titleHtml}</h1>
           <p class="hero-subtitle">${slide.subtitle}</p>
-          <div class="hero-tags-row">
-            ${slide.tags
-              .map(
-                (t, idx) =>
-                  `<span class="tech-pill ${idx === 0 ? 'lime' : idx === 1 ? 'orange' : ''}">${t}</span>`
-              )
-              .join('')}
-          </div>
           <div class="hero-cta-row">
             <button class="btn btn-lime" onclick="window.app.navigate('${slide.primaryCta.page}')">
               ${slide.primaryCta.label}
@@ -1425,46 +1417,24 @@ class YoletechApp {
 
           <div class="grid-3">
             <div class="glass-card">
-              <span class="tech-pill lime" style="margin-bottom:14px;">Web &amp; Digital Platforms</span>
               <h3 style="font-size:21px;font-weight:800;margin-bottom:10px;">Full-Stack Web Development</h3>
               <p style="font-size:14px;color:var(--yole-text-muted);margin-bottom:18px;">
                 Frontend and backend system implementation using React.js, JavaScript, HTML/CSS, WordPress, and relational SQL databases—built without bloat.
               </p>
-              <div style="display:flex;flex-wrap:wrap;gap:6px;">
-                <span class="tech-pill">React.js</span>
-                <span class="tech-pill">JavaScript</span>
-                <span class="tech-pill">WordPress</span>
-                <span class="tech-pill">HTML5/CSS3</span>
-              </div>
             </div>
 
             <div class="glass-card">
-              <span class="tech-pill orange" style="margin-bottom:14px;">Data Analytics &amp; BI</span>
               <h3 style="font-size:21px;font-weight:800;margin-bottom:10px;">Data Analytics &amp; Business Intelligence</h3>
               <p style="font-size:14px;color:var(--yole-text-muted);margin-bottom:18px;">
                 Transforming complex multi-departmental datasets into validated insights and interactive Power BI &amp; Tableau dashboards for executive decision-making.
               </p>
-              <div style="display:flex;flex-wrap:wrap;gap:6px;">
-                <span class="tech-pill">Power BI</span>
-                <span class="tech-pill">Tableau</span>
-                <span class="tech-pill">Python (Pandas)</span>
-                <span class="tech-pill">R &amp; SPSS</span>
-                <span class="tech-pill">SQL</span>
-              </div>
             </div>
 
             <div class="glass-card">
-              <span class="tech-pill lime" style="margin-bottom:14px;">AI &amp; Automation</span>
               <h3 style="font-size:21px;font-weight:800;margin-bottom:10px;">Predictive ML &amp; Workflow Automation</h3>
               <p style="font-size:14px;color:var(--yole-text-muted);margin-bottom:18px;">
                 Forecasting outcomes with Machine Learning and automating repetitive reporting bottlenecks via Advanced Microsoft Excel VBA macros and Python scripts.
               </p>
-              <div style="display:flex;flex-wrap:wrap;gap:6px;">
-                <span class="tech-pill">Machine Learning</span>
-                <span class="tech-pill">Excel VBA</span>
-                <span class="tech-pill">SQL Server</span>
-                <span class="tech-pill">MySQL</span>
-              </div>
             </div>
           </div>
         </div>
@@ -1524,7 +1494,6 @@ class YoletechApp {
                     <img src="${p.preview_image}" alt="${p.title}" style="width:100%;height:100%;object-fit:cover;" />
                   </div>
                   <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
-                    <span class="tech-pill lime">${p.category}</span>
                     <span style="font-size:12px;color:var(--yole-text-muted);">${p.period}</span>
                   </div>
                   <h3 style="font-size:19px;font-weight:800;margin-bottom:8px;">${p.title}</h3>
@@ -1533,9 +1502,6 @@ class YoletechApp {
                 <div>
                   <div style="background:rgba(200,230,30,0.08);border-left:3px solid #C8E61E;padding:8px 12px;font-size:12px;color:#FFFFFF;margin-bottom:14px;border-radius:0 8px 8px 0;">
                     <strong>Impact:</strong> ${p.impact_metrics}
-                  </div>
-                  <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px;">
-                    ${(p.tech_stack || []).map((t) => `<span class="tech-pill">${t}</span>`).join('')}
                   </div>
                   <div style="display:flex;gap:8px;border-top:1px solid rgba(255,255,255,0.1);padding-top:12px;">
                     ${
@@ -1578,7 +1544,6 @@ class YoletechApp {
               <div class="glass-card" style="display:flex;flex-direction:column;justify-content:space-between;cursor:pointer;" onclick="window.app.navigate('blog-detail', '${post.slug}')">
                 <div>
                   <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
-                    <span class="tech-pill orange">${post.category}</span>
                     <span style="font-size:12px;color:var(--yole-text-muted);">${post.readTime}</span>
                   </div>
                   <h3 style="font-size:19px;font-weight:800;margin-bottom:10px;line-height:1.35;">${post.title}</h3>
@@ -1691,9 +1656,7 @@ class YoletechApp {
                       (prof) => `
                     <article class="about-info-card">
                       <h4 class="about-accent-${prof.accent}">${prof.category}</h4>
-                      <div class="about-skill-list">
-                        ${prof.skills.map((skill) => `<span class="tech-pill">${skill}</span>`).join('')}
-                      </div>
+                      <p class="about-skill-summary">${prof.skills.join(', ')}</p>
                     </article>
                   `
                     )
@@ -1880,12 +1843,9 @@ class YoletechApp {
           <div class="grid-2 section-block-gap">
             ${D.eightServicesStrip
               .map(
-                (srv, idx) => `
+                (srv) => `
               <div class="glass-card" style="display:flex;flex-direction:column;justify-content:space-between;">
                 <div>
-                  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
-                    <span class="tech-pill ${idx % 2 === 0 ? 'lime' : 'orange'}">${srv.category}</span>
-                  </div>
                   <h3 style="font-size:22px;font-weight:900;margin-bottom:6px;">${srv.title}</h3>
                   <div style="font-size:13px;font-weight:700;color:#C8E61E;margin-bottom:12px;">${srv.sub}</div>
                   <p style="font-size:14px;color:var(--yole-text-muted);margin-bottom:16px;">${srv.description}</p>
@@ -1974,20 +1934,11 @@ class YoletechApp {
                     </div>
                     <div class="scope-timeline-box">
                       <span class="scope-timeline-label">Typical Timeline</span>
-                      <span class="tech-pill orange scope-timeline-pill">⏱ ${activeRow.timeline}</span>
+                      <span>${activeRow.timeline}</span>
                     </div>
                   </div>
 
                   <div class="scope-panel-grid">
-                    <div class="scope-subcard">
-                      <div class="scope-subcard-title">Core Tech Stack</div>
-                      <div class="scope-stack-pills">
-                        ${activeRow.stack
-                          .map((s) => `<span class="tech-pill lime">${s}</span>`)
-                          .join('')}
-                      </div>
-                    </div>
-
                     <div class="scope-subcard">
                       <div class="scope-subcard-title">Deliverables &amp; Execution Standards</div>
                       <ul class="scope-deliverables-list">
@@ -2034,23 +1985,19 @@ ${C.renderRoiCalculatorWidget ? C.renderRoiCalculatorWidget() : ""}
 
           <div class="metrics-strip" style="margin-bottom:0;">
             <div class="metric-cell" style="flex-direction:column;align-items:flex-start;text-align:left;">
-              <span class="tech-pill lime">Step 01</span>
-              <div style="font-size:18px;font-weight:900;margin-top:6px;">Discovery &amp; Data Audit</div>
+              <div style="font-size:18px;font-weight:900;">01. Discovery &amp; Data Audit</div>
               <div style="font-size:13px;color:var(--yole-text-muted);">Assess requirements, audit existing datasets or systems, and define KPIs.</div>
             </div>
             <div class="metric-cell" style="flex-direction:column;align-items:flex-start;text-align:left;">
-              <span class="tech-pill orange">Step 02</span>
-              <div style="font-size:18px;font-weight:900;margin-top:6px;">Architecture &amp; Schema</div>
+              <div style="font-size:18px;font-weight:900;">02. Architecture &amp; Schema</div>
               <div style="font-size:13px;color:var(--yole-text-muted);">Design SQL databases, clean pipelines, or full-stack web wireframes.</div>
             </div>
             <div class="metric-cell" style="flex-direction:column;align-items:flex-start;text-align:left;">
-              <span class="tech-pill lime">Step 03</span>
-              <div style="font-size:18px;font-weight:900;margin-top:6px;">Build &amp; Automate</div>
+              <div style="font-size:18px;font-weight:900;">03. Build &amp; Automate</div>
               <div style="font-size:13px;color:var(--yole-text-muted);">Develop React/Web apps, Power BI/Tableau views, or Python/VBA scripts.</div>
             </div>
             <div class="metric-cell" style="flex-direction:column;align-items:flex-start;text-align:left;">
-              <span class="tech-pill orange">Step 04</span>
-              <div style="font-size:18px;font-weight:900;margin-top:6px;">Validation &amp; Launch</div>
+              <div style="font-size:18px;font-weight:900;">04. Validation &amp; Launch</div>
               <div style="font-size:13px;color:var(--yole-text-muted);">Statistical quality checks, staff handover training, and live support.</div>
             </div>
           </div>
@@ -2209,8 +2156,7 @@ ${C.renderRoiCalculatorWidget ? C.renderRoiCalculatorWidget() : ""}
                 (t) => `
               <div class="glass-card" style="display:flex;flex-direction:column;justify-content:space-between;">
                 <div>
-                  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
-                    <span class="tech-pill lime">${t.service_track}</span>
+                  <div style="display:flex;justify-content:flex-end;align-items:center;margin-bottom:14px;">
                     <span style="color:#F7941D;font-size:16px;letter-spacing:2px;">
                       ${'★'.repeat(Number(t.rating) || 5)}
                     </span>
@@ -2410,7 +2356,6 @@ ${C.renderRoiCalculatorWidget ? C.renderRoiCalculatorWidget() : ""}
                 <div>
                   ${post.coverImage ? `<div class="blog-card-image" style="aspect-ratio:1/1;"><img src="${post.coverImage}" alt="${post.title}" loading="lazy" decoding="async" /></div>` : ''}
                   <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
-                    <span class="tech-pill lime">${post.category}</span>
                     <span style="font-size:12.5px;color:var(--yole-text-muted);">${post.date} • ${post.readTime}</span>
                   </div>
                   <h2 style="font-size:22px;font-weight:800;margin-bottom:10px;line-height:1.3;">${post.title}</h2>
@@ -2633,10 +2578,8 @@ ${C.renderRoiCalculatorWidget ? C.renderRoiCalculatorWidget() : ""}
           </button>
 
           <div class="glass-card article-detail-card">
-            <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:14px;">
-              <span class="tech-pill lime">${post.category}</span>
-              <span class="tech-pill orange">${post.readTime}</span>
-              <span style="font-size:13px;color:var(--yole-text-muted);">Published ${post.date}</span>
+            <div style="font-size:13px;color:var(--yole-text-muted);margin-bottom:14px;">
+              Published ${post.date} • ${post.readTime}
             </div>
 
             <h1 style="font-size:clamp(26px,3.6vw,38px);font-weight:900;line-height:1.2;margin-bottom:16px;">
@@ -2768,7 +2711,6 @@ ${C.renderRoiCalculatorWidget ? C.renderRoiCalculatorWidget() : ""}
               <div class="glass-card" style="background:linear-gradient(135deg,#2F2B73 0%,#1B184A 100%);border-color:#C8E61E;">
                 <div style="display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap;">
                   <div>
-                    <span class="tech-pill lime" style="margin-bottom:8px;">Instant Discovery Call</span>
                     <h3 style="font-size:21px;font-weight:900;">Book a 15-Minute Discovery Call</h3>
                     <p style="font-size:13.5px;color:var(--yole-text-muted);margin-top:4px;">
                       Connect directly on WhatsApp to scope your project requirements.
