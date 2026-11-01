@@ -17,6 +17,7 @@
     { "source": "/blog/(.*)", "destination": "/api/blog-page?slug=$1" },
     { "source": "/about", "destination": "/index.html" },
     { "source": "/services", "destination": "/index.html" },
+    { "source": "/dashboard", "destination": "/index.html" },
     { "source": "/testimonials", "destination": "/index.html" },
     { "source": "/contact", "destination": "/index.html" },
     { "source": "/login", "destination": "/index.html" },

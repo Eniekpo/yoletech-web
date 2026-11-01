@@ -21,6 +21,7 @@ The server starts on **`http://localhost:4000`**.
 | `http://localhost:4000/` | **Home** — 6-Slide Hero Service Slideshow, 8-Service Feature Strip, CV Impact Metrics, Interactive BI/Code/Workflow Previews |
 | `http://localhost:4000/about` | **About** — Full CV Bio, Technical Proficiencies, Experience Timeline, Education & Google/Kaggle Certifications |
 | `http://localhost:4000/services` | **Services** — 8 Service Cards, Interactive Previews, Service Delivery Scope Table & 4-Step Process |
+| `http://localhost:4000/dashboard` | **Dashboard** — Client & Delivery Analytics Dashboard |
 | `http://localhost:4000/portfolio` | **Portfolio** — Filterable Case Studies across Data/BI, AI/ML, VBA Automation, Full-Stack Web & Training |
 | `http://localhost:4000/testimonials` | **Testimonials** — Verified Stakeholder & Mentee Reviews + Live Submission Form |
 | `http://localhost:4000/blog` | **Blog** — Technical Markdown Articles powered by Decap CMS & Decap Bridge |
