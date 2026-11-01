@@ -807,6 +807,7 @@
     // ---- Rendering ------------------------------------------------------------
     renderDashboardPage() {
       return `
+        ${this.renderServicesTicker()}
         <section class="section dash-page" aria-labelledby="dash-title">
           <div class="container">
             <header class="dash-header">
