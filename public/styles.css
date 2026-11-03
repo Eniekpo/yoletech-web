@@ -4509,3 +4509,308 @@ h1, h2, h3, h4, h5, h6, .hero-title, .section-title, .brand-wordmark {
   border-color: rgba(47, 43, 115, 0.32);
   box-shadow: 0 16px 36px rgba(15, 23, 42, 0.08), 0 0 20px rgba(47, 43, 115, 0.04);
 }
+
+
+/* ============================================================================
+   FLOATING CONTACT WIDGET LAUNCHER & 4-OPTION MODAL
+   ============================================================================ */
+.contact-widget-launcher {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  width: 58px;
+  height: 58px;
+  border-radius: 50%;
+  background: #7ecb1a;
+  background: linear-gradient(135deg, #84cc16 0%, #65a30d 100%);
+  color: #FFFFFF;
+  border: 2px solid rgba(255, 255, 255, 0.25);
+  box-shadow: 0 10px 28px rgba(101, 163, 13, 0.45), 0 4px 12px rgba(0, 0, 0, 0.25);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 99999;
+  transition: transform 0.22s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.22s ease, background 0.2s ease;
+  outline: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.contact-widget-launcher:hover {
+  transform: scale(1.08);
+  box-shadow: 0 14px 34px rgba(101, 163, 13, 0.58), 0 6px 14px rgba(0, 0, 0, 0.3);
+}
+
+.contact-widget-launcher:focus-visible {
+  outline: 3px solid #C8E61E;
+  outline-offset: 3px;
+}
+
+.contact-widget-launcher.is-active {
+  background: #151238;
+  border-color: rgba(200, 230, 30, 0.5);
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.5);
+}
+
+[data-theme="light"] .contact-widget-launcher.is-active {
+  background: #1E1B54;
+  border-color: #65A30D;
+  box-shadow: 0 10px 28px rgba(30, 27, 84, 0.35);
+}
+
+.contact-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(8, 7, 24, 0.55);
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
+  z-index: 99990;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+}
+
+.contact-modal-backdrop.is-open {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.contact-options-modal {
+  position: fixed;
+  bottom: 94px;
+  right: 24px;
+  width: 324px;
+  max-width: calc(100vw - 32px);
+  background: #151238;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 18px;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6), 0 4px 16px rgba(0, 0, 0, 0.25);
+  z-index: 99995;
+  overflow: hidden;
+  opacity: 0;
+  transform: translateY(14px) scale(0.96);
+  pointer-events: none;
+  transition: opacity 0.22s cubic-bezier(0.16, 1, 0.3, 1), transform 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.contact-options-modal.is-open {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  pointer-events: auto;
+}
+
+[data-theme="light"] .contact-options-modal {
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  box-shadow: 0 20px 50px rgba(15, 23, 42, 0.18), 0 4px 14px rgba(15, 23, 42, 0.08);
+}
+
+.contact-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 18px 14px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+[data-theme="light"] .contact-modal-header {
+  border-bottom-color: #E2E8F0;
+}
+
+.contact-modal-title {
+  font-size: 17px;
+  font-weight: 800;
+  color: #FFFFFF;
+  margin: 0;
+  letter-spacing: -0.01em;
+}
+
+[data-theme="light"] .contact-modal-title {
+  color: #0F172A;
+}
+
+.contact-modal-close {
+  background: transparent;
+  border: none;
+  color: rgba(255, 255, 255, 0.6);
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.contact-modal-close:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #FFFFFF;
+}
+
+[data-theme="light"] .contact-modal-close {
+  color: #64748B;
+}
+
+[data-theme="light"] .contact-modal-close:hover {
+  background: #F1F5F9;
+  color: #0F172A;
+}
+
+.contact-modal-list {
+  display: flex;
+  flex-direction: column;
+  padding: 6px 8px 8px;
+}
+
+.contact-option-item {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  padding: 10px 10px;
+  border-radius: 12px;
+  text-decoration: none;
+  background: transparent;
+  border: none;
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.15s ease, transform 0.15s ease;
+  font-family: inherit;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.contact-option-item + .contact-option-item {
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+[data-theme="light"] .contact-option-item + .contact-option-item {
+  border-top-color: #F1F5F9;
+}
+
+.contact-option-item:hover {
+  background: rgba(255, 255, 255, 0.06);
+  transform: translateX(2px);
+}
+
+[data-theme="light"] .contact-option-item:hover {
+  background: #F8FAFD;
+}
+
+.contact-option-icon {
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.contact-option-icon.icon-chatwoot {
+  background: #2F2B73;
+  color: #C8E61E;
+}
+
+.contact-option-icon.icon-whatsapp {
+  background: #143823;
+  color: #25D366;
+}
+
+.contact-option-icon.icon-email {
+  background: #382d13;
+  color: #F59E0B;
+}
+
+.contact-option-icon.icon-call {
+  background: #252631;
+  color: #FFFFFF;
+}
+
+[data-theme="light"] .contact-option-icon.icon-chatwoot {
+  background: #EEF2FF;
+  color: #4338CA;
+}
+
+[data-theme="light"] .contact-option-icon.icon-whatsapp {
+  background: #DCFCE7;
+  color: #16A34A;
+}
+
+[data-theme="light"] .contact-option-icon.icon-email {
+  background: #FEF3C7;
+  color: #D97706;
+}
+
+[data-theme="light"] .contact-option-icon.icon-call {
+  background: #F1F5F9;
+  color: #1E293B;
+}
+
+.contact-option-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  flex: 1;
+}
+
+.contact-option-title {
+  font-size: 14.5px;
+  font-weight: 750;
+  color: #FFFFFF;
+  line-height: 1.25;
+}
+
+[data-theme="light"] .contact-option-title {
+  color: #0F172A;
+}
+
+.contact-option-subtitle {
+  font-size: 12.5px;
+  color: rgba(255, 255, 255, 0.65);
+  line-height: 1.3;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+[data-theme="light"] .contact-option-subtitle {
+  color: #64748B;
+}
+
+.contact-option-arrow {
+  color: rgba(255, 255, 255, 0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: transform 0.15s ease, color 0.15s ease;
+}
+
+.contact-option-item:hover .contact-option-arrow {
+  color: #C8E61E;
+  transform: translateX(2px);
+}
+
+[data-theme="light"] .contact-option-arrow {
+  color: #94A3B8;
+}
+
+[data-theme="light"] .contact-option-item:hover .contact-option-arrow {
+  color: #65A30D;
+}
+
+@media (max-width: 640px) {
+  .contact-widget-launcher {
+    bottom: 18px;
+    right: 18px;
+    width: 52px;
+    height: 52px;
+  }
+  .contact-options-modal {
+    bottom: 82px;
+    right: 14px;
+    width: calc(100vw - 28px);
+  }
+}
