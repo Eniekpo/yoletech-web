@@ -4617,6 +4617,29 @@ h1, h2, h3, h4, h5, h6, .hero-title, .section-title, .brand-wordmark {
   border-bottom-color: #E2E8F0;
 }
 
+.contact-modal-title-wrap {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.contact-header-icon-box {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  background: rgba(200, 230, 30, 0.16);
+  color: var(--yole-lime);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+[data-theme="light"] .contact-header-icon-box {
+  background: rgba(101, 163, 13, 0.12);
+  color: #4D7C0F;
+}
+
 .contact-modal-title {
   font-size: 17px;
   font-weight: 800;
