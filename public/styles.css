@@ -1483,12 +1483,11 @@ a.footer-contact-item:hover {
 }
 
 .services-ticker {
-  width: 100vw;
-  margin: 0 0 52px calc(50% - 50vw);
+  width: 100%;
+  margin: 0;
   overflow: hidden;
-  padding: 16px 0;
+  padding: 14px 0;
   background: var(--yole-indigo);
-  border-top: 1px solid rgba(200, 230, 30, 0.4);
   border-bottom: 1px solid rgba(200, 230, 30, 0.4);
   color: var(--yole-lime);
 }

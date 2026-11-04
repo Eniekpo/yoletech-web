@@ -1690,6 +1690,7 @@ class YoletechApp {
     const activeTab = tabs.some((tab) => tab.id === this.aboutTab) ? this.aboutTab : 'skills';
 
     return `
+      ${this.renderServicesTicker()}
       <section class="section">
         <div class="container">
           <div class="hero-slide-grid section-block-gap">
@@ -1714,8 +1715,6 @@ class YoletechApp {
               ${C.renderPortraitHeroWidget('about')}
             </div>
           </div>
-
-          ${this.renderServicesTicker()}
 
           <section class="about-profile" aria-label="Professional profile">
             <header class="about-profile-heading">
