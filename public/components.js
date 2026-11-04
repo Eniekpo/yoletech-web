@@ -119,7 +119,7 @@ window.YOLETECH_COMPONENTS = {
             <div style="font-weight:800;font-size:14px;color:#FFFFFF;">${badgeTitle}</div>
             <div style="font-size:12px;color:#C8E61E;font-weight:600;">${badgeSub}</div>
           </div>
-          <span style="font-size:11px;" data-kpi-target="5" data-kpi-suffix="+ Yrs Exp">5+ Yrs Exp</span>
+          <span class="tech-pill lime" style="font-size:11px;padding:4px 10px;" data-kpi-target="5" data-kpi-suffix="+ Yrs Exp">5+ Yrs Exp</span>
         </div>
       </div>
     `;
@@ -239,7 +239,7 @@ window.YOLETECH_COMPONENTS = {
           <div class="code-editor-pane">
             <div style="color:rgba(255,255,255,0.45);">// Register automated SQL &amp; Web API sync hook</div>
             <div><span style="color:#F7941D;">export async function</span> <span style="color:#C8E61E;">handleDataSync</span>(departmentId) {</div>
-            <div style="padding-left:14px;">const endpoint = <span style="color:#C8E61E;">'https://api.yolestica.com/v2/sync'</span>;</div>
+            <div style="padding-left:14px;">const endpoint = <span style="color:#C8E61E;">'https://api.yoletica.com/v2/sync'</span>;</div>
             <div style="padding-left:14px;">const response = <span style="color:#F7941D;">await</span> fetch(endpoint, { method: <span style="color:#C8E61E;">'POST'</span> });</div>
             <div style="padding-left:14px;margin-top:6px;"><span style="color:#F7941D;">if</span> (!response.ok) <span style="color:#F7941D;">return</span> { valid: <span style="color:#F7941D;">false</span> };</div>
             <div style="padding-left:14px;margin-top:6px;">const payload = <span style="color:#F7941D;">await</span> response.json();</div>
@@ -251,7 +251,7 @@ window.YOLETECH_COMPONENTS = {
             <div>
               <div style="background:#2F2B73;border:1px solid rgba(200,230,30,0.4);border-radius:10px;padding:9px 12px;font-size:11.5px;display:flex;align-items:center;gap:8px;margin-bottom:14px;">
                 <span style="background:#C8E61E;color:#17143A;font-weight:900;padding:2px 7px;border-radius:6px;">API</span>
-                <span style="color:#FFFFFF;overflow:hidden;text-overflow:ellipsis;">https://api.yolestica.com/v2/sync</span>
+                <span style="color:#FFFFFF;overflow:hidden;text-overflow:ellipsis;">https://api.yoletica.com/v2/sync</span>
               </div>
               <div style="font-size:11px;font-weight:800;color:var(--yole-text-muted);letter-spacing:0.08em;margin-bottom:8px;">
                 WORKFLOW STATUS

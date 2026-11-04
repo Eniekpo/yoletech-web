@@ -13,7 +13,7 @@ try {
 
 const PORT = process.env.PORT || 4000;
 const JWT_SECRET = process.env.JWT_SECRET || 'yoletech-super-secret-jwt-key-2026-eniekpo';
-const ADMIN_NOTIFY_EMAIL = process.env.ADMIN_NOTIFY_EMAIL || 'yoletech@yolestica.com';
+const ADMIN_NOTIFY_EMAIL = process.env.ADMIN_NOTIFY_EMAIL || 'yoletech@yoletica.com';
 const DB_PATH = path.join(__dirname, 'yoletech.db');
 const PUBLIC_DIR = path.join(__dirname, '..', 'public');
 const BLOG_DIR = path.join(__dirname, '..', 'content', 'blog');
@@ -307,6 +307,7 @@ function createJsonFallbackDatabase() {
 
           if (/INSERT INTO testimonials/i.test(norm)) {
             const id = state.seq.testimonials++;
+            const hasLiteralApproved = /VALUES\s*\(\?,\s*\?,\s*\?,\s*\?,\s*\?,\s*\?,\s*1,\s*\?\)/i.test(norm);
             state.testimonials.push({
               id,
               author_name: args[0],
@@ -315,8 +316,8 @@ function createJsonFallbackDatabase() {
               service_track: args[3],
               rating: args[4],
               content: args[5],
-              approved: args[6],
-              created_at: now
+              approved: hasLiteralApproved ? 1 : (args[6] ?? 1),
+              created_at: hasLiteralApproved ? (args[6] || now) : (args[7] || now)
             });
             saveState();
             return { lastInsertRowid: id };
@@ -359,23 +360,48 @@ function openDatabase() {
   if (!DatabaseSync) {
     return createJsonFallbackDatabase();
   }
+  const verifyIntegrity = (inst) => {
+    const check = inst.prepare('PRAGMA integrity_check;').get();
+    if (!check || check.integrity_check !== 'ok') {
+      throw new Error('SQLite integrity check failed');
+    }
+  };
   if (process.env.VERCEL) {
     try {
       const tmpDbPath = path.join(os.tmpdir(), 'yoletech.db');
       if (!fs.existsSync(tmpDbPath) && fs.existsSync(DB_PATH)) {
         fs.copyFileSync(DB_PATH, tmpDbPath);
       }
-      return new DatabaseSync(tmpDbPath);
+      const inst = new DatabaseSync(tmpDbPath);
+      verifyIntegrity(inst);
+      return inst;
     } catch {
       return createJsonFallbackDatabase();
     }
   }
+  let instance = null;
   try {
-    const instance = new DatabaseSync(DB_PATH);
+    instance = new DatabaseSync(DB_PATH);
     instance.exec('PRAGMA journal_mode = WAL;');
+    verifyIntegrity(instance);
     return instance;
   } catch {
-    return createJsonFallbackDatabase();
+    try {
+      if (instance && typeof instance.close === 'function') {
+        try {
+          instance.close();
+        } catch {}
+      }
+      for (const ext of ['', '-wal', '-shm']) {
+        const p = `${DB_PATH}${ext}`;
+        if (fs.existsSync(p)) fs.unlinkSync(p);
+      }
+      const freshInstance = new DatabaseSync(DB_PATH);
+      freshInstance.exec('PRAGMA journal_mode = WAL;');
+      return freshInstance;
+    } catch {
+      return createJsonFallbackDatabase();
+    }
   }
 }
 
@@ -849,8 +875,8 @@ async function sendEmailToYoletech({ subject, replyTo, fields }) {
       headers: {
         'Content-Type': 'application/json',
         Accept: 'application/json',
-        Origin: 'https://yolestica.com',
-        Referer: 'https://yolestica.com/contact'
+        Origin: 'https://yoletech.yoletica.com',
+        Referer: 'https://yoletech.yoletica.com/contact'
       },
       body: JSON.stringify(formPayload)
     });
@@ -874,15 +900,29 @@ function parseYamlFrontmatter(raw) {
   const lines = frontmatterText.split(/\r?\n/);
   const result = {};
   let currentListKey = null;
+  let currentScalarKey = null;
 
   for (const line of lines) {
     const listMatch = line.match(/^\s*-\s+(.*)$/);
-    if (listMatch && currentListKey) {
+    if (listMatch && (currentListKey || currentScalarKey)) {
+      const targetKey = currentListKey || currentScalarKey;
+      if (!Array.isArray(result[targetKey])) result[targetKey] = [];
+      currentListKey = targetKey;
+      currentScalarKey = null;
       let itemVal = listMatch[1].trim();
       if ((itemVal.startsWith('"') && itemVal.endsWith('"')) || (itemVal.startsWith("'") && itemVal.endsWith("'"))) {
         itemVal = itemVal.slice(1, -1);
       }
-      result[currentListKey].push(itemVal);
+      result[targetKey].push(itemVal);
+      continue;
+    }
+
+    // Continuation of multi-line indented scalar (e.g., wrapped title or summary)
+    if (/^\s+\S/.test(line) && currentScalarKey) {
+      const cont = line.trim();
+      result[currentScalarKey] = result[currentScalarKey]
+        ? `${result[currentScalarKey]} ${cont}`
+        : cont;
       continue;
     }
 
@@ -891,17 +931,25 @@ function parseYamlFrontmatter(raw) {
     const key = line.slice(0, colonIdx).trim();
     let val = line.slice(colonIdx + 1).trim();
 
-    if (!val) {
+    if (!val || val === '>-' || val === '>' || val === '|-' || val === '|') {
       currentListKey = key;
-      result[key] = [];
+      currentScalarKey = key;
+      result[key] = '';
       continue;
     }
 
     currentListKey = null;
+    currentScalarKey = key;
     if ((val.startsWith('"') && val.endsWith('"')) || (val.startsWith("'") && val.endsWith("'"))) {
       val = val.slice(1, -1);
     }
     result[key] = val;
+  }
+
+  for (const k of Object.keys(result)) {
+    if (typeof result[k] === 'string') {
+      result[k] = result[k].replace(/\s{2,}/g, ' ').trim();
+    }
   }
 
   return { frontmatter: result, body };
@@ -985,22 +1033,27 @@ function parsePortfolioMarkdownFile(filePath) {
   const slug = path.basename(filePath, '.md');
   const { frontmatter, body } = parseYamlFrontmatter(raw);
   const demoUrl = frontmatter.demo_url ?? frontmatter.live_url ?? '';
+  const title = frontmatter.title || slug;
+  const category = frontmatter.category || 'Data Analytics & BI';
 
   return {
     id: slug,
     slug,
-    title: frontmatter.title || slug,
+    title,
     date: frontmatter.date || '2026-10-15',
-    category: frontmatter.category || 'Data Analytics & BI',
+    category,
     organization: frontmatter.organization || 'YOLETECH',
-    period: frontmatter.period || '2026',
+    period: frontmatter.period || (frontmatter.date ? String(frontmatter.date).slice(0, 4) : '2026'),
     preview_image: frontmatter.preview_image || '/assets/dashboard-preview.jpg',
     demo_url: demoUrl,
     live_url: demoUrl,
-    impact_metrics: frontmatter.impact_metrics || '',
+    impact_metrics: frontmatter.impact_metrics || `Production ${category} architecture & automated analytics workflow`,
     tech_stack: parseYamlArray(frontmatter.tech_stack, ['Python', 'SQL', 'Power BI']),
     featured: frontmatter.featured === undefined ? true : String(frontmatter.featured) === 'true',
-    summary: frontmatter.summary || '',
+    summary:
+      frontmatter.summary ||
+      body.split(/\r?\n/).find((l) => l.trim() && !l.trim().startsWith('#')) ||
+      `${title} — interactive ${category.toLowerCase()} solution engineered for real-time operational visibility and decision intelligence.`,
     body
   };
 }
@@ -1160,11 +1213,12 @@ const requestHandler = async (req, res) => {
 
   // Direct Sitemap & Robots routes
   if (pathname === '/sitemap.xml') {
-    const sitemapPath = path.join(PUBLIC_DIR, 'sitemap.xml');
-    if (fs.existsSync(sitemapPath)) {
-      res.writeHead(200, { 'Content-Type': 'application/xml; charset=utf-8' });
-      return fs.createReadStream(sitemapPath).pipe(res);
-    }
+    const xml = renderSitemapXml();
+    res.writeHead(200, {
+      'Content-Type': 'application/xml; charset=utf-8',
+      'Cache-Control': 'public, max-age=3600'
+    });
+    return res.end(req.method === 'HEAD' ? undefined : xml);
   }
   if (pathname === '/robots.txt') {
     const robotsPath = path.join(PUBLIC_DIR, 'robots.txt');

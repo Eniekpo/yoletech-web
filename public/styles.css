@@ -748,9 +748,9 @@ button, input, select, textarea {
 }
 
 .portfolio-project-action {
-  flex: 1 1 180px;
-  max-width: 220px;
-  min-width: 0;
+  flex: 1 1 calc(50% - 6px);
+  max-width: none;
+  min-width: 110px;
   width: auto;
   min-height: 38px;
   padding: 8px 12px;
@@ -760,8 +760,8 @@ button, input, select, textarea {
 }
 
 .portfolio-project-action-wide {
-  flex: 1 1 220px;
-  max-width: 260px;
+  flex: 1 1 100%;
+  max-width: none;
 }
 
 .portfolio-featured-field {
@@ -5036,4 +5036,80 @@ h1, h2, h3, h4, h5, h6, .hero-title, .section-title, .brand-wordmark {
 [data-theme="light"] .case-modal-header,
 [data-theme="light"] .case-modal-footer {
   border-color: #E2E8F0;
+}
+
+/* Preserve bright syntax highlighting on dark IDE code panes in Light Mode */
+[data-theme="light"] .code-editor-pane,
+[data-theme="light"] .blog-code-block {
+  background: #0D0B24 !important;
+  color: #E2E8F0 !important;
+}
+
+[data-theme="light"] .code-editor-pane [style*="color:#C8E61E"],
+[data-theme="light"] .blog-code-block [style*="color:#C8E61E"] {
+  color: #C8E61E !important;
+}
+
+[data-theme="light"] .code-editor-pane [style*="color:#F7941D"],
+[data-theme="light"] .blog-code-block [style*="color:#F7941D"] {
+  color: #F7941D !important;
+}
+
+[data-theme="light"] .code-editor-pane [style*="color:rgba(255,255,255"],
+[data-theme="light"] .blog-code-block [style*="color:rgba(255,255,255"] {
+  color: rgba(255, 255, 255, 0.55) !important;
+}
+
+/* Device Responsiveness & Overflow Safeguards */
+.services-ticker {
+  max-width: 100vw;
+  overflow-x: clip;
+}
+
+@media (max-width: 640px) {
+  .testimonial-form-card {
+    padding: 22px 16px !important;
+  }
+
+  .testimonials-pager {
+    flex-direction: column;
+    align-items: stretch;
+    text-align: center;
+    padding: 12px 14px;
+  }
+
+  .testimonials-pager-controls {
+    justify-content: center;
+  }
+
+  .case-modal-dialog {
+    width: calc(100vw - 20px);
+    max-height: calc(100vh - 28px);
+  }
+
+  .case-modal-header,
+  .case-modal-body,
+  .case-modal-footer {
+    padding: 16px;
+  }
+
+  .case-modal-footer .btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .roi-results-metrics {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 480px) {
+  .portfolio-project-action {
+    flex: 1 1 100%;
+  }
+
+  .hero-actions .btn {
+    width: 100%;
+    justify-content: center;
+  }
 }

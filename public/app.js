@@ -47,7 +47,7 @@ class YoletechApp {
     this.clients = [];
     this.inquiries = [];
     this.toastMessage = null;
-    this.notifyEmail = 'yoletech@yolestica.com';
+    this.notifyEmail = 'yoletech@yoletica.com';
     this.showPassword = false;
     this.lastContactSubmission = null;
     this.formConfirmations = {};
@@ -253,7 +253,7 @@ class YoletechApp {
   }
 
   async sendEmailToYoletech({ subject, replyTo, fields }) {
-    const recipient = this.notifyEmail || 'yoletech@yolestica.com';
+    const recipient = this.notifyEmail || 'yoletech@yoletica.com';
     try {
       const res = await fetch(`https://formsubmit.co/ajax/${encodeURIComponent(recipient)}`, {
         method: 'POST',
@@ -287,37 +287,57 @@ class YoletechApp {
       body = match[2].trim();
       const lines = yamlBlock.split('\n');
       let currentListKey = null;
+      let currentScalarKey = null;
 
       for (const line of lines) {
         const listItemMatch = line.match(/^\s*-\s+(.+)$/);
-        if (listItemMatch && currentListKey) {
+        if (listItemMatch && (currentListKey || currentScalarKey)) {
+          const targetKey = currentListKey || currentScalarKey;
+          if (!Array.isArray(meta[targetKey])) meta[targetKey] = [];
+          currentListKey = targetKey;
+          currentScalarKey = null;
           let itemVal = listItemMatch[1].trim();
           if ((itemVal.startsWith('"') && itemVal.endsWith('"')) || (itemVal.startsWith("'") && itemVal.endsWith("'"))) {
             itemVal = itemVal.slice(1, -1);
           }
-          meta[currentListKey].push(itemVal);
+          meta[targetKey].push(itemVal);
+          continue;
+        }
+        if (/^\s+\S/.test(line) && currentScalarKey) {
+          const cont = line.trim();
+          meta[currentScalarKey] = meta[currentScalarKey]
+            ? `${meta[currentScalarKey]} ${cont}`
+            : cont;
           continue;
         }
         const kvMatch = line.match(/^([A-Za-z0-9_-]+):\s*(.*)$/);
         if (!kvMatch) continue;
         const key = kvMatch[1].trim();
         let val = kvMatch[2].trim();
-        if (val === '') {
+        if (val === '' || val === '>-' || val === '>' || val === '|-' || val === '|') {
           currentListKey = key;
-          meta[key] = [];
+          currentScalarKey = key;
+          meta[key] = '';
           continue;
         }
         currentListKey = null;
+        currentScalarKey = key;
         if ((val.startsWith('"') && val.endsWith('"')) || (val.startsWith("'") && val.endsWith("'"))) {
           val = val.slice(1, -1);
         }
         if (val.startsWith('[') && val.endsWith(']')) {
           try {
             meta[key] = JSON.parse(val);
+            currentScalarKey = null;
             continue;
           } catch {}
         }
         meta[key] = val;
+      }
+      for (const k of Object.keys(meta)) {
+        if (typeof meta[k] === 'string') {
+          meta[k] = meta[k].replace(/\s{2,}/g, ' ').trim();
+        }
       }
     }
     return { slug, meta, body };
@@ -718,23 +738,29 @@ class YoletechApp {
       'Full-Stack Web Development': 'Web Development',
       'Data Analysis & Analytics': 'Data Analysis & Analytics',
       'Data Analytics & BI': 'Data Analysis & Analytics',
+      'Data Analytics & BI Dashboards': 'Data Analysis & Analytics',
       'Data Analytics & Dashboards': 'Data Analysis & Analytics',
+      'Database Architecture & Governance': 'Data Analysis & Analytics',
       'AI Automation': 'AI Automation',
       'AI & Machine Learning': 'AI Automation',
+      'Python & Machine Learning': 'AI Automation',
+      'AI, ML & Workflow Automation': 'AI Automation',
       'AI & Workflow Automation': 'AI Automation',
       'AI & Automation': 'AI Automation',
       'Tech Tutorials': 'Tech Tutorials',
       'Tech Tutorials & Mentorship': 'Tech Tutorials',
       'Tech Tutorials & Training': 'Tech Tutorials',
+      'Tech Tutorials & Staff Training': 'Tech Tutorials',
       'Graphic Design': 'Graphic Design',
       'Graphic Design & Video': 'Graphic Design',
+      'Graphic Design, Video & IT Support': 'Graphic Design',
       'Video Editing': 'Video Editing',
       'Customer Support': 'Customer Support',
       'IT Support': 'IT Support',
       'IT & Database Support': 'IT Support',
       'IT & Customer Support': 'IT Support'
     };
-    this.contactServiceSelected = map[rawService] || rawService || 'Data Analysis & Analytics';
+    this.contactServiceSelected = map[rawService] || 'Data Analysis & Analytics';
     this.navigate('contact');
   }
 
@@ -1558,8 +1584,9 @@ class YoletechApp {
                   <div style="border-radius:12px;overflow:hidden;margin-bottom:16px;border:1px solid rgba(255,255,255,0.12);height:175px;cursor:pointer;" onclick="window.app.openPortfolioModal('${p.slug}')">
                     <img src="${p.preview_image}" alt="${p.title}" style="width:100%;height:100%;object-fit:cover;" />
                   </div>
-                  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
-                    <span style="font-size:12px;color:var(--yole-text-muted);">${p.period}</span>
+                  <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:10px;">
+                    <span class="tech-pill lime" style="font-size:11px;padding:3px 10px;">${p.category || 'Data Analytics & BI'}</span>
+                    <span style="font-size:12px;color:var(--yole-text-muted);">${p.period || p.date || '2026'}</span>
                   </div>
                   <h3 style="font-size:19px;font-weight:800;margin-bottom:8px;cursor:pointer;" onclick="window.app.openPortfolioModal('${p.slug}')">${p.title}</h3>
                   <p style="font-size:13.5px;color:var(--yole-text-muted);margin-bottom:14px;">${p.summary}</p>
@@ -1608,7 +1635,8 @@ class YoletechApp {
                 (post) => `
               <div class="glass-card" style="display:flex;flex-direction:column;justify-content:space-between;cursor:pointer;" onclick="window.app.navigate('blog-detail', '${post.slug}')">
                 <div>
-                  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+                  <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:12px;">
+                    <span class="tech-pill lime" style="font-size:11px;padding:3px 10px;">${post.category || 'Data Analytics & BI'}</span>
                     <span style="font-size:12px;color:var(--yole-text-muted);">${post.readTime}</span>
                   </div>
                   <h3 style="font-size:19px;font-weight:800;margin-bottom:10px;line-height:1.35;">${post.title}</h3>
@@ -1624,7 +1652,6 @@ class YoletechApp {
               .join('')}
           </div>
         </div>
-      </div>
       </section>
     `;
   }
@@ -2242,7 +2269,7 @@ ${C.renderRoiCalculatorWidget ? C.renderRoiCalculatorWidget() : ""}
           ${
             techStack.length
               ? `<div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:18px;">
-                  ${techStack.map((t) => `<span class="badge badge-lime">${t}</span>`).join('')}
+                  ${techStack.map((t) => `<span class="tech-pill lime" style="font-size:11.5px;padding:4px 10px;">${t}</span>`).join('')}
                 </div>`
               : ''
           }
@@ -2681,7 +2708,8 @@ ${C.renderRoiCalculatorWidget ? C.renderRoiCalculatorWidget() : ""}
       <div class="glass-card blog-card is-revealed" onclick="window.app.navigate('blog-detail', '${post.slug}')">
         <div>
           ${post.coverImage ? `<div class="blog-card-image" style="aspect-ratio:1/1;"><img src="${post.coverImage}" alt="${post.title}" loading="lazy" decoding="async" /></div>` : ''}
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:10px;">
+            <span class="tech-pill lime" style="font-size:11px;padding:3px 10px;">${post.category || 'Data Analytics & BI'}</span>
             <span style="font-size:12.5px;color:var(--yole-text-muted);">${post.date} • ${post.readTime}</span>
           </div>
           <h2 style="font-size:22px;font-weight:800;margin-bottom:10px;line-height:1.3;">${post.title}</h2>
@@ -3142,7 +3170,7 @@ ${C.renderRoiCalculatorWidget ? C.renderRoiCalculatorWidget() : ""}
                 </div>
 
                 <button type="submit" id="contact-submit-btn" class="btn btn-lime" style="width:100%;font-size:15px;padding:14px;">
-                  Send Message to yoletech@yolestica.com →
+                  Send Message to yoletech@yoletica.com →
                 </button>
                 ${this.renderFormConfirmation('contact')}
               </form>
@@ -4220,16 +4248,16 @@ ${C.renderRoiCalculatorWidget ? C.renderRoiCalculatorWidget() : ""}
 
     if (hoursVal) hoursVal.textContent = `${hours} hrs / wk`;
     if (staffVal) staffVal.textContent = `${staff} Staff`;
-    if (rateVal) rateVal.textContent = `${rate} / hr`;
+    if (rateVal) rateVal.textContent = `$${rate} / hr`;
 
     const totalHoursPerYear = hours * staff * 52;
     const annualCost = totalHoursPerYear * rate;
     const hoursSaved = Math.round(totalHoursPerYear * 0.75);
     const netSavings = Math.round(annualCost * 0.75);
 
-    if (currentCostEl) currentCostEl.innerHTML = `${annualCost.toLocaleString()} <span style="font-size:15px;color:var(--yole-text-muted);font-weight:500;">/ year</span>`;
+    if (currentCostEl) currentCostEl.innerHTML = `$${annualCost.toLocaleString()} <span style="font-size:15px;color:var(--yole-text-muted);font-weight:500;">/ year</span>`;
     if (hoursSavedEl) hoursSavedEl.textContent = `${hoursSaved.toLocaleString()} hrs`;
-    if (netSavingsEl) netSavingsEl.textContent = `${netSavings.toLocaleString()} / yr`;
+    if (netSavingsEl) netSavingsEl.textContent = `$${netSavings.toLocaleString()} / yr`;
   }
 
   applyRoiEstimateToInquiry() {
@@ -4245,7 +4273,7 @@ ${C.renderRoiCalculatorWidget ? C.renderRoiCalculatorWidget() : ""}
     const netSavings = Math.round(totalHoursPerYear * rate * 0.75).toLocaleString();
 
     this.contactServiceSelected = 'Data Analysis & Analytics';
-    this.pendingInquiryMessage = `Hi John, based on your interactive ROI calculator, our team spends approximately ${hours} hrs/week across ${staff} staff on manual reporting (approx. ${annualCost}/year). We would like to discuss implementing an automated Power BI & SQL pipeline to reclaim operational time and achieve an estimated ${netSavings}/year in savings.`;
+    this.pendingInquiryMessage = `Hi John, based on your interactive ROI calculator, our team spends approximately ${hours} hrs/week across ${staff} staff on manual reporting (approx. $${annualCost}/year). We would like to discuss implementing an automated Power BI & SQL pipeline to reclaim operational time and achieve an estimated $${netSavings}/year in savings.`;
 
     this.navigate('contact');
     setTimeout(() => {
@@ -4781,7 +4809,7 @@ ${C.renderRoiCalculatorWidget ? C.renderRoiCalculatorWidget() : ""}
             </div>
             <div class="form-group">
               <label class="form-label">Live Demo Project URL (Optional)</label>
-              <input type="url" name="demo_url" class="form-control" value="${editing ? (editing.demo_url || editing.live_url || '').replace(/"/g, '&quot;') : ''}" placeholder="https://demo.yolestica.com or Kaggle/Dashboard link" />
+              <input type="url" name="demo_url" class="form-control" value="${editing ? (editing.demo_url || editing.live_url || '').replace(/"/g, '&quot;') : ''}" placeholder="https://yoletech.yoletica.com or Kaggle/Dashboard link" />
             </div>
             <div class="form-group portfolio-featured-field">
               <label class="portfolio-featured-label">
