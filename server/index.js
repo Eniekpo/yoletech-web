@@ -3,7 +3,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const crypto = require('node:crypto');
 const os = require('node:os');
-const { renderBlogPage } = require('./blog-page.js');
+const { renderBlogPage, renderRouteSeoHtml, renderSitemapXml } = require('./blog-page.js');
 let DatabaseSync = null;
 try {
   ({ DatabaseSync } = require('node:sqlite'));
@@ -2016,6 +2016,14 @@ const requestHandler = async (req, res) => {
       return;
     }
 
+    // Dynamic XML Sitemap for SEO crawlers
+    if (pathname === '/sitemap.xml') {
+      const xml = renderSitemapXml();
+      res.writeHead(200, { 'Content-Type': 'application/xml; charset=utf-8' });
+      res.end(req.method === 'HEAD' ? undefined : xml);
+      return;
+    }
+
     // --- STATIC FILE & SPA FALLBACK SERVING ---
     let relativeTarget = pathname === '/' ? 'index.html' : pathname.replace(/^\/+/, '');
     if (pathname === '/admin/') {
@@ -2040,9 +2048,15 @@ const requestHandler = async (req, res) => {
       return;
     }
 
-    // SPA fallback to index.html
+    // SPA fallback to route-aware SEO HTML (or index.html)
     const indexHtml = path.join(PUBLIC_DIR, 'index.html');
     if (fs.existsSync(indexHtml)) {
+      const seoHtml = renderRouteSeoHtml(pathname);
+      if (seoHtml) {
+        res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
+        res.end(req.method === 'HEAD' ? undefined : seoHtml);
+        return;
+      }
       res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
       if (req.method === 'HEAD') {
         res.end();

@@ -1112,12 +1112,12 @@ class YoletechApp {
               .map(
                 (item) => `
               <li>
-                <a class="nav-link ${
+                <a href="/${item.id}" class="nav-link ${
                   this.currentPage === item.id ||
                   (item.id === 'blog' && this.currentPage === 'blog-detail')
                     ? 'active'
                     : ''
-                }" onclick="window.app.navigate('${item.id}')">${item.label}</a>
+                }" onclick="event.preventDefault(); window.app.navigate('${item.id}')">${item.label}</a>
               </li>
             `
               )
@@ -1252,12 +1252,12 @@ class YoletechApp {
             <p>Practical expertise across modern web, data, and digital operations.</p>
           </div>
           <ul class="footer-link-grid">
-            <li><a onclick="window.app.navigate('services')"><span>Full-Stack Web Development</span><span aria-hidden="true">↗</span></a></li>
-            <li><a onclick="window.app.navigate('services')"><span>Data Analytics &amp; BI Dashboards</span><span aria-hidden="true">↗</span></a></li>
-            <li><a onclick="window.app.navigate('services')"><span>AI &amp; Python/VBA Automation</span><span aria-hidden="true">↗</span></a></li>
-            <li><a onclick="window.app.navigate('services')"><span>Tech Tutorials &amp; Staff Training</span><span aria-hidden="true">↗</span></a></li>
-            <li><a onclick="window.app.navigate('services')"><span>Graphic Design &amp; Video Editing</span><span aria-hidden="true">↗</span></a></li>
-            <li><a onclick="window.app.navigate('services')"><span>IT &amp; Database Support</span><span aria-hidden="true">↗</span></a></li>
+            <li><a href="/services" onclick="event.preventDefault(); window.app.navigate('services')"><span>Full-Stack Web Development</span><span aria-hidden="true">↗</span></a></li>
+            <li><a href="/services" onclick="event.preventDefault(); window.app.navigate('services')"><span>Data Analytics &amp; BI Dashboards</span><span aria-hidden="true">↗</span></a></li>
+            <li><a href="/services" onclick="event.preventDefault(); window.app.navigate('services')"><span>AI &amp; Python/VBA Automation</span><span aria-hidden="true">↗</span></a></li>
+            <li><a href="/services" onclick="event.preventDefault(); window.app.navigate('services')"><span>Tech Tutorials &amp; Staff Training</span><span aria-hidden="true">↗</span></a></li>
+            <li><a href="/services" onclick="event.preventDefault(); window.app.navigate('services')"><span>Graphic Design &amp; Video Editing</span><span aria-hidden="true">↗</span></a></li>
+            <li><a href="/services" onclick="event.preventDefault(); window.app.navigate('services')"><span>IT &amp; Database Support</span><span aria-hidden="true">↗</span></a></li>
           </ul>
         </div>
       `,
@@ -1269,11 +1269,11 @@ class YoletechApp {
             <p>See how thoughtful engineering turns complex challenges into clear outcomes.</p>
           </div>
           <ul class="footer-link-grid">
-            <li><a onclick="window.app.navigate('about')"><span>About YOLETECH</span><span aria-hidden="true">↗</span></a></li>
-            <li><a onclick="window.app.navigate('portfolio')"><span>Portfolio &amp; Case Studies</span><span aria-hidden="true">↗</span></a></li>
-            <li><a onclick="window.app.navigate('testimonials')"><span>Client Testimonials</span><span aria-hidden="true">↗</span></a></li>
-            <li><a onclick="window.app.navigate('blog')"><span>Blog &amp; Tutorials</span><span aria-hidden="true">↗</span></a></li>
-            <li><a onclick="window.app.navigate('login')"><span>Client Portal</span><span aria-hidden="true">↗</span></a></li>
+            <li><a href="/about" onclick="event.preventDefault(); window.app.navigate('about')"><span>About YOLETECH</span><span aria-hidden="true">↗</span></a></li>
+            <li><a href="/portfolio" onclick="event.preventDefault(); window.app.navigate('portfolio')"><span>Portfolio &amp; Case Studies</span><span aria-hidden="true">↗</span></a></li>
+            <li><a href="/testimonials" onclick="event.preventDefault(); window.app.navigate('testimonials')"><span>Client Testimonials</span><span aria-hidden="true">↗</span></a></li>
+            <li><a href="/blog" onclick="event.preventDefault(); window.app.navigate('blog')"><span>Blog &amp; Tutorials</span><span aria-hidden="true">↗</span></a></li>
+            <li><a href="/login" onclick="event.preventDefault(); window.app.navigate('login')"><span>Client Portal</span><span aria-hidden="true">↗</span></a></li>
             <li><a href="/cv.html" target="_blank" rel="noopener"><span>Curriculum Vitae</span><span aria-hidden="true">↗</span></a></li>
           </ul>
         </div>
@@ -2691,7 +2691,7 @@ ${C.renderRoiCalculatorWidget ? C.renderRoiCalculatorWidget() : ""}
         <div>
           <div style="display:flex;justify-content:space-between;align-items:center;border-top:1px solid rgba(255,255,255,0.1);padding-top:12px;font-size:13.5px;font-weight:700;color:#C8E61E;">
             <span>By ${post.author}</span>
-            <span>Read Full Article →</span>
+            <a href="/blog/${post.slug}" style="color:inherit;text-decoration:none;" onclick="event.preventDefault(); event.stopPropagation(); window.app.navigate('blog-detail', '${post.slug}')">Read Full Article →</a>
           </div>
         </div>
       </div>
@@ -5190,6 +5190,193 @@ ${C.renderRoiCalculatorWidget ? C.renderRoiCalculatorWidget() : ""}
     if (metricEl) metricEl.textContent = info.metric;
   }
 
+  updatePageSeoMeta() {
+    if (typeof document === 'undefined') return;
+    const baseOrigin = 'https://yoletech.yoletica.com';
+    const seoMap = {
+      home: {
+        title: 'YOLETECH | Executive Business Intelligence, Analytics & Full-Stack Solutions',
+        description:
+          'YOLETECH — Executive Business Intelligence, Interactive Power BI & Tableau Dashboards, SQL Data Pipelines & Full-Stack Web Development by John Oruebi Eniekpo, B.Sc.',
+        path: '/',
+        type: 'website',
+        image: `${baseOrigin}/assets/dashboard-preview.jpg`,
+        schemaType: 'WebPage'
+      },
+      dashboard: {
+        title: 'Executive BI & Client Operations Dashboard | YOLETECH',
+        description:
+          'Interactive Executive Business Intelligence Dashboard showcasing real-time client metrics, conversion funnels, service distribution, and analytics performance.',
+        path: '/dashboard',
+        type: 'website',
+        image: `${baseOrigin}/assets/dashboard-preview.jpg`,
+        schemaType: 'WebPage'
+      },
+      about: {
+        title: 'About John Oruebi Eniekpo | Data Analyst, BI Specialist & Full-Stack Developer — YOLETECH',
+        description:
+          'Learn about John Oruebi Eniekpo, B.Sc., Lead Data Analyst, Business Intelligence Specialist, and Full-Stack Web Developer behind YOLETECH in Yenagoa, Bayelsa State, Nigeria.',
+        path: '/about',
+        type: 'profile',
+        image: `${baseOrigin}/assets/about-analytics-workspace.jpg`,
+        schemaType: 'AboutPage'
+      },
+      services: {
+        title: 'Data Analytics, Power BI, Automation & Full-Stack Web Services | YOLETECH',
+        description:
+          'Explore YOLETECH services: Full-Stack Web Development, Power BI & Tableau Dashboards, Python & Excel VBA Workflow Automation, SQL Database Governance, and Tech Mentorship.',
+        path: '/services',
+        type: 'website',
+        image: `${baseOrigin}/assets/dashboard-preview.jpg`,
+        schemaType: 'CollectionPage'
+      },
+      portfolio: {
+        title: 'Portfolio & Case Studies | Data Analytics, BI & Full-Stack Web Projects — YOLETECH',
+        description:
+          'Explore verified case studies and portfolio projects delivered by YOLETECH across Power BI, Tableau, Python Machine Learning, Streamlit, React.js, and SQL databases.',
+        path: '/portfolio',
+        type: 'website',
+        image: `${baseOrigin}/assets/dashboard-preview.jpg`,
+        schemaType: 'CollectionPage'
+      },
+      testimonials: {
+        title: 'Client & Mentee Testimonials | Verified Reviews — YOLETECH',
+        description:
+          'Read verified client testimonials and endorsements from executive stakeholders, research partners, and 200+ data analytics mentees trained by YOLETECH.',
+        path: '/testimonials',
+        type: 'website',
+        image: `${baseOrigin}/assets/dashboard-preview.jpg`,
+        schemaType: 'CollectionPage'
+      },
+      blog: {
+        title: 'Blog & Tutorials | Data Analytics, Power BI, SQL, Python & Web Engineering — YOLETECH',
+        description:
+          'Practical technical guides, SQL and Python tutorials, Power BI and Tableau dashboard architecture walkthroughs, and full-stack engineering articles by John Oruebi Eniekpo.',
+        path: '/blog',
+        type: 'website',
+        image: `${baseOrigin}/assets/dashboard-preview.jpg`,
+        schemaType: 'CollectionPage'
+      },
+      contact: {
+        title: 'Contact YOLETECH | Book a Discovery Call or Request a Project Proposal',
+        description:
+          'Contact John Oruebi Eniekpo at YOLETECH (yoletech@yoletica.com | +234 802 552 6389) for Full-Stack Web Development, Power BI Dashboards, SQL Pipelines, and Automation.',
+        path: '/contact',
+        type: 'website',
+        image: `${baseOrigin}/assets/dashboard-preview.jpg`,
+        schemaType: 'ContactPage'
+      },
+      login: {
+        title: 'Client Portal Login & Registration | YOLETECH',
+        description: 'Sign in or register for the YOLETECH Client Portal to track project deliverables, data pipelines, and support inquiries.',
+        path: '/login',
+        type: 'website',
+        image: `${baseOrigin}/assets/dashboard-preview.jpg`,
+        schemaType: 'WebPage'
+      }
+    };
+
+    let meta = seoMap[this.currentPage] || seoMap.home;
+    let schemaPayload = null;
+
+    if (this.currentPage === 'blog-detail') {
+      const post = this.activeBlogPost || (this.blogPosts && this.blogPosts[0]);
+      if (post) {
+        const postImage = post.coverImage
+          ? post.coverImage.startsWith('http')
+            ? post.coverImage
+            : `${baseOrigin}${post.coverImage.startsWith('/') ? '' : '/'}${post.coverImage}`
+          : `${baseOrigin}/assets/dashboard-preview.jpg`;
+        meta = {
+          title: `${post.title} | YOLETECH`,
+          description: post.summary || `${post.title} — Technical article by ${post.author || 'John Oruebi Eniekpo'}.`,
+          path: `/blog/${post.slug}`,
+          type: 'article',
+          image: postImage,
+          schemaType: 'BlogPosting'
+        };
+        schemaPayload = {
+          '@context': 'https://schema.org',
+          '@type': 'BlogPosting',
+          headline: post.title,
+          description: meta.description,
+          image: postImage,
+          datePublished: post.date || '2026-10-15',
+          dateModified: post.date || '2026-10-15',
+          articleSection: post.category || 'Data Analytics & BI',
+          author: {
+            '@type': 'Person',
+            name: post.author || 'John Oruebi Eniekpo',
+            url: `${baseOrigin}/about`
+          },
+          publisher: {
+            '@type': 'Organization',
+            name: 'YOLETECH',
+            logo: {
+              '@type': 'ImageObject',
+              url: `${baseOrigin}/assets/yoletech-icon.png`
+            }
+          },
+          mainEntityOfPage: {
+            '@type': 'WebPage',
+            '@id': `${baseOrigin}${meta.path}`
+          }
+        };
+      }
+    }
+
+    const canonicalUrl = `${baseOrigin}${meta.path}`;
+    document.title = meta.title;
+
+    const setMetaTag = (attr, key, val) => {
+      let el = document.querySelector(`meta[${attr}="${key}"]`);
+      if (!el) {
+        el = document.createElement('meta');
+        el.setAttribute(attr, key);
+        document.head.appendChild(el);
+      }
+      el.setAttribute('content', val);
+    };
+
+    setMetaTag('name', 'description', meta.description);
+    setMetaTag('property', 'og:type', meta.type);
+    setMetaTag('property', 'og:title', meta.title);
+    setMetaTag('property', 'og:description', meta.description);
+    setMetaTag('property', 'og:url', canonicalUrl);
+    setMetaTag('property', 'og:image', meta.image);
+    setMetaTag('name', 'twitter:title', meta.title);
+    setMetaTag('name', 'twitter:description', meta.description);
+    setMetaTag('name', 'twitter:image', meta.image);
+
+    let canonicalEl = document.querySelector('link[rel="canonical"]');
+    if (!canonicalEl) {
+      canonicalEl = document.createElement('link');
+      canonicalEl.setAttribute('rel', 'canonical');
+      document.head.appendChild(canonicalEl);
+    }
+    canonicalEl.setAttribute('href', canonicalUrl);
+
+    if (!schemaPayload) {
+      schemaPayload = {
+        '@context': 'https://schema.org',
+        '@type': meta.schemaType || 'WebPage',
+        name: meta.title,
+        description: meta.description,
+        url: canonicalUrl,
+        isPartOf: { '@id': `${baseOrigin}/#website` }
+      };
+    }
+
+    let ldScript = document.getElementById('dynamic-seo-jsonld');
+    if (!ldScript) {
+      ldScript = document.createElement('script');
+      ldScript.id = 'dynamic-seo-jsonld';
+      ldScript.type = 'application/ld+json';
+      document.head.appendChild(ldScript);
+    }
+    ldScript.textContent = JSON.stringify(schemaPayload);
+  }
+
   // ==========================================================================
   // MASTER RENDER
   // ==========================================================================
@@ -5265,6 +5452,7 @@ ${C.renderRoiCalculatorWidget ? C.renderRoiCalculatorWidget() : ""}
       }
     }
     this.renderToast();
+    this.updatePageSeoMeta();
     window.YOLETECH_COMPONENTS?.decorateCardIcons(root);
     this.initKpiCounters(root);
     this.initScrollReveal(root);
