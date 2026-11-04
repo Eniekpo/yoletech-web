@@ -42,7 +42,7 @@ class YoletechApp {
     this.user = JSON.parse(localStorage.getItem('yoletech_user') || 'null');
 
     this.portfolio = [];
-    this.testimonials = [];
+    this.testimonials = window.YOLETECH_DATA?.defaultTestimonials || [];
     this.blogPosts = [];
     this.clients = [];
     this.inquiries = [];
@@ -63,19 +63,23 @@ class YoletechApp {
     this.applyTheme(this.theme, false);
     this.bindThemeListener();
     this.resolveInitialRoute();
+    this.render();
+    this.startSlideshow();
     await this.loadPublicData();
     if (this.token) {
       await this.verifySession();
     }
+    this.render();
     if (typeof this.loadDashboardData === 'function') {
       try {
         await this.loadDashboardData(true);
+        if (this.currentPage === 'dashboard') {
+          this.render();
+        }
       } catch (e) {
         console.warn('Dashboard pre-load notice:', e);
       }
     }
-    this.render();
-    this.startSlideshow();
   }
 
   bindScrollProgress() {
