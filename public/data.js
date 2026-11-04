@@ -237,6 +237,11 @@ window.YOLETECH_DATA = {
       category: "AI & Machine Learning",
       accent: "lime",
       skills: ["Introductory & Intermediate Machine Learning", "AI Ethics", "Game AI & Reinforcement Learning", "Workflow Automation"]
+    },
+    {
+      category: "Workflow Automation & IT Support",
+      accent: "orange",
+      skills: ["Python ETL & Report Automation", "Excel VBA Macros", "REST API Integration", "IT Systems & Technical Support", "Technical Documentation & Training", "Brand & Video Media"]
     }
   ],
 

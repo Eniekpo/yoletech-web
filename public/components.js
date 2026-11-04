@@ -81,7 +81,11 @@ window.YOLETECH_COMPONENTS = {
       if (!label || !label.textContent.trim()) return;
 
       const icon = document.createElement('span');
-      icon.className = `site-card-icon${/inquir|contact|message|workflow|automation|service|support|saving|cost/i.test(label.textContent) ? ' site-card-icon-orange' : ''}`;
+      const isOrangeAccent =
+        label.classList.contains('about-accent-orange') ||
+        label.classList.contains('accent-orange') ||
+        /inquir|contact|message|workflow|automation|service|support|saving|cost/i.test(label.textContent);
+      icon.className = `site-card-icon${isOrangeAccent ? ' site-card-icon-orange' : ''}`;
       icon.setAttribute('aria-hidden', 'true');
       icon.innerHTML = this.getIcon(this.cardIconName(label.textContent));
 

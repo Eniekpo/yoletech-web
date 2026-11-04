@@ -1768,15 +1768,17 @@ class YoletechApp {
                   ${D.coreProficiencies
                     .map(
                       (prof) => `
-                    <article class="about-info-card">
+                    <article class="about-info-card about-prof-card about-prof-${prof.accent}">
                       <h4 class="about-accent-${prof.accent}">${prof.category}</h4>
-                      <p class="about-skill-summary">${prof.skills.join(', ')}</p>
+                      <div class="about-skill-summary about-skill-tags">
+                        ${prof.skills.map((skill) => `<span class="about-skill-chip">${skill}</span>`).join('')}
+                      </div>
                     </article>
                   `
                     )
                     .join('')}
                   <article class="about-info-card about-competencies">
-                    <h4 class="accent-lime">Professional competencies</h4>
+                    <h4 class="about-accent-lime">Professional competencies</h4>
                     <div class="about-competency-list">
                       ${D.competencies
                         .map(

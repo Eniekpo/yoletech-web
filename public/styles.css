@@ -2562,14 +2562,29 @@ a.footer-contact-item:hover {
 
 .about-info-card {
   min-width: 0;
-  padding: 20px;
-  background: rgba(15, 13, 44, 0.48);
-  border: 1px solid rgba(255, 255, 255, 0.11);
+  padding: 22px;
+  background: rgba(15, 13, 44, 0.56);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-top: 2px solid rgba(200, 230, 30, 0.55);
   border-radius: 14px;
+  transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.about-info-card:hover {
+  transform: translateY(-2px);
+  border-color: rgba(200, 230, 30, 0.35);
+}
+
+.about-info-card.about-prof-orange {
+  border-top-color: rgba(247, 148, 29, 0.72);
+}
+
+.about-info-card.about-prof-orange:hover {
+  border-color: rgba(247, 148, 29, 0.42);
 }
 
 .about-info-card h4 {
-  margin-bottom: 15px;
+  margin-bottom: 14px;
   color: var(--yole-white);
   font-size: 16px;
   font-weight: 800;
@@ -2590,14 +2605,33 @@ a.footer-contact-item:hover {
   line-height: 1.6;
 }
 
+.about-skill-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.about-skill-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 5px 11px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.35;
+  color: var(--yole-text-muted);
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
 .about-competencies {
-  grid-column: span 2;
+  grid-column: 1 / -1;
 }
 
 .about-competency-list {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 14px 20px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px 22px;
 }
 
 .about-competency,
@@ -2605,6 +2639,13 @@ a.footer-contact-item:hover {
   display: flex;
   align-items: flex-start;
   gap: 10px;
+}
+
+.about-competency {
+  padding: 14px 16px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .about-check,
@@ -2763,7 +2804,11 @@ a.footer-contact-item:hover {
   }
 
   .about-competencies {
-    grid-column: auto;
+    grid-column: 1 / -1;
+  }
+
+  .about-competency-list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
@@ -4114,6 +4159,230 @@ details > summary {
 
 [data-theme="light"] .scope-panel-footer {
   border-top-color: #E2E8F0;
+}
+
+/* About Page Career Profile Tabs, Skill Cards, Experience & Credentials in Light Mode */
+[data-theme="light"] .about-tab-btn {
+  background: #F8FAFC;
+  border-color: #CBD5E1;
+  color: #475569;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
+}
+
+[data-theme="light"] .about-tab-btn:hover {
+  background: #FFFFFF;
+  border-color: #84CC16;
+  color: #0F172A;
+  box-shadow: 0 6px 16px rgba(15, 23, 42, 0.07);
+}
+
+[data-theme="light"] .about-tab-btn.active {
+  background: #FFFFFF;
+  border-color: #65A30D;
+  color: #0F172A;
+  box-shadow: inset 0 -3px 0 #65A30D, 0 10px 24px rgba(15, 23, 42, 0.08);
+}
+
+[data-theme="light"] .about-tab-number {
+  background: #ECFCCB;
+  border-color: #84CC16;
+  color: #3F6212;
+}
+
+[data-theme="light"] .about-tab-btn.active .about-tab-number {
+  background: #1E1B54;
+  border-color: #1E1B54;
+  color: #C8E61E;
+}
+
+[data-theme="light"] .about-tab-label {
+  color: #0F172A;
+}
+
+[data-theme="light"] .about-tab-detail {
+  color: #64748B;
+}
+
+[data-theme="light"] .about-tab-arrow {
+  color: #94A3B8;
+}
+
+[data-theme="light"] .about-tab-btn.active .about-tab-arrow {
+  color: #4D7C0F;
+}
+
+[data-theme="light"] .about-tab-panel {
+  background: #FFFFFF;
+  border-color: #E2E8F0;
+  box-shadow: 0 12px 32px rgba(15, 23, 42, 0.06);
+}
+
+[data-theme="light"] .about-panel-heading {
+  border-bottom-color: #E2E8F0;
+}
+
+[data-theme="light"] .about-panel-heading h3 {
+  color: #0F172A;
+}
+
+[data-theme="light"] .about-profile-heading p,
+[data-theme="light"] .about-panel-heading p {
+  color: #475569;
+}
+
+[data-theme="light"] .about-info-card {
+  background: #F8FAFC;
+  border-color: #E2E8F0;
+  border-top: 3px solid #65A30D;
+  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.04);
+}
+
+[data-theme="light"] .about-info-card:hover {
+  background: #FFFFFF;
+  border-color: #CBD5E1;
+  border-top-color: #4D7C0F;
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.07);
+}
+
+[data-theme="light"] .about-info-card.about-prof-orange {
+  border-top-color: #EA580C;
+}
+
+[data-theme="light"] .about-info-card.about-prof-orange:hover {
+  border-top-color: #C2410C;
+}
+
+[data-theme="light"] .about-info-card h4 {
+  color: #0F172A;
+}
+
+[data-theme="light"] .about-accent-lime {
+  color: #3F6212 !important;
+}
+
+[data-theme="light"] .about-accent-orange {
+  color: #C2410C !important;
+}
+
+[data-theme="light"] .about-skill-summary {
+  color: #334155;
+}
+
+[data-theme="light"] .about-skill-chip {
+  color: #1E293B;
+  background: #FFFFFF;
+  border-color: #CBD5E1;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.03);
+}
+
+[data-theme="light"] .about-competency {
+  background: #FFFFFF;
+  border-color: #E2E8F0;
+  box-shadow: 0 2px 6px rgba(15, 23, 42, 0.03);
+}
+
+[data-theme="light"] .about-competency strong {
+  color: #0F172A;
+}
+
+[data-theme="light"] .about-competency p {
+  color: #475569;
+}
+
+[data-theme="light"] .about-check {
+  color: #4D7C0F;
+}
+
+[data-theme="light"] .about-star {
+  color: #D97706;
+}
+
+[data-theme="light"] .about-experience-card {
+  border-top-color: #65A30D;
+}
+
+[data-theme="light"] .about-company {
+  color: #3F6212;
+}
+
+[data-theme="light"] .about-company span {
+  color: #94A3B8;
+}
+
+[data-theme="light"] .about-period {
+  color: #3F6212;
+  background: #ECFCCB;
+  border-color: #84CC16;
+}
+
+[data-theme="light"] .about-highlights {
+  color: #334155;
+}
+
+[data-theme="light"] .about-highlights li::marker {
+  color: #4D7C0F;
+}
+
+[data-theme="light"] .about-education-item {
+  border-top-color: #E2E8F0;
+}
+
+[data-theme="light"] .about-education-item h5 {
+  color: #0F172A;
+}
+
+[data-theme="light"] .about-education-item p {
+  color: #475569;
+}
+
+[data-theme="light"] .about-cert-group + .about-cert-group {
+  border-top-color: #E2E8F0;
+}
+
+[data-theme="light"] .about-cert-group h5 {
+  color: #3F6212;
+}
+
+[data-theme="light"] .about-cert-group:last-child h5 {
+  color: #C2410C;
+}
+
+[data-theme="light"] .about-cert-item {
+  color: #334155;
+}
+
+/* Additional Dark-Surface Components Adapted for Light Mode */
+[data-theme="light"] .workflow-diagram-frame {
+  background: linear-gradient(145deg, #FFFFFF 0%, #F1F5F9 100%);
+  border-color: #CBD5E1;
+  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.08);
+}
+
+[data-theme="light"] .services-ticker {
+  background: #1E1B54;
+  color: #C8E61E;
+  border-color: rgba(30, 27, 84, 0.2);
+}
+
+[data-theme="light"] .services-ticker-item span {
+  color: #F7941D;
+}
+
+[data-theme="light"] .status-badge-card {
+  background: #F8FAFC;
+  border-color: #E2E8F0;
+}
+
+[data-theme="light"] .testimonials-pager {
+  background: #FFFFFF !important;
+  border-color: #E2E8F0 !important;
+  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.04);
+}
+
+[data-theme="light"] [style*="background:rgba(200,230,30"] {
+  background: #F7FEE7 !important;
+  border-left-color: #65A30D !important;
+  color: #0F172A !important;
 }
 
 .roi-results-card {
