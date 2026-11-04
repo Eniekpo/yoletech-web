@@ -27,6 +27,12 @@ class YoletechApp {
     this.adminClientLimit = 30;
     this.testimonialPage = 1;
     this.testimonialLimit = 8;
+    this.testimonialTrackFilter = 'ALL';
+    this.testimonialSearch = '';
+    this.testimonialFormRating = 5;
+    this.portfolioSearch = '';
+    this.activePortfolioModal = null;
+    this.blogSearch = '';
     this.contactServiceSelected = 'Data Analysis & Analytics';
     this.mobileMenuOpen = false;
     this.editingBlogPost = null;
@@ -53,6 +59,7 @@ class YoletechApp {
 
   async init() {
     this.bindPopState();
+    this.bindScrollProgress();
     this.applyTheme(this.theme, false);
     this.bindThemeListener();
     this.resolveInitialRoute();
@@ -69,6 +76,63 @@ class YoletechApp {
     }
     this.render();
     this.startSlideshow();
+  }
+
+  bindScrollProgress() {
+    if (this._scrollBound) return;
+    this._scrollBound = true;
+    const updateProgress = () => {
+      const bar = document.getElementById('scroll-progress-bar');
+      if (!bar) return;
+      const docEl = document.documentElement;
+      const scrollTop = window.scrollY || docEl.scrollTop || 0;
+      const scrollHeight = Math.max(1, docEl.scrollHeight - docEl.clientHeight);
+      const pct = Math.min(100, Math.max(0, (scrollTop / scrollHeight) * 100));
+      bar.style.width = `${pct}%`;
+    };
+    window.addEventListener('scroll', updateProgress, { passive: true });
+    window.addEventListener('resize', updateProgress, { passive: true });
+  }
+
+  initScrollReveal(rootEl = document) {
+    if (!rootEl || !rootEl.querySelectorAll) return;
+    const revealTargets = rootEl.querySelectorAll(
+      '.glass-card, .metric-cell, .section-header, .about-info-card, .dash-card, .dash-kpi, .service-strip-item'
+    );
+    if (!revealTargets.length) return;
+
+    if (!('IntersectionObserver' in window)) {
+      revealTargets.forEach((el) => el.classList.add('is-revealed'));
+      return;
+    }
+
+    if (this.revealObserver && rootEl === document) {
+      this.revealObserver.disconnect();
+    }
+
+    const observer = new IntersectionObserver(
+      (entries, obs) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('is-revealed');
+            obs.unobserve(entry.target);
+          }
+        });
+      },
+      { threshold: 0.08, rootMargin: '0px 0px -24px 0px' }
+    );
+
+    if (rootEl === document) {
+      this.revealObserver = observer;
+    }
+
+    revealTargets.forEach((el, idx) => {
+      if (!el.classList.contains('is-revealed')) {
+        el.classList.add('reveal-on-scroll');
+        el.style.setProperty('--reveal-delay', `${(idx % 6) * 45}ms`);
+        observer.observe(el);
+      }
+    });
   }
 
   bindPopState() {
@@ -1040,6 +1104,7 @@ class YoletechApp {
 
     return `
       <header class="site-header">
+        <div id="scroll-progress-bar" class="scroll-progress-bar" aria-hidden="true"></div>
         <div class="container nav-inner">
           ${C.renderBrandLogo()}
           <ul class="nav-links ${this.mobileMenuOpen ? 'mobile-open' : ''}">
@@ -1446,20 +1511,20 @@ class YoletechApp {
           <div class="section-header">
             <div class="eyebrow"><span class="eyebrow-dot"></span> INTERACTIVE PREVIEW</div>
             <h2 class="section-title">Explore How Your Data &amp; Web Systems Operate</h2>
-            <div style="display:flex;justify-content:center;gap:10px;flex-wrap:wrap;margin-top:22px;">
-              <button class="selector-pill ${this.showcaseTab === 'dashboard' ? 'active' : ''}" onclick="window.app.showcaseTab='dashboard';window.app.render();">
+            <div id="home-showcase-pills" style="display:flex;justify-content:center;gap:10px;flex-wrap:wrap;margin-top:22px;">
+              <button type="button" data-showcase="dashboard" class="selector-pill ${this.showcaseTab === 'dashboard' ? 'active' : ''}" onclick="window.app.setShowcaseTab('dashboard')">
                 📊 Executive BI Dashboard
               </button>
-              <button class="selector-pill ${this.showcaseTab === 'codesync' ? 'active' : ''}" onclick="window.app.showcaseTab='codesync';window.app.render();">
+              <button type="button" data-showcase="codesync" class="selector-pill ${this.showcaseTab === 'codesync' ? 'active' : ''}" onclick="window.app.setShowcaseTab('codesync')">
                 💻 Full-Stack Code &amp; Sync UI
               </button>
-              <button class="selector-pill ${this.showcaseTab === 'workflow' ? 'active' : ''}" onclick="window.app.showcaseTab='workflow';window.app.render();">
+              <button type="button" data-showcase="workflow" class="selector-pill ${this.showcaseTab === 'workflow' ? 'active' : ''}" onclick="window.app.setShowcaseTab('workflow')">
                 ⚡ API-to-Python Automation Flow
               </button>
             </div>
           </div>
 
-          <div style="max-width:980px;margin:0 auto;">
+          <div id="home-showcase-mount" style="max-width:980px;margin:0 auto;">
             ${
               this.showcaseTab === 'dashboard'
                 ? C.renderDataOverviewWidget()
@@ -1490,13 +1555,13 @@ class YoletechApp {
                 (p) => `
               <div class="glass-card" style="display:flex;flex-direction:column;justify-content:space-between;">
                 <div>
-                  <div style="border-radius:12px;overflow:hidden;margin-bottom:16px;border:1px solid rgba(255,255,255,0.12);height:175px;">
+                  <div style="border-radius:12px;overflow:hidden;margin-bottom:16px;border:1px solid rgba(255,255,255,0.12);height:175px;cursor:pointer;" onclick="window.app.openPortfolioModal('${p.slug}')">
                     <img src="${p.preview_image}" alt="${p.title}" style="width:100%;height:100%;object-fit:cover;" />
                   </div>
                   <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
                     <span style="font-size:12px;color:var(--yole-text-muted);">${p.period}</span>
                   </div>
-                  <h3 style="font-size:19px;font-weight:800;margin-bottom:8px;">${p.title}</h3>
+                  <h3 style="font-size:19px;font-weight:800;margin-bottom:8px;cursor:pointer;" onclick="window.app.openPortfolioModal('${p.slug}')">${p.title}</h3>
                   <p style="font-size:13.5px;color:var(--yole-text-muted);margin-bottom:14px;">${p.summary}</p>
                 </div>
                 <div>
@@ -1511,7 +1576,7 @@ class YoletechApp {
                           </a>`
                         : ''
                     }
-                    <button class="btn btn-outline btn-sm" style="flex:1;" onclick="window.app.navigate('portfolio')">
+                    <button class="btn btn-outline btn-sm" style="flex:1;" onclick="window.app.openPortfolioModal('${p.slug}')">
                       Case Study →
                     </button>
                   </div>
@@ -1906,7 +1971,7 @@ class YoletechApp {
           </div>
 
           <div class="scope-tabs-container section-block-gap">
-            <div class="scope-tabs-nav" role="tablist">
+            <div class="scope-tabs-nav" id="service-scope-tabs-nav" role="tablist">
               ${D.serviceScopeTable
                 .map((row, idx) => {
                   const shortNames = [
@@ -1922,9 +1987,10 @@ class YoletechApp {
                     <button
                       type="button"
                       role="tab"
+                      data-scope-idx="${idx}"
                       aria-selected="${isActive}"
                       class="scope-tab-btn ${isActive ? 'active' : ''}"
-                      onclick="window.app.serviceScopeTab = ${idx}; window.app.render();"
+                      onclick="window.app.setServiceScopeTab(${idx})"
                     >
                       <span class="scope-tab-num">0${idx + 1}</span>
                       <span class="scope-tab-label">${shortNames[idx] || row.track}</span>
@@ -1934,64 +2000,9 @@ class YoletechApp {
                 .join('')}
             </div>
 
-            ${(() => {
-              const activeIdx = this.serviceScopeTab || 0;
-              const activeRow = D.serviceScopeTable[activeIdx] || D.serviceScopeTable[0];
-              const totalTracks = D.serviceScopeTable.length;
-              const prevIdx = (activeIdx - 1 + totalTracks) % totalTracks;
-              const nextIdx = (activeIdx + 1) % totalTracks;
-              const deliverableItems = String(activeRow.deliverables || '')
-                .split(',')
-                .map((s) => s.trim())
-                .filter(Boolean);
-
-              return `
-                <div class="glass-card scope-tab-panel">
-                  <div class="scope-panel-header">
-                    <div>
-                      <div class="scope-track-step">SERVICE TRACK 0${activeIdx + 1} OF 0${totalTracks}</div>
-                      <h3 class="scope-track-title">${activeRow.track}</h3>
-                    </div>
-                    <div class="scope-timeline-box">
-                      <span class="scope-timeline-label">Typical Timeline</span>
-                      <span>${activeRow.timeline}</span>
-                    </div>
-                  </div>
-
-                  <div class="scope-panel-grid">
-                    <div class="scope-subcard">
-                      <div class="scope-subcard-title">Deliverables &amp; Execution Standards</div>
-                      <ul class="scope-deliverables-list">
-                        ${deliverableItems
-                          .map(
-                            (item) => `
-                          <li>
-                            <span class="scope-check">✓</span>
-                            <span>${item.charAt(0).toUpperCase() + item.slice(1)}</span>
-                          </li>
-                        `
-                          )
-                          .join('')}
-                      </ul>
-                    </div>
-                  </div>
-
-                  <div class="scope-panel-footer">
-                    <div class="scope-step-nav">
-                      <button type="button" class="btn btn-outline btn-sm" onclick="window.app.serviceScopeTab = ${prevIdx}; window.app.render();">
-                        ← Prev
-                      </button>
-                      <button type="button" class="btn btn-outline btn-sm" onclick="window.app.serviceScopeTab = ${nextIdx}; window.app.render();">
-                        Next →
-                      </button>
-                    </div>
-                    <button type="button" class="btn btn-lime btn-sm scope-request-btn" onclick="window.app.selectContactService('${activeRow.track}')">
-                      Request ${activeRow.track} →
-                    </button>
-                  </div>
-                </div>
-              `;
-            })()}
+            <div id="service-scope-mount">
+              ${this.renderServiceScopePanel()}
+            </div>
           </div>
 
 ${C.renderRoiCalculatorWidget ? C.renderRoiCalculatorWidget() : ""}
@@ -2026,9 +2037,246 @@ ${C.renderRoiCalculatorWidget ? C.renderRoiCalculatorWidget() : ""}
     `;
   }
 
+  renderServiceScopePanel() {
+    const D = window.YOLETECH_DATA;
+    const activeIdx = this.serviceScopeTab || 0;
+    const activeRow = D.serviceScopeTable[activeIdx] || D.serviceScopeTable[0];
+    const totalTracks = D.serviceScopeTable.length;
+    const prevIdx = (activeIdx - 1 + totalTracks) % totalTracks;
+    const nextIdx = (activeIdx + 1) % totalTracks;
+    const deliverableItems = String(activeRow.deliverables || '')
+      .split(',')
+      .map((s) => s.trim())
+      .filter(Boolean);
+
+    return `
+      <div class="glass-card scope-tab-panel is-revealed">
+        <div class="scope-panel-header">
+          <div>
+            <div class="scope-track-step">SERVICE TRACK 0${activeIdx + 1} OF 0${totalTracks}</div>
+            <h3 class="scope-track-title">${activeRow.track}</h3>
+          </div>
+          <div class="scope-timeline-box">
+            <span class="scope-timeline-label">Typical Timeline</span>
+            <span>${activeRow.timeline}</span>
+          </div>
+        </div>
+
+        <div class="scope-panel-grid">
+          <div class="scope-subcard">
+            <div class="scope-subcard-title">Deliverables &amp; Execution Standards</div>
+            <ul class="scope-deliverables-list">
+              ${deliverableItems
+                .map(
+                  (item) => `
+                <li>
+                  <span class="scope-check">✓</span>
+                  <span>${item.charAt(0).toUpperCase() + item.slice(1)}</span>
+                </li>
+              `
+                )
+                .join('')}
+            </ul>
+          </div>
+        </div>
+
+        <div class="scope-panel-footer">
+          <div class="scope-step-nav">
+            <button type="button" class="btn btn-outline btn-sm" onclick="window.app.setServiceScopeTab(${prevIdx})">
+              ← Prev
+            </button>
+            <button type="button" class="btn btn-outline btn-sm" onclick="window.app.setServiceScopeTab(${nextIdx})">
+              Next →
+            </button>
+          </div>
+          <button type="button" class="btn btn-lime btn-sm scope-request-btn" onclick="window.app.selectContactService('${activeRow.track}')">
+            Request ${activeRow.track} →
+          </button>
+        </div>
+      </div>
+    `;
+  }
+
+  setServiceScopeTab(idx) {
+    this.serviceScopeTab = idx;
+    const mount = document.getElementById('service-scope-mount');
+    const nav = document.getElementById('service-scope-tabs-nav');
+    if (nav) {
+      nav.querySelectorAll('.scope-tab-btn').forEach((btn) => {
+        const isCurrent = Number(btn.getAttribute('data-scope-idx')) === idx;
+        btn.classList.toggle('active', isCurrent);
+        btn.setAttribute('aria-selected', String(isCurrent));
+      });
+    }
+    if (mount) {
+      mount.innerHTML = this.renderServiceScopePanel();
+      window.YOLETECH_COMPONENTS?.decorateCardIcons(mount);
+    } else {
+      this.render();
+    }
+  }
+
   // ==========================================================================
   // PAGE 4: PORTFOLIO (FILTERABLE CASE STUDIES — POWERED BY DECAP BRIDGE)
   // ==========================================================================
+  getFilteredPortfolio() {
+    const query = (this.portfolioSearch || '').trim().toLowerCase();
+    return (this.portfolio || []).filter((p) => {
+      const catMatch = this.portfolioFilter === 'ALL' || p.category === this.portfolioFilter;
+      if (!catMatch) return false;
+      if (!query) return true;
+      const haystack = `${p.title || ''} ${p.summary || ''} ${p.category || ''} ${p.organization || ''} ${p.impact_metrics || ''} ${(p.tech_stack || []).join(' ')}`.toLowerCase();
+      return haystack.includes(query);
+    });
+  }
+
+  renderPortfolioCardsHtml(filtered) {
+    if (!filtered.length) {
+      return `
+        <div class="glass-card is-revealed" style="grid-column:1/-1;text-align:center;padding:42px 24px;">
+          <h3 style="font-size:20px;font-weight:800;margin-bottom:8px;">No Matching Case Studies Found</h3>
+          <p style="font-size:14px;color:var(--yole-text-muted);margin-bottom:16px;">Try clearing your search filter or selecting "All Case Studies".</p>
+          <button type="button" class="btn btn-outline btn-sm" onclick="window.app.portfolioFilter='ALL';window.app.portfolioSearch='';window.app.render();">
+            Reset Filters
+          </button>
+        </div>
+      `;
+    }
+    return filtered
+      .map(
+        (p) => `
+      <article class="glass-card portfolio-project-card is-revealed">
+        <div class="portfolio-project-image" style="cursor:pointer;" onclick="window.app.openPortfolioModal('${p.slug}')">
+          <img src="${p.preview_image}" alt="${p.title}" loading="lazy" decoding="async" />
+        </div>
+        <h2 class="portfolio-project-title" style="cursor:pointer;" onclick="window.app.openPortfolioModal('${p.slug}')">${p.title}</h2>
+        <div class="portfolio-project-actions">
+            ${
+              p.demo_url || p.live_url
+                ? `<a href="${p.demo_url || p.live_url}" target="_blank" rel="noopener noreferrer" class="btn btn-lime btn-sm portfolio-project-action">
+                    Live Demo <span aria-hidden="true">↗</span>
+                  </a>`
+                : ''
+            }
+            <button type="button" class="btn btn-outline btn-sm portfolio-project-action" onclick="window.app.openPortfolioModal('${p.slug}')">
+              Case Study
+            </button>
+            <button type="button" class="btn btn-outline btn-sm portfolio-project-action portfolio-project-action-wide" onclick="window.app.selectContactService('${p.category}')">
+              Build Similar <span aria-hidden="true">→</span>
+            </button>
+        </div>
+      </article>
+    `
+      )
+      .join('');
+  }
+
+  setPortfolioFilter(cat) {
+    this.portfolioFilter = cat;
+    const pillsWrap = document.getElementById('portfolio-filter-pills');
+    const gridMount = document.getElementById('portfolio-grid-mount');
+    if (pillsWrap && gridMount) {
+      pillsWrap.querySelectorAll('.selector-pill').forEach((btn) => {
+        btn.classList.toggle('active', btn.getAttribute('data-cat') === cat);
+      });
+      gridMount.innerHTML = this.renderPortfolioCardsHtml(this.getFilteredPortfolio());
+      window.YOLETECH_COMPONENTS?.decorateCardIcons(gridMount);
+    } else {
+      this.render();
+    }
+  }
+
+  handlePortfolioSearch(val) {
+    this.portfolioSearch = val;
+    const gridMount = document.getElementById('portfolio-grid-mount');
+    if (gridMount) {
+      gridMount.innerHTML = this.renderPortfolioCardsHtml(this.getFilteredPortfolio());
+      window.YOLETECH_COMPONENTS?.decorateCardIcons(gridMount);
+    }
+  }
+
+  openPortfolioModal(slug) {
+    const project = (this.portfolio || []).find((p) => p.slug === slug);
+    if (!project) return;
+    this.activePortfolioModal = project;
+
+    let modalRoot = document.getElementById('portfolio-case-modal-root');
+    if (!modalRoot) {
+      modalRoot = document.createElement('div');
+      modalRoot.id = 'portfolio-case-modal-root';
+      document.body.appendChild(modalRoot);
+    }
+
+    const techStack = Array.isArray(project.tech_stack) ? project.tech_stack : [];
+    modalRoot.innerHTML = `
+      <div class="case-modal-backdrop" onclick="window.app.closePortfolioModal()"></div>
+      <div class="case-modal-dialog glass-card is-revealed" role="dialog" aria-modal="true" aria-label="${project.title}">
+        <div class="case-modal-header">
+          <div>
+            <div class="eyebrow" style="margin-bottom:4px;"><span class="eyebrow-dot"></span> ${project.category || 'CASE STUDY'}</div>
+            <h2 style="font-size:clamp(20px,2.6vw,28px);font-weight:900;line-height:1.25;margin:0;">${project.title}</h2>
+          </div>
+          <button type="button" class="contact-modal-close" aria-label="Close case study" onclick="window.app.closePortfolioModal()">✕</button>
+        </div>
+
+        <div class="case-modal-body">
+          ${
+            project.preview_image
+              ? `<div style="border-radius:14px;overflow:hidden;max-height:280px;margin-bottom:18px;border:1px solid var(--yole-border-subtle);">
+                  <img src="${project.preview_image}" alt="${project.title}" style="width:100%;height:100%;object-fit:cover;" />
+                </div>`
+              : ''
+          }
+          <div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;font-size:13px;color:var(--yole-text-muted);margin-bottom:14px;">
+            <span><strong>Organization:</strong> ${project.organization || 'Client Partner'}</span>
+            <span><strong>Timeline:</strong> ${project.period || 'Completed'}</span>
+          </div>
+          <p style="font-size:15px;color:var(--yole-text-muted);line-height:1.65;margin-bottom:16px;">${project.summary || ''}</p>
+          ${
+            project.impact_metrics
+              ? `<div style="background:rgba(200,230,30,0.1);border-left:4px solid #C8E61E;padding:12px 16px;border-radius:0 10px 10px 0;margin-bottom:18px;font-size:13.5px;">
+                  <strong style="color:#C8E61E;">Verified Impact:</strong> ${project.impact_metrics}
+                </div>`
+              : ''
+          }
+          ${
+            techStack.length
+              ? `<div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:18px;">
+                  ${techStack.map((t) => `<span class="badge badge-lime">${t}</span>`).join('')}
+                </div>`
+              : ''
+          }
+          ${
+            project.body
+              ? `<div class="article-content" style="border-top:1px solid var(--yole-border-subtle);padding-top:16px;">
+                  ${this.formatMarkdownToHtml(project.body)}
+                </div>`
+              : ''
+          }
+        </div>
+
+        <div class="case-modal-footer">
+          ${
+            project.demo_url || project.live_url
+              ? `<a href="${project.demo_url || project.live_url}" target="_blank" rel="noopener noreferrer" class="btn btn-lime btn-sm">
+                  Open Live Demo ↗
+                </a>`
+              : ''
+          }
+          <button type="button" class="btn btn-outline btn-sm" onclick="window.app.closePortfolioModal(); window.app.selectContactService('${project.category}')">
+            Request Similar Solution →
+          </button>
+        </div>
+      </div>
+    `;
+  }
+
+  closePortfolioModal() {
+    this.activePortfolioModal = null;
+    const modalRoot = document.getElementById('portfolio-case-modal-root');
+    if (modalRoot) modalRoot.innerHTML = '';
+  }
+
   renderPortfolioPage() {
     const categories = [
       'ALL',
@@ -2039,10 +2287,7 @@ ${C.renderRoiCalculatorWidget ? C.renderRoiCalculatorWidget() : ""}
       'Tech Tutorials & Training'
     ];
 
-    const filtered =
-      this.portfolioFilter === 'ALL'
-        ? this.portfolio
-        : this.portfolio.filter((p) => p.category === this.portfolioFilter);
+    const filtered = this.getFilteredPortfolio();
 
     return `
       <section class="section">
@@ -2061,44 +2306,35 @@ ${C.renderRoiCalculatorWidget ? C.renderRoiCalculatorWidget() : ""}
                   </div>`
                 : ''
             }
-            <div style="display:flex;justify-content:center;flex-wrap:wrap;gap:8px;margin-top:24px;">
+            <div style="max-width:440px;margin:20px auto 0;">
+              <input
+                type="search"
+                id="portfolio-search-input"
+                class="form-control"
+                placeholder="Search case studies by keyword, stack, or outcome..."
+                value="${this.portfolioSearch || ''}"
+                oninput="window.app.handlePortfolioSearch(this.value)"
+              />
+            </div>
+            <div id="portfolio-filter-pills" style="display:flex;justify-content:center;flex-wrap:wrap;gap:8px;margin-top:16px;">
               ${categories
-                .map(
-                  (cat) => `
-                <button class="selector-pill ${this.portfolioFilter === cat ? 'active' : ''}" onclick="window.app.portfolioFilter='${cat}';window.app.render();">
-                  ${cat === 'ALL' ? 'All Case Studies' : cat}
-                </button>
-              `
-                )
+                .map((cat) => {
+                  const count =
+                    cat === 'ALL'
+                      ? (this.portfolio || []).length
+                      : (this.portfolio || []).filter((p) => p.category === cat).length;
+                  return `
+                    <button type="button" data-cat="${cat}" class="selector-pill ${this.portfolioFilter === cat ? 'active' : ''}" onclick="window.app.setPortfolioFilter('${cat}')">
+                      ${cat === 'ALL' ? 'All Case Studies' : cat} (${count})
+                    </button>
+                  `;
+                })
                 .join('')}
             </div>
           </div>
 
-          <div class="grid-3">
-            ${filtered
-              .map(
-                (p) => `
-              <article class="glass-card portfolio-project-card">
-                <div class="portfolio-project-image">
-                  <img src="${p.preview_image}" alt="${p.title}" loading="lazy" decoding="async" />
-                </div>
-                <h2 class="portfolio-project-title">${p.title}</h2>
-                <div class="portfolio-project-actions">
-                    ${
-                      p.demo_url || p.live_url
-                        ? `<a href="${p.demo_url || p.live_url}" target="_blank" rel="noopener noreferrer" class="btn btn-lime btn-sm portfolio-project-action">
-                            Live Demo <span aria-hidden="true">↗</span>
-                          </a>`
-                        : ''
-                    }
-                    <button class="btn btn-outline btn-sm portfolio-project-action portfolio-project-action-wide" onclick="window.app.selectContactService('${p.category}')">
-                      Build Similar <span aria-hidden="true">→</span>
-                    </button>
-                </div>
-              </article>
-            `
-              )
-              .join('')}
+          <div id="portfolio-grid-mount" class="grid-3">
+            ${this.renderPortfolioCardsHtml(filtered)}
           </div>
         </div>
       </section>
@@ -2116,8 +2352,59 @@ ${C.renderRoiCalculatorWidget ? C.renderRoiCalculatorWidget() : ""}
     if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
 
+  setTestimonialTrackFilter(track) {
+    this.testimonialTrackFilter = track;
+    this.testimonialPage = 1;
+    this.render();
+  }
+
+  handleTestimonialSearch(val) {
+    this.testimonialSearch = val;
+    this.testimonialPage = 1;
+    this.render();
+    const input = document.getElementById('testimonial-search-input');
+    if (input) {
+      input.focus();
+      const len = input.value.length;
+      input.setSelectionRange(len, len);
+    }
+  }
+
+  setTestimonialRating(stars) {
+    this.testimonialFormRating = Math.min(5, Math.max(1, Number(stars) || 5));
+    const wrap = document.getElementById('testimonial-star-picker');
+    if (wrap) {
+      wrap.querySelectorAll('.star-pick-btn').forEach((btn) => {
+        const s = Number(btn.getAttribute('data-star'));
+        btn.classList.toggle('is-filled', s <= this.testimonialFormRating);
+      });
+      const label = document.getElementById('testimonial-star-label');
+      if (label) label.textContent = `${this.testimonialFormRating}.0 / 5.0 Stars`;
+    }
+  }
+
   renderTestimonialsPage() {
-    const list = this.testimonials || [];
+    const rawList = this.testimonials || [];
+    const trackFilter = this.testimonialTrackFilter || 'ALL';
+    const searchQ = (this.testimonialSearch || '').trim().toLowerCase();
+
+    const list = rawList.filter((t) => {
+      const trackMatch = trackFilter === 'ALL' || t.service_track === trackFilter;
+      if (!trackMatch) return false;
+      if (!searchQ) return true;
+      const hay = `${t.author_name || ''} ${t.author_role || ''} ${t.company || ''} ${t.service_track || ''} ${t.content || ''}`.toLowerCase();
+      return hay.includes(searchQ);
+    });
+
+    const tracks = [
+      'ALL',
+      'Data Analytics & BI',
+      'Full-Stack Web Development',
+      'AI & Workflow Automation',
+      'Tech Tutorials & Mentorship',
+      'IT & Database Support'
+    ];
+
     const pageSize = 8;
     const totalCount = list.length;
     const totalPages = Math.max(1, Math.ceil(totalCount / pageSize));
@@ -2159,6 +2446,8 @@ ${C.renderRoiCalculatorWidget ? C.renderRoiCalculatorWidget() : ""}
       </div>
     ` : '';
 
+    const activeStars = this.testimonialFormRating || 5;
+
     return `
       <section class="section">
         <div class="container">
@@ -2168,6 +2457,31 @@ ${C.renderRoiCalculatorWidget ? C.renderRoiCalculatorWidget() : ""}
             <p class="section-desc">
               Feedback from executive research stakeholders, departmental supervisors, and graduates of our <strong style="color:#C8E61E;" data-kpi-target="200" data-kpi-suffix="+">200+</strong> intern analytics mentorship program.
             </p>
+            <div style="max-width:440px;margin:20px auto 0;">
+              <input
+                type="search"
+                id="testimonial-search-input"
+                class="form-control"
+                placeholder="Filter endorsements by client, company, or topic..."
+                value="${this.testimonialSearch || ''}"
+                oninput="window.app.handleTestimonialSearch(this.value)"
+              />
+            </div>
+            <div style="display:flex;justify-content:center;flex-wrap:wrap;gap:8px;margin-top:16px;">
+              ${tracks
+                .map((tr) => {
+                  const count =
+                    tr === 'ALL'
+                      ? rawList.length
+                      : rawList.filter((item) => item.service_track === tr).length;
+                  return `
+                    <button type="button" class="selector-pill ${trackFilter === tr ? 'active' : ''}" onclick="window.app.setTestimonialTrackFilter('${tr}')">
+                      ${tr === 'ALL' ? 'All Endorsements' : tr} (${count})
+                    </button>
+                  `;
+                })
+                .join('')}
+            </div>
           </div>
 
           <div id="testimonials-wall" class="grid-2" style="margin-bottom:28px;">
@@ -2176,7 +2490,8 @@ ${C.renderRoiCalculatorWidget ? C.renderRoiCalculatorWidget() : ""}
                 (t) => `
               <div class="glass-card" style="display:flex;flex-direction:column;justify-content:space-between;">
                 <div>
-                  <div style="display:flex;justify-content:flex-end;align-items:center;margin-bottom:14px;">
+                  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;gap:8px;">
+                    <span style="font-size:11.5px;font-weight:700;color:#C8E61E;">${t.service_track || 'Verified Client'}</span>
                     <span style="color:#F7941D;font-size:16px;letter-spacing:2px;">
                       ${'★'.repeat(Number(t.rating) || 5)}
                     </span>
@@ -2239,6 +2554,19 @@ ${C.renderRoiCalculatorWidget ? C.renderRoiCalculatorWidget() : ""}
                   </select>
                 </div>
               </div>
+              <div class="form-group" style="margin-bottom:24px;">
+                <label class="form-label" style="font-size:14px;font-weight:700;margin-bottom:8px;display:block;">Your Rating</label>
+                <div id="testimonial-star-picker" style="display:flex;align-items:center;gap:8px;">
+                  ${[1, 2, 3, 4, 5]
+                    .map(
+                      (s) => `
+                    <button type="button" data-star="${s}" class="star-pick-btn ${s <= activeStars ? 'is-filled' : ''}" onclick="window.app.setTestimonialRating(${s})" aria-label="Rate ${s} stars">★</button>
+                  `
+                    )
+                    .join('')}
+                  <span id="testimonial-star-label" style="font-size:13.5px;font-weight:700;color:#F7941D;margin-left:8px;">${activeStars}.0 / 5.0 Stars</span>
+                </div>
+              </div>
               <div class="form-group" style="margin-bottom:28px;">
                 <label class="form-label" style="font-size:14px;font-weight:700;margin-bottom:8px;display:block;">Your Testimonial *</label>
                 <textarea name="content" rows="6" required class="form-control" style="font-size:15px;padding:16px 18px;border-radius:14px;line-height:1.65;min-height:150px;" placeholder="Share your experience working with John Oruebi Eniekpo / YOLETECH: project outcomes, delivered dashboards, technical mentorship, or workflow efficiency gains..."></textarea>
@@ -2280,7 +2608,7 @@ ${C.renderRoiCalculatorWidget ? C.renderRoiCalculatorWidget() : ""}
       author_role: (form.author_role?.value || '').trim() || 'Client Partner',
       company: (form.company?.value || '').trim() || 'Independent Client',
       service_track: form.service_track.value,
-      rating: 5,
+      rating: this.testimonialFormRating || 5,
       content: form.content.value.trim()
     };
     try {
@@ -2300,6 +2628,7 @@ ${C.renderRoiCalculatorWidget ? C.renderRoiCalculatorWidget() : ""}
         this.testimonials = [localTestimonial, ...(this.testimonials || [])];
       }
       form.reset();
+      this.testimonialFormRating = 5;
       this.setFormConfirmation('testimonial', {
         title: 'Testimonial Submitted & Confirmed!',
         message: `Thank you, <strong>${payload.author_name}</strong>! Your endorsement for <strong>${payload.service_track}</strong> has been validated and published.`
@@ -2323,6 +2652,78 @@ ${C.renderRoiCalculatorWidget ? C.renderRoiCalculatorWidget() : ""}
   // ==========================================================================
   // PAGE 6: BLOG & ARTICLE READER
   // ==========================================================================
+  getFilteredBlogPosts() {
+    const query = (this.blogSearch || '').trim().toLowerCase();
+    return (this.blogPosts || []).filter((p) => {
+      const catMatch = this.blogFilter === 'ALL' || p.category === this.blogFilter;
+      if (!catMatch) return false;
+      if (!query) return true;
+      const hay = `${p.title || ''} ${p.summary || ''} ${p.category || ''} ${p.author || ''}`.toLowerCase();
+      return hay.includes(query);
+    });
+  }
+
+  renderBlogCardsHtml(filtered) {
+    if (!filtered.length) {
+      return `
+        <div class="glass-card is-revealed" style="grid-column:1/-1;text-align:center;padding:42px 24px;">
+          <h3 style="font-size:20px;font-weight:800;margin-bottom:8px;">No Matching Articles Found</h3>
+          <p style="font-size:14px;color:var(--yole-text-muted);margin-bottom:16px;">Try searching a different topic or resetting the category filter.</p>
+          <button type="button" class="btn btn-outline btn-sm" onclick="window.app.blogFilter='ALL';window.app.blogSearch='';window.app.render();">
+            Show All Articles
+          </button>
+        </div>
+      `;
+    }
+    return filtered
+      .map(
+        (post) => `
+      <div class="glass-card blog-card is-revealed" onclick="window.app.navigate('blog-detail', '${post.slug}')">
+        <div>
+          ${post.coverImage ? `<div class="blog-card-image" style="aspect-ratio:1/1;"><img src="${post.coverImage}" alt="${post.title}" loading="lazy" decoding="async" /></div>` : ''}
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+            <span style="font-size:12.5px;color:var(--yole-text-muted);">${post.date} • ${post.readTime}</span>
+          </div>
+          <h2 style="font-size:22px;font-weight:800;margin-bottom:10px;line-height:1.3;">${post.title}</h2>
+          <p style="font-size:14px;color:var(--yole-text-muted);margin-bottom:16px;">${post.summary}</p>
+        </div>
+
+        <div>
+          <div style="display:flex;justify-content:space-between;align-items:center;border-top:1px solid rgba(255,255,255,0.1);padding-top:12px;font-size:13.5px;font-weight:700;color:#C8E61E;">
+            <span>By ${post.author}</span>
+            <span>Read Full Article →</span>
+          </div>
+        </div>
+      </div>
+    `
+      )
+      .join('');
+  }
+
+  setBlogFilter(cat) {
+    this.blogFilter = cat;
+    const pillsWrap = document.getElementById('blog-filter-pills');
+    const gridMount = document.getElementById('blog-grid-mount');
+    if (pillsWrap && gridMount) {
+      pillsWrap.querySelectorAll('.selector-pill').forEach((btn) => {
+        btn.classList.toggle('active', btn.getAttribute('data-cat') === cat);
+      });
+      gridMount.innerHTML = this.renderBlogCardsHtml(this.getFilteredBlogPosts());
+      window.YOLETECH_COMPONENTS?.decorateCardIcons(gridMount);
+    } else {
+      this.render();
+    }
+  }
+
+  handleBlogSearch(val) {
+    this.blogSearch = val;
+    const gridMount = document.getElementById('blog-grid-mount');
+    if (gridMount) {
+      gridMount.innerHTML = this.renderBlogCardsHtml(this.getFilteredBlogPosts());
+      window.YOLETECH_COMPONENTS?.decorateCardIcons(gridMount);
+    }
+  }
+
   renderBlogPage() {
     const categories = [
       'ALL',
@@ -2333,10 +2734,7 @@ ${C.renderRoiCalculatorWidget ? C.renderRoiCalculatorWidget() : ""}
       'Full-Stack Web Development'
     ];
 
-    const filtered =
-      this.blogFilter === 'ALL'
-        ? this.blogPosts
-        : this.blogPosts.filter((p) => p.category === this.blogFilter);
+    const filtered = this.getFilteredBlogPosts();
 
     return `
       <section class="section">
@@ -2354,44 +2752,36 @@ ${C.renderRoiCalculatorWidget ? C.renderRoiCalculatorWidget() : ""}
                   </div>`
                 : ''
             }
+            <div style="max-width:440px;margin:20px auto 0;">
+              <input
+                type="search"
+                id="blog-search-input"
+                class="form-control"
+                placeholder="Search articles by topic, tool, or title..."
+                value="${this.blogSearch || ''}"
+                oninput="window.app.handleBlogSearch(this.value)"
+              />
+            </div>
 
-            <div style="display:flex;justify-content:center;flex-wrap:wrap;gap:8px;margin-top:24px;">
+            <div id="blog-filter-pills" style="display:flex;justify-content:center;flex-wrap:wrap;gap:8px;margin-top:16px;">
               ${categories
-                .map(
-                  (cat) => `
-                <button class="selector-pill ${this.blogFilter === cat ? 'active' : ''}" onclick="window.app.blogFilter='${cat}';window.app.render();">
-                  ${cat === 'ALL' ? 'All Articles' : cat}
-                </button>
-              `
-                )
+                .map((cat) => {
+                  const count =
+                    cat === 'ALL'
+                      ? (this.blogPosts || []).length
+                      : (this.blogPosts || []).filter((p) => p.category === cat).length;
+                  return `
+                    <button type="button" data-cat="${cat}" class="selector-pill ${this.blogFilter === cat ? 'active' : ''}" onclick="window.app.setBlogFilter('${cat}')">
+                      ${cat === 'ALL' ? 'All Articles' : cat} (${count})
+                    </button>
+                  `;
+                })
                 .join('')}
             </div>
           </div>
 
-          <div class="grid-3">
-            ${filtered
-              .map(
-                (post) => `
-              <div class="glass-card blog-card" onclick="window.app.navigate('blog-detail', '${post.slug}')">
-                <div>
-                  ${post.coverImage ? `<div class="blog-card-image" style="aspect-ratio:1/1;"><img src="${post.coverImage}" alt="${post.title}" loading="lazy" decoding="async" /></div>` : ''}
-                  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
-                    <span style="font-size:12.5px;color:var(--yole-text-muted);">${post.date} • ${post.readTime}</span>
-                  </div>
-                  <h2 style="font-size:22px;font-weight:800;margin-bottom:10px;line-height:1.3;">${post.title}</h2>
-                  <p style="font-size:14px;color:var(--yole-text-muted);margin-bottom:16px;">${post.summary}</p>
-                </div>
-
-                <div>
-                  <div style="display:flex;justify-content:space-between;align-items:center;border-top:1px solid rgba(255,255,255,0.1);padding-top:12px;font-size:13.5px;font-weight:700;color:#C8E61E;">
-                    <span>By ${post.author}</span>
-                    <span>Read Full Article →</span>
-                  </div>
-                </div>
-              </div>
-            `
-              )
-              .join('')}
+          <div id="blog-grid-mount" class="grid-3">
+            ${this.renderBlogCardsHtml(filtered)}
           </div>
         </div>
       </section>
@@ -2575,6 +2965,25 @@ ${C.renderRoiCalculatorWidget ? C.renderRoiCalculatorWidget() : ""}
     }
   }
 
+  async copyArticleLink(btn) {
+    const url = window.location.href;
+    try {
+      if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(url);
+      }
+      if (btn) {
+        const orig = btn.innerHTML;
+        btn.innerHTML = '✓ Link Copied!';
+        setTimeout(() => {
+          btn.innerHTML = orig;
+        }, 2000);
+      }
+      this.showToast('Article link copied to clipboard!');
+    } catch {
+      this.showToast('Could not copy link automatically.', 'error');
+    }
+  }
+
   renderBlogPostDetail() {
     const post = this.activeBlogPost || this.blogPosts[0];
     if (!post) {
@@ -2584,9 +2993,14 @@ ${C.renderRoiCalculatorWidget ? C.renderRoiCalculatorWidget() : ""}
     return `
       <section class="section">
         <div class="container" style="max-width:860px;">
-          <button class="btn btn-outline btn-sm" style="margin-bottom:24px;" onclick="window.app.navigate('blog')">
-            ← Back to All Articles
-          </button>
+          <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin-bottom:24px;">
+            <button class="btn btn-outline btn-sm" onclick="window.app.navigate('blog')">
+              ← Back to All Articles
+            </button>
+            <button type="button" class="btn btn-outline btn-sm" onclick="window.app.copyArticleLink(this)">
+              🔗 Copy Article Link
+            </button>
+          </div>
 
           <div class="glass-card article-detail-card">
             <div style="font-size:13px;color:var(--yole-text-muted);margin-bottom:14px;">
@@ -2611,7 +3025,10 @@ ${C.renderRoiCalculatorWidget ? C.renderRoiCalculatorWidget() : ""}
               ${this.formatMarkdownToHtml(post.body)}
             </div>
 
-            <div style="margin-top:32px;padding-top:20px;border-top:1px solid rgba(255,255,255,0.12);display:flex;justify-content:flex-end;align-items:center;">
+            <div style="margin-top:32px;padding-top:20px;border-top:1px solid rgba(255,255,255,0.12);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;">
+              <button type="button" class="btn btn-outline btn-sm" onclick="window.app.copyArticleLink(this)">
+                🔗 Share Article
+              </button>
               <button class="btn btn-lime btn-sm" onclick="window.app.navigate('contact')">
                 Discuss This Topic With John →
               </button>
@@ -2625,6 +3042,20 @@ ${C.renderRoiCalculatorWidget ? C.renderRoiCalculatorWidget() : ""}
   // ==========================================================================
   // PAGE 7: CONTACT (SAMPLE 8917b911.jpg LAYOUT)
   // ==========================================================================
+  selectContactPill(pill, btnEl) {
+    this.contactServiceSelected = pill;
+    const container = btnEl ? btnEl.closest('.service-selector-pills') : document.querySelector('.service-selector-pills');
+    if (container) {
+      container.querySelectorAll('.selector-pill').forEach((b) => {
+        b.classList.toggle('active', b === btnEl || b.textContent.trim() === pill);
+      });
+    }
+    const selectEl = document.querySelector('select[name="service_category"]');
+    if (selectEl) {
+      selectEl.value = pill;
+    }
+  }
+
   renderContactPage() {
     const D = window.YOLETECH_DATA;
     const serviceCategories = [
@@ -2661,7 +3092,7 @@ ${C.renderRoiCalculatorWidget ? C.renderRoiCalculatorWidget() : ""}
                     (pill) => `
                   <button type="button" class="selector-pill ${
                     this.contactServiceSelected === pill ? 'active' : ''
-                  }" onclick="window.app.contactServiceSelected='${pill}';window.app.render();">
+                  }" onclick="window.app.selectContactPill('${pill}', this)">
                     ${pill}
                   </button>
                 `
@@ -2694,7 +3125,7 @@ ${C.renderRoiCalculatorWidget ? C.renderRoiCalculatorWidget() : ""}
 
                 <div class="form-group">
                   <label class="form-label">Project Category *</label>
-                  <select name="service_category" class="form-control" onchange="window.app.contactServiceSelected=this.value;">
+                  <select name="service_category" class="form-control" onchange="window.app.selectContactPill(this.value)">
                     ${serviceCategories
                       .map(
                         (cat) => `
@@ -4556,6 +4987,209 @@ ${C.renderRoiCalculatorWidget ? C.renderRoiCalculatorWidget() : ""}
     }
   }
 
+  setShowcaseTab(tab) {
+    this.showcaseTab = tab;
+    const pillsWrap = document.getElementById('home-showcase-pills');
+    const mount = document.getElementById('home-showcase-mount');
+    const C = window.YOLETECH_COMPONENTS;
+    if (pillsWrap) {
+      pillsWrap.querySelectorAll('.selector-pill').forEach((btn) => {
+        btn.classList.toggle('active', btn.getAttribute('data-showcase') === tab);
+      });
+    }
+    if (mount && C) {
+      mount.innerHTML =
+        tab === 'dashboard'
+          ? C.renderDataOverviewWidget()
+          : tab === 'codesync'
+          ? C.renderCodeSyncWidget()
+          : C.renderWorkflowDiagramWidget();
+      C.decorateCardIcons(mount);
+      this.initKpiCounters(mount);
+      this.initScrollReveal(mount);
+    } else {
+      this.render();
+    }
+  }
+
+  setBiWidgetRange(btnEl, range) {
+    const widget = btnEl ? btnEl.closest('.bi-overview-widget') : document.querySelector('.bi-overview-widget');
+    if (!widget) return;
+
+    widget.querySelectorAll('.bi-range-pill').forEach((b) => {
+      b.classList.toggle('active', b === btnEl);
+    });
+
+    const presets = {
+      live: {
+        workflows: 5903500,
+        delta: 12.5,
+        records: 43010,
+        latency: 0.03,
+        integrity: 99.9,
+        bars: ['45%', '70%', '95%', '65%', '85%', '78%'],
+        spark: 'M2 30 Q 25 20, 45 25 T 90 15 T 130 18 T 158 6',
+        area: 'M0 65 C 45 25, 85 70, 135 35 C 185 5, 225 50, 280 15 L 280 90 L 0 90 Z',
+        lineLime: 'M0 65 C 45 25, 85 70, 135 35 C 185 5, 225 50, 280 15',
+        lineOrange: 'M0 75 C 50 50, 95 30, 150 55 C 200 75, 235 25, 280 40'
+      },
+      '7d': {
+        workflows: 1428900,
+        delta: 8.4,
+        records: 12480,
+        latency: 0.04,
+        integrity: 99.8,
+        bars: ['62%', '54%', '82%', '76%', '68%', '91%'],
+        spark: 'M2 28 Q 30 24, 52 18 T 96 22 T 132 12 T 158 9',
+        area: 'M0 58 C 40 42, 90 30, 140 48 C 190 20, 230 35, 280 22 L 280 90 L 0 90 Z',
+        lineLime: 'M0 58 C 40 42, 90 30, 140 48 C 190 20, 230 35, 280 22',
+        lineOrange: 'M0 68 C 48 60, 95 45, 145 38 C 195 55, 235 32, 280 28'
+      },
+      '30d': {
+        workflows: 4812400,
+        delta: 16.2,
+        records: 36920,
+        latency: 0.03,
+        integrity: 99.9,
+        bars: ['52%', '84%', '66%', '92%', '74%', '88%'],
+        spark: 'M2 32 Q 28 26, 55 20 T 98 14 T 134 10 T 158 5',
+        area: 'M0 70 C 50 35, 92 55, 142 25 C 188 30, 228 18, 280 12 L 280 90 L 0 90 Z',
+        lineLime: 'M0 70 C 50 35, 92 55, 142 25 C 188 30, 228 18, 280 12',
+        lineOrange: 'M0 72 C 52 44, 100 62, 152 42 C 202 38, 238 48, 280 30'
+      },
+      ytd: {
+        workflows: 18450200,
+        delta: 24.8,
+        records: 148500,
+        latency: 0.02,
+        integrity: 100.0,
+        bars: ['68%', '78%', '88%', '82%', '94%', '98%'],
+        spark: 'M2 34 Q 30 28, 60 22 T 105 14 T 138 8 T 158 3',
+        area: 'M0 72 C 45 50, 90 42, 140 28 C 190 18, 235 14, 280 8 L 280 90 L 0 90 Z',
+        lineLime: 'M0 72 C 45 50, 90 42, 140 28 C 190 18, 235 14, 280 8',
+        lineOrange: 'M0 78 C 55 62, 102 48, 154 36 C 204 28, 240 22, 280 18'
+      }
+    };
+
+    const cfg = presets[range] || presets.live;
+    const updateCounter = (sel, val) => {
+      const el = widget.querySelector(sel);
+      if (!el) return;
+      el.setAttribute('data-kpi-target', String(val));
+      this.animateKpiElement(el);
+    };
+
+    updateCounter('.bi-val-workflows', cfg.workflows);
+    updateCounter('.bi-val-delta', cfg.delta);
+    updateCounter('.bi-val-records', cfg.records);
+    updateCounter('.bi-val-latency', cfg.latency);
+    updateCounter('.bi-val-integrity', cfg.integrity);
+
+    const bars = widget.querySelectorAll('.bi-load-bar');
+    bars.forEach((bar, i) => {
+      if (cfg.bars[i]) bar.style.height = cfg.bars[i];
+    });
+
+    const spark = widget.querySelector('.bi-spark-path');
+    if (spark) spark.setAttribute('d', cfg.spark);
+    const area = widget.querySelector('.bi-area-path');
+    if (area) area.setAttribute('d', cfg.area);
+    const lineLime = widget.querySelector('.bi-line-lime');
+    if (lineLime) lineLime.setAttribute('d', cfg.lineLime);
+    const lineOrange = widget.querySelector('.bi-line-orange');
+    if (lineOrange) lineOrange.setAttribute('d', cfg.lineOrange);
+  }
+
+  runCodeSyncDemo(btnEl) {
+    const widget = btnEl ? btnEl.closest('.code-sync-widget') : document.querySelector('.code-sync-widget');
+    if (!widget || widget._syncRunning) return;
+    widget._syncRunning = true;
+
+    const deployEl = widget.querySelector('.sync-step-deploy');
+    const sqlEl = widget.querySelector('.sync-step-sql');
+    const autoEl = widget.querySelector('.sync-step-auto');
+    const tsEl = widget.querySelector('.sync-timestamp');
+    const pillEl = widget.querySelector('.sync-online-pill');
+
+    if (btnEl) btnEl.textContent = '⏳ Syncing...';
+    if (deployEl) {
+      deployEl.textContent = 'BUILDING...';
+      deployEl.style.color = '#F7941D';
+    }
+    if (sqlEl) {
+      sqlEl.textContent = 'QUEUED';
+      sqlEl.style.color = 'rgba(255,255,255,0.6)';
+    }
+    if (pillEl) {
+      pillEl.textContent = '● SYNCING';
+      pillEl.style.color = '#F7941D';
+    }
+
+    setTimeout(() => {
+      if (deployEl) {
+        deployEl.textContent = 'VERIFIED ✓';
+        deployEl.style.color = '#C8E61E';
+      }
+      if (sqlEl) {
+        sqlEl.textContent = 'AUDITING...';
+        sqlEl.style.color = '#F7941D';
+      }
+    }, 450);
+
+    setTimeout(() => {
+      if (sqlEl) {
+        sqlEl.textContent = 'SYNCED ✓';
+        sqlEl.style.color = '#C8E61E';
+      }
+      if (autoEl) {
+        autoEl.textContent = 'PUBLISHED ✓';
+        autoEl.style.color = '#C8E61E';
+      }
+      if (pillEl) {
+        pillEl.textContent = '● ONLINE';
+        pillEl.style.color = '#C8E61E';
+      }
+      const nowStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+      if (tsEl) tsEl.textContent = `Last validated sync: ${nowStr} (0.03ms)`;
+      if (btnEl) btnEl.textContent = '▶ Run Sync Test';
+      widget._syncRunning = false;
+    }, 1050);
+  }
+
+  inspectWorkflowStage(cardEl, stageIdx) {
+    const frame = cardEl ? cardEl.closest('.workflow-diagram-frame') : document.querySelector('.workflow-diagram-frame');
+    if (!frame) return;
+
+    frame.querySelectorAll('.workflow-node-card').forEach((c) => {
+      c.classList.toggle('is-active-node', c === cardEl);
+    });
+
+    const stages = [
+      {
+        text: '<strong style="color:#C8E61E;">Stage 00 — Source Ingestion:</strong> Pulling departmental REST APIs, Excel workbooks &amp; relational SQL tables.',
+        metric: '99.9% Schema Match'
+      },
+      {
+        text: '<strong style="color:#C8E61E;">Stage 01 — Data Validation &amp; Audit:</strong> Running automated Pandas, R, SPSS &amp; Excel VBA quality rules.',
+        metric: '0.00% Null Drift'
+      },
+      {
+        text: '<strong style="color:#F7941D;">Stage 02 — Webhooks &amp; ETL Sync:</strong> Streaming validated records into SQL Server, MySQL &amp; MS Access.',
+        metric: '0.03ms Query Latency'
+      },
+      {
+        text: '<strong style="color:#C8E61E;">Stage 03 — Python ML &amp; Executive BI:</strong> Publishing live KPIs and forecasts to Power BI, Tableau &amp; React.',
+        metric: 'Live Auto-Refresh'
+      }
+    ];
+
+    const info = stages[stageIdx] || stages[0];
+    const textEl = frame.querySelector('.workflow-inspector-text');
+    const metricEl = frame.querySelector('.workflow-inspector-metric');
+    if (textEl) textEl.innerHTML = info.text;
+    if (metricEl) metricEl.textContent = info.metric;
+  }
+
   // ==========================================================================
   // MASTER RENDER
   // ==========================================================================
@@ -4633,6 +5267,7 @@ ${C.renderRoiCalculatorWidget ? C.renderRoiCalculatorWidget() : ""}
     this.renderToast();
     window.YOLETECH_COMPONENTS?.decorateCardIcons(root);
     this.initKpiCounters(root);
+    this.initScrollReveal(root);
     if (this.currentPage === 'dashboard' && typeof this.mountDashboard === 'function') {
       this.mountDashboard();
     }
