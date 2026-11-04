@@ -1924,6 +1924,7 @@ class YoletechApp {
     const C = window.YOLETECH_COMPONENTS;
 
     return `
+      ${this.renderServicesTicker()}
       <section class="section">
         <div class="container">
           <div class="hero-slide-grid section-block-gap">
@@ -1948,8 +1949,6 @@ class YoletechApp {
               ${C.renderDataOverviewWidget()}
             </div>
           </div>
-
-          ${this.renderServicesTicker()}
 
           <div class="section-header">
             <div class="eyebrow"><span class="eyebrow-dot"></span> OUR SERVICES</div>
