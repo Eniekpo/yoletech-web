@@ -296,16 +296,12 @@
       st.error = null;
       this.updateDashboardBody();
       try {
-        const data = await this.api('/api/analytics');
+        const data = await this.api('/api/analytics', { cache: 'no-store' });
         st.raw = this.normaliseDashboardRaw(data, 'live');
       } catch (err) {
-        console.warn('Analytics API unavailable, using cached application data:', err.message);
-        const fallback = this.buildDashboardFallback();
-        if (fallback.clients.length || fallback.testimonials.length) {
-          st.raw = fallback;
-        } else {
-          st.error = 'Analytics data could not be loaded. Please check your connection and try again.';
-        }
+        console.error('Analytics data could not be loaded:', err);
+        st.raw = null;
+        st.error = 'Analytics data could not be loaded. Please check your connection and try again.';
       } finally {
         st.loading = false;
         if (this.currentPage === 'dashboard') this.updateDashboardBody();
