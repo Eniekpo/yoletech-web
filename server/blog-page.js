@@ -165,9 +165,6 @@ function renderBlogPage(slug) {
               <li><a class="nav-link" href="/dashboard">Dashboard</a></li>
               <li><a class="nav-link" href="/about">About</a></li>
               <li><a class="nav-link" href="/services">Services</a></li>
-              <li><a class="nav-link" href="/portfolio">Portfolio</a></li>
-              <li><a class="nav-link" href="/testimonials">Testimonials</a></li>
-              <li><a class="nav-link active" href="/blog">Blog</a></li>
               <li><a class="nav-link" href="/contact">Contact</a></li>
             </ul>
           </nav>
