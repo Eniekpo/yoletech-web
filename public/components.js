@@ -81,7 +81,11 @@ window.YOLETECH_COMPONENTS = {
       if (!label || !label.textContent.trim()) return;
 
       const icon = document.createElement('span');
-      icon.className = `site-card-icon${/inquir|contact|message|workflow|automation|service|support|saving|cost/i.test(label.textContent) ? ' site-card-icon-orange' : ''}`;
+      const isOrangeAccent =
+        label.classList.contains('about-accent-orange') ||
+        label.classList.contains('accent-orange') ||
+        /inquir|contact|message|workflow|automation|service|support|saving|cost/i.test(label.textContent);
+      icon.className = `site-card-icon${isOrangeAccent ? ' site-card-icon-orange' : ''}`;
       icon.setAttribute('aria-hidden', 'true');
       icon.innerHTML = this.getIcon(this.cardIconName(label.textContent));
 
@@ -119,7 +123,7 @@ window.YOLETECH_COMPONENTS = {
             <div style="font-weight:800;font-size:14px;color:#FFFFFF;">${badgeTitle}</div>
             <div style="font-size:12px;color:#C8E61E;font-weight:600;">${badgeSub}</div>
           </div>
-          <span style="font-size:11px;" data-kpi-target="5" data-kpi-suffix="+ Yrs Exp">5+ Yrs Exp</span>
+          <span class="tech-pill lime" style="font-size:11px;padding:4px 10px;" data-kpi-target="5" data-kpi-suffix="+ Yrs Exp">5+ Yrs Exp</span>
         </div>
       </div>
     `;
@@ -128,8 +132,8 @@ window.YOLETECH_COMPONENTS = {
   // 2. Interactive Data Overview Dashboard Widget (Matches Sample f2e39467.jpg)
   renderDataOverviewWidget() {
     return `
-      <div class="ui-mockup-frame">
-        <div class="ui-window-bar">
+      <div class="ui-mockup-frame bi-overview-widget">
+        <div class="ui-window-bar" style="justify-content:space-between;flex-wrap:wrap;gap:8px;">
           <div style="display:flex;align-items:center;gap:10px;">
             <div class="window-dots">
               <span class="window-dot red"></span>
@@ -140,27 +144,33 @@ window.YOLETECH_COMPONENTS = {
               YOLE<span style="color:#C8E61E;">TECH</span> • BI &amp; DATA OVERVIEW
             </span>
           </div>
+          <div class="bi-widget-range-group" role="group" aria-label="Dashboard timeframe">
+            <button type="button" class="bi-range-pill active" onclick="window.app && window.app.setBiWidgetRange(this, 'live')">● Live</button>
+            <button type="button" class="bi-range-pill" onclick="window.app && window.app.setBiWidgetRange(this, '7d')">7D</button>
+            <button type="button" class="bi-range-pill" onclick="window.app && window.app.setBiWidgetRange(this, '30d')">30D</button>
+            <button type="button" class="bi-range-pill" onclick="window.app && window.app.setBiWidgetRange(this, 'ytd')">YTD</button>
+          </div>
         </div>
 
         <div class="dashboard-main">
           <div class="kpi-cards-row">
             <div class="mini-kpi-card">
               <div class="mini-kpi-title">Data &amp; API Workflows</div>
-              <div class="mini-kpi-value" data-kpi-target="5903500" data-kpi-comma="true">5,903,500</div>
+              <div class="mini-kpi-value bi-val-workflows" data-kpi-target="5903500" data-kpi-comma="true">5,903,500</div>
               <div style="font-size:11px;color:#C8E61E;font-weight:700;margin-top:4px;">
-                ▲ <span data-kpi-target="12.5" data-kpi-decimals="1" data-kpi-prefix="+" data-kpi-suffix="%">+12.5%</span> vs baseline
+                ▲ <span class="bi-val-delta" data-kpi-target="12.5" data-kpi-decimals="1" data-kpi-prefix="+" data-kpi-suffix="%">+12.5%</span> vs baseline
               </div>
               <svg viewBox="0 0 160 36" style="width:100%;height:32px;margin-top:6px;">
-                <path d="M2 30 Q 25 20, 45 25 T 90 15 T 130 18 T 158 6" fill="none" stroke="#C8E61E" stroke-width="2.5"/>
+                <path class="bi-spark-path" d="M2 30 Q 25 20, 45 25 T 90 15 T 130 18 T 158 6" fill="none" stroke="#C8E61E" stroke-width="2.5"/>
               </svg>
             </div>
 
             <div class="mini-kpi-card">
               <div class="mini-kpi-title">Records Audited</div>
-              <div class="mini-kpi-value" data-kpi-target="43010" data-kpi-comma="true">43,010</div>
+              <div class="mini-kpi-value bi-val-records" data-kpi-target="43010" data-kpi-comma="true">43,010</div>
               <div style="display:flex;justify-content:space-between;margin-top:14px;font-size:11px;">
-                <span><strong style="color:#C8E61E;" data-kpi-target="0.03" data-kpi-decimals="2" data-kpi-suffix="ms">0.03ms</strong> query</span>
-                <span><strong style="color:#F7941D;" data-kpi-target="99.9" data-kpi-decimals="1" data-kpi-suffix="%">99.9%</strong> integrity</span>
+                <span><strong class="bi-val-latency" style="color:#C8E61E;" data-kpi-target="0.03" data-kpi-decimals="2" data-kpi-suffix="ms">0.03ms</strong> query</span>
+                <span><strong class="bi-val-integrity" style="color:#F7941D;" data-kpi-target="99.9" data-kpi-decimals="1" data-kpi-suffix="%">99.9%</strong> integrity</span>
               </div>
             </div>
 
@@ -173,8 +183,8 @@ window.YOLETECH_COMPONENTS = {
               </div>
               <svg width="62" height="62" viewBox="0 0 36 36">
                 <circle cx="18" cy="18" r="14" fill="none" stroke="#2F2B73" stroke-width="4.5"></circle>
-                <circle cx="18" cy="18" r="14" fill="none" stroke="#C8E61E" stroke-width="4.5" stroke-dasharray="62 28" stroke-dashoffset="15"></circle>
-                <circle cx="18" cy="18" r="14" fill="none" stroke="#F7941D" stroke-width="4.5" stroke-dasharray="22 68" stroke-dashoffset="-47"></circle>
+                <circle class="bi-donut-lime" cx="18" cy="18" r="14" fill="none" stroke="#C8E61E" stroke-width="4.5" stroke-dasharray="62 28" stroke-dashoffset="15"></circle>
+                <circle class="bi-donut-orange" cx="18" cy="18" r="14" fill="none" stroke="#F7941D" stroke-width="4.5" stroke-dasharray="22 68" stroke-dashoffset="-47"></circle>
               </svg>
             </div>
           </div>
@@ -189,21 +199,21 @@ window.YOLETECH_COMPONENTS = {
                     <stop offset="100%" stop-color="#C8E61E" stop-opacity="0.0"/>
                   </linearGradient>
                 </defs>
-                <path d="M0 65 C 45 25, 85 70, 135 35 C 185 5, 225 50, 280 15 L 280 90 L 0 90 Z" fill="url(#limeGrad)"/>
-                <path d="M0 65 C 45 25, 85 70, 135 35 C 185 5, 225 50, 280 15" fill="none" stroke="#C8E61E" stroke-width="2.5"/>
-                <path d="M0 75 C 50 50, 95 30, 150 55 C 200 75, 235 25, 280 40" fill="none" stroke="#F7941D" stroke-width="2"/>
+                <path class="bi-area-path" d="M0 65 C 45 25, 85 70, 135 35 C 185 5, 225 50, 280 15 L 280 90 L 0 90 Z" fill="url(#limeGrad)"/>
+                <path class="bi-line-lime" d="M0 65 C 45 25, 85 70, 135 35 C 185 5, 225 50, 280 15" fill="none" stroke="#C8E61E" stroke-width="2.5"/>
+                <path class="bi-line-orange" d="M0 75 C 50 50, 95 30, 150 55 C 200 75, 235 25, 280 40" fill="none" stroke="#F7941D" stroke-width="2"/>
               </svg>
             </div>
 
             <div class="mini-kpi-card">
               <div class="mini-kpi-title">Active BI &amp; ML Load</div>
               <div style="display:flex;align-items:flex-end;justify-content:space-between;height:80px;padding-top:12px;gap:6px;">
-                <div style="flex:1;height:45%;background:#2F2B73;border-top:2px solid #C8E61E;border-radius:4px 4px 0 0;"></div>
-                <div style="flex:1;height:70%;background:#C8E61E;border-radius:4px 4px 0 0;"></div>
-                <div style="flex:1;height:95%;background:#F7941D;border-radius:4px 4px 0 0;"></div>
-                <div style="flex:1;height:65%;background:#C8E61E;border-radius:4px 4px 0 0;"></div>
-                <div style="flex:1;height:85%;background:#2F2B73;border-top:2px solid #C8E61E;border-radius:4px 4px 0 0;"></div>
-                <div style="flex:1;height:78%;background:#C8E61E;border-radius:4px 4px 0 0;"></div>
+                <div class="bi-load-bar" style="flex:1;height:45%;background:#2F2B73;border-top:2px solid #C8E61E;border-radius:4px 4px 0 0;transition:height 0.45s cubic-bezier(0.22,1,0.36,1);"></div>
+                <div class="bi-load-bar" style="flex:1;height:70%;background:#C8E61E;border-radius:4px 4px 0 0;transition:height 0.45s cubic-bezier(0.22,1,0.36,1);"></div>
+                <div class="bi-load-bar" style="flex:1;height:95%;background:#F7941D;border-radius:4px 4px 0 0;transition:height 0.45s cubic-bezier(0.22,1,0.36,1);"></div>
+                <div class="bi-load-bar" style="flex:1;height:65%;background:#C8E61E;border-radius:4px 4px 0 0;transition:height 0.45s cubic-bezier(0.22,1,0.36,1);"></div>
+                <div class="bi-load-bar" style="flex:1;height:85%;background:#2F2B73;border-top:2px solid #C8E61E;border-radius:4px 4px 0 0;transition:height 0.45s cubic-bezier(0.22,1,0.36,1);"></div>
+                <div class="bi-load-bar" style="flex:1;height:78%;background:#C8E61E;border-radius:4px 4px 0 0;transition:height 0.45s cubic-bezier(0.22,1,0.36,1);"></div>
               </div>
             </div>
           </div>
@@ -215,20 +225,25 @@ window.YOLETECH_COMPONENTS = {
   // 3. Split-Screen Code & Workflow UI Mockup (Matches Sample 85fa46a6.jpg)
   renderCodeSyncWidget() {
     return `
-      <div class="ui-mockup-frame">
-        <div class="ui-window-bar">
-          <div class="window-dots">
-            <span class="window-dot red"></span>
-            <span class="window-dot yellow"></span>
-            <span class="window-dot green"></span>
+      <div class="ui-mockup-frame code-sync-widget">
+        <div class="ui-window-bar" style="justify-content:space-between;flex-wrap:wrap;gap:8px;">
+          <div style="display:flex;align-items:center;gap:10px;">
+            <div class="window-dots">
+              <span class="window-dot red"></span>
+              <span class="window-dot yellow"></span>
+              <span class="window-dot green"></span>
+            </div>
+            <span style="font-size:12px;font-weight:700;color:#C8E61E;">yoletech_fullstack_sync.py • React.js + SQL</span>
           </div>
-          <span style="font-size:12px;font-weight:700;color:#C8E61E;">yoletech_fullstack_sync.py • React.js + SQL</span>
+          <button type="button" class="bi-range-pill active" style="cursor:pointer;" onclick="window.app && window.app.runCodeSyncDemo(this)">
+            ▶ Run Sync Test
+          </button>
         </div>
         <div class="code-sync-split">
           <div class="code-editor-pane">
             <div style="color:rgba(255,255,255,0.45);">// Register automated SQL &amp; Web API sync hook</div>
             <div><span style="color:#F7941D;">export async function</span> <span style="color:#C8E61E;">handleDataSync</span>(departmentId) {</div>
-            <div style="padding-left:14px;">const endpoint = <span style="color:#C8E61E;">'https://api.yolestica.com/v2/sync'</span>;</div>
+            <div style="padding-left:14px;">const endpoint = <span style="color:#C8E61E;">'https://api.yoletica.com/v2/sync'</span>;</div>
             <div style="padding-left:14px;">const response = <span style="color:#F7941D;">await</span> fetch(endpoint, { method: <span style="color:#C8E61E;">'POST'</span> });</div>
             <div style="padding-left:14px;margin-top:6px;"><span style="color:#F7941D;">if</span> (!response.ok) <span style="color:#F7941D;">return</span> { valid: <span style="color:#F7941D;">false</span> };</div>
             <div style="padding-left:14px;margin-top:6px;">const payload = <span style="color:#F7941D;">await</span> response.json();</div>
@@ -240,7 +255,7 @@ window.YOLETECH_COMPONENTS = {
             <div>
               <div style="background:#2F2B73;border:1px solid rgba(200,230,30,0.4);border-radius:10px;padding:9px 12px;font-size:11.5px;display:flex;align-items:center;gap:8px;margin-bottom:14px;">
                 <span style="background:#C8E61E;color:#17143A;font-weight:900;padding:2px 7px;border-radius:6px;">API</span>
-                <span style="color:#FFFFFF;overflow:hidden;text-overflow:ellipsis;">https://api.yolestica.com/v2/sync</span>
+                <span style="color:#FFFFFF;overflow:hidden;text-overflow:ellipsis;">https://api.yoletica.com/v2/sync</span>
               </div>
               <div style="font-size:11px;font-weight:800;color:var(--yole-text-muted);letter-spacing:0.08em;margin-bottom:8px;">
                 WORKFLOW STATUS
@@ -248,22 +263,22 @@ window.YOLETECH_COMPONENTS = {
               <div class="status-mini-grid">
                 <div class="status-mini-box">
                   <div style="font-size:12px;font-weight:800;">Deploy</div>
-                  <div style="font-size:10px;color:#C8E61E;font-weight:800;margin-top:3px;">READY</div>
+                  <div class="sync-step-deploy" style="font-size:10px;color:#C8E61E;font-weight:800;margin-top:3px;">READY</div>
                 </div>
                 <div class="status-mini-box">
                   <div style="font-size:12px;font-weight:800;">Sync SQL</div>
-                  <div style="font-size:10px;color:#F7941D;font-weight:800;margin-top:3px;">RUNNING</div>
+                  <div class="sync-step-sql" style="font-size:10px;color:#F7941D;font-weight:800;margin-top:3px;">RUNNING</div>
                 </div>
                 <div class="status-mini-box">
                   <div style="font-size:12px;font-weight:800;">Automate</div>
-                  <div style="font-size:10px;color:#C8E61E;font-weight:800;margin-top:3px;">ACTIVE</div>
+                  <div class="sync-step-auto" style="font-size:10px;color:#C8E61E;font-weight:800;margin-top:3px;">ACTIVE</div>
                 </div>
               </div>
             </div>
 
             <div style="display:flex;justify-content:space-between;align-items:center;font-size:11px;margin-top:16px;padding-top:10px;border-top:1px solid rgba(255,255,255,0.1);">
-              <span style="color:var(--yole-text-muted);">Last validated sync: Just now</span>
-              <span style="color:#C8E61E;font-weight:800;">● ONLINE</span>
+              <span class="sync-timestamp" style="color:var(--yole-text-muted);">Last validated sync: Just now</span>
+              <span class="sync-online-pill" style="color:#C8E61E;font-weight:800;">● ONLINE</span>
             </div>
           </div>
         </div>
@@ -275,39 +290,46 @@ window.YOLETECH_COMPONENTS = {
   renderWorkflowDiagramWidget() {
     return `
       <div class="ui-mockup-frame workflow-diagram-frame">
-        <div class="workflow-diagram-header">
+        <div class="workflow-diagram-header" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
           <span class="eyebrow" style="margin:0;font-size:11.5px;">
             <span class="eyebrow-dot"></span> AUTOMATED DATA &amp; ML PIPELINE ARCHITECTURE
           </span>
+          <span style="font-size:11px;font-weight:800;color:#C8E61E;">Click any node to inspect</span>
         </div>
 
         <div class="workflow-diagram-grid">
-          <div class="glass-card" style="padding:18px;text-align:center;border-color:#C8E61E;">
+          <div class="glass-card workflow-node-card is-active-node" style="padding:18px;text-align:center;border-color:#C8E61E;cursor:pointer;" onclick="window.app && window.app.inspectWorkflowStage(this, 0)">
             <div style="font-size:24px;margin-bottom:6px;color:#C8E61E;">⚙️</div>
             <div style="font-weight:900;font-size:16px;">APIs &amp; SQL</div>
             <div style="font-size:11.5px;color:var(--yole-text-muted);">Multi-Dept Data Sources</div>
           </div>
 
           <div style="display:flex;flex-direction:column;gap:12px;">
-            <div class="glass-card" style="padding:14px;border-color:rgba(200,230,30,0.45);">
+            <div class="glass-card workflow-node-card" style="padding:14px;border-color:rgba(200,230,30,0.45);cursor:pointer;" onclick="window.app && window.app.inspectWorkflowStage(this, 1)">
               <div style="font-weight:800;font-size:14px;color:#C8E61E;">01. Data Validation &amp; Audit</div>
               <div style="font-size:11.5px;color:var(--yole-text-muted);">Pandas, R, SPSS &amp; Excel VBA Macros</div>
             </div>
-            <div class="glass-card" style="padding:14px;border-color:rgba(247,148,29,0.55);">
+            <div class="glass-card workflow-node-card" style="padding:14px;border-color:rgba(247,148,29,0.55);cursor:pointer;" onclick="window.app && window.app.inspectWorkflowStage(this, 2)">
               <div style="font-weight:800;font-size:14px;color:#F7941D;">02. Webhooks &amp; ETL Sync</div>
               <div style="font-size:11.5px;color:var(--yole-text-muted);">SQL Server • MySQL • MS Access</div>
             </div>
           </div>
 
-          <div class="glass-card" style="padding:18px;text-align:center;border-color:#F7941D;">
+          <div class="glass-card workflow-node-card" style="padding:18px;text-align:center;border-color:#F7941D;cursor:pointer;" onclick="window.app && window.app.inspectWorkflowStage(this, 3)">
             <div style="font-size:24px;margin-bottom:6px;">🐍</div>
             <div style="font-weight:900;font-size:16px;">Python &amp; BI</div>
             <div style="font-size:11.5px;color:var(--yole-text-muted);">Predictive ML &amp; Dashboards</div>
           </div>
         </div>
+
+        <div class="workflow-inspector-bar" style="margin-top:14px;padding:10px 14px;border-radius:10px;background:rgba(15,13,44,0.65);border:1px solid rgba(200,230,30,0.28);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;font-size:12px;">
+          <span class="workflow-inspector-text" style="color:var(--yole-text-muted);"><strong style="color:#C8E61E;">Stage 00 — Source Ingestion:</strong> Pulling departmental REST APIs, Excel workbooks &amp; relational SQL tables.</span>
+          <span class="workflow-inspector-metric" style="color:#C8E61E;font-weight:800;">99.9% Schema Match</span>
+        </div>
       </div>
     `;
   },
+
   // 5. Interactive Scope & ROI Calculator Widget
   renderRoiCalculatorWidget() {
     return `

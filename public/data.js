@@ -237,6 +237,11 @@ window.YOLETECH_DATA = {
       category: "AI & Machine Learning",
       accent: "lime",
       skills: ["Introductory & Intermediate Machine Learning", "AI Ethics", "Game AI & Reinforcement Learning", "Workflow Automation"]
+    },
+    {
+      category: "Workflow Automation & IT Support",
+      accent: "orange",
+      skills: ["Python ETL & Report Automation", "Excel VBA Macros", "REST API Integration", "IT Systems & Technical Support", "Technical Documentation & Training", "Brand & Video Media"]
     }
   ],
 
@@ -347,6 +352,89 @@ window.YOLETECH_DATA = {
     {
       q: "Can you audit, clean, or repair existing broken spreadsheets, SQL databases, or web builds?",
       a: "Absolutely. A core part of my work is statistical auditing, discrepancy resolution across messy Excel/SQL datasets, automating manual bottlenecks with VBA/Python, and modernizing web platforms."
+    }
+  ],
+
+  defaultPortfolio: [
+    {
+      id: "predicting-real-estate-prices-with-python-and-scikit-learn",
+      slug: "predicting-real-estate-prices-with-python-and-scikit-learn",
+      title: "Predicting Real Estate Prices with Python and Scikit-Learn",
+      date: "2026-04-12",
+      category: "Python & Machine Learning",
+      organization: "YOLETECH AI & Data Science",
+      period: "2026",
+      preview_image: "/assets/blog/predicting-real-estate-prices-with-python-and-scikit-learn.png",
+      demo_url: "https://house-price-prediction-system.streamlit.app/",
+      live_url: "https://house-price-prediction-system.streamlit.app/",
+      impact_metrics: "Automated feature pipeline, ensemble regression & interactive valuation simulator",
+      tech_stack: ["Python", "Scikit-Learn", "Pandas", "NumPy", "Streamlit"],
+      featured: true,
+      summary: "Predictive analytics and regression modeling system built with Python and Scikit-Learn to estimate residential property market values from structural, neighborhood, and historical transaction features."
+    },
+    {
+      id: "ow-to-automate-excel-reports-using-python-and-pandas",
+      slug: "ow-to-automate-excel-reports-using-python-and-pandas",
+      title: "How to Automate Excel Reports Using Python and Pandas",
+      date: "2026-04-12",
+      category: "AI & Workflow Automation",
+      organization: "YOLETECH Automation Engineering",
+      period: "2026",
+      preview_image: "/assets/blog/automate-excel-sales-reports-with-python-and-pandas.png",
+      demo_url: "/blog/how-to-automate-excel-reports-using-python-and-pandas",
+      live_url: "/blog/how-to-automate-excel-reports-using-python-and-pandas",
+      impact_metrics: "Eliminated 85% of manual copy-paste reporting time & zero formula-breakage errors",
+      tech_stack: ["Python", "Pandas", "OpenPyXL", "ETL Automation", "Excel"],
+      featured: true,
+      summary: "Automated Python and Pandas reporting pipeline that ingests multi-sheet operational spreadsheets, validates schema integrity, computes executive summaries, and exports formatted Excel workbooks on schedule."
+    },
+    {
+      id: "from-housing-data-to-an-interactive-ml-app-predicting-real-estate-prices-with-python-scikit-learn-and-streamlit",
+      slug: "from-housing-data-to-an-interactive-ml-app-predicting-real-estate-prices-with-python-scikit-learn-and-streamlit",
+      title: "From Housing Data to an Interactive ML App: Predicting Real Estate Prices with Python, Scikit-Learn and Streamlit",
+      date: "2026-04-12",
+      category: "Python & Machine Learning",
+      organization: "YOLETECH AI & Data Science",
+      period: "2026",
+      preview_image: "/assets/blog/real-estate-ml-model.png",
+      demo_url: "https://house-price-prediction-system.streamlit.app/",
+      live_url: "https://house-price-prediction-system.streamlit.app/",
+      impact_metrics: "R² > 0.88 validation accuracy with live sub-second Streamlit inference",
+      tech_stack: ["Python", "Scikit-Learn", "Streamlit", "Pandas", "Machine Learning"],
+      featured: true,
+      summary: "End-to-end machine learning workflow that transforms raw housing market datasets into an interactive Streamlit web application for real-time property valuation and feature-importance exploration."
+    },
+    {
+      id: "build-an-interactive-sales-dashboard-with-python-and-streamlit",
+      slug: "build-an-interactive-sales-dashboard-with-python-and-streamlit",
+      title: "Build an Interactive Sales Dashboard with Python and Streamlit",
+      date: "2026-04-11",
+      category: "Data Analytics & BI",
+      organization: "YOLETECH Analytics Lab",
+      period: "2026",
+      preview_image: "/assets/blog/streamlite-python-dashboard.png",
+      demo_url: "https://sales-analytics-suite.streamlit.app/",
+      live_url: "https://sales-analytics-suite.streamlit.app/",
+      impact_metrics: "Real-time KPI filtering, regional revenue cohort drilldowns & automated CSV/Excel ingestion",
+      tech_stack: ["Python", "Streamlit", "Pandas", "Plotly", "Data Analytics"],
+      featured: true,
+      summary: "Interactive web-based sales intelligence application built with Python, Pandas, and Streamlit—enabling executives and operations teams to filter multi-region revenue, profit margins, and product performance in real time."
+    },
+    {
+      id: "executive-business-intelligence-sales-forecasting-platform",
+      slug: "executive-business-intelligence-sales-forecasting-platform",
+      title: "Executive Business Intelligence & Sales Forecasting Platform",
+      date: "2026-04-08",
+      category: "Data Analytics & BI",
+      organization: "Enterprise Retail & Operations",
+      period: "2025 – 2026",
+      preview_image: "/assets/blog/executive_bi_linkedin_carousel.png",
+      demo_url: "https://sales-analytics-suite.streamlit.app/",
+      live_url: "https://sales-analytics-suite.streamlit.app/",
+      impact_metrics: "40% faster executive reporting cycle & automated 90-day rolling revenue forecast",
+      tech_stack: ["Power BI", "Python", "SQL", "Streamlit", "Time-Series Forecasting"],
+      featured: true,
+      summary: "End-to-end executive Business Intelligence and revenue forecasting platform combining SQL warehouse modeling, automated Python ETL pipelines, and interactive KPI scorecards for leadership decision-making."
     }
   ]
 };

@@ -1,5 +1,8 @@
 User-agent: *
 Allow: /
+Disallow: /admin/
+Disallow: /admin-dashboard
+Disallow: /portal
+Disallow: /api/
 
 Sitemap: https://yoletech.yoletica.com/sitemap.xml
-

@@ -27,6 +27,12 @@ class YoletechApp {
     this.adminClientLimit = 30;
     this.testimonialPage = 1;
     this.testimonialLimit = 8;
+    this.testimonialTrackFilter = 'ALL';
+    this.testimonialSearch = '';
+    this.testimonialFormRating = 5;
+    this.portfolioSearch = '';
+    this.activePortfolioModal = null;
+    this.blogSearch = '';
     this.contactServiceSelected = 'Data Analysis & Analytics';
     this.mobileMenuOpen = false;
     this.editingBlogPost = null;
@@ -35,13 +41,13 @@ class YoletechApp {
     this.token = localStorage.getItem('yoletech_token') || null;
     this.user = JSON.parse(localStorage.getItem('yoletech_user') || 'null');
 
-    this.portfolio = [];
-    this.testimonials = [];
+    this.portfolio = window.YOLETECH_DATA?.defaultPortfolio || [];
+    this.testimonials = window.YOLETECH_DATA?.defaultTestimonials || [];
     this.blogPosts = [];
     this.clients = [];
     this.inquiries = [];
     this.toastMessage = null;
-    this.notifyEmail = 'yoletech@yolestica.com';
+    this.notifyEmail = 'yoletech@yoletica.com';
     this.showPassword = false;
     this.lastContactSubmission = null;
     this.formConfirmations = {};
@@ -53,22 +59,84 @@ class YoletechApp {
 
   async init() {
     this.bindPopState();
+    this.bindScrollProgress();
     this.applyTheme(this.theme, false);
     this.bindThemeListener();
     this.resolveInitialRoute();
+    this.render();
+    this.startSlideshow();
     await this.loadPublicData();
     if (this.token) {
       await this.verifySession();
     }
+    this.render();
     if (typeof this.loadDashboardData === 'function') {
       try {
         await this.loadDashboardData(true);
+        if (this.currentPage === 'dashboard') {
+          this.render();
+        }
       } catch (e) {
         console.warn('Dashboard pre-load notice:', e);
       }
     }
-    this.render();
-    this.startSlideshow();
+  }
+
+  bindScrollProgress() {
+    if (this._scrollBound) return;
+    this._scrollBound = true;
+    const updateProgress = () => {
+      const bar = document.getElementById('scroll-progress-bar');
+      if (!bar) return;
+      const docEl = document.documentElement;
+      const scrollTop = window.scrollY || docEl.scrollTop || 0;
+      const scrollHeight = Math.max(1, docEl.scrollHeight - docEl.clientHeight);
+      const pct = Math.min(100, Math.max(0, (scrollTop / scrollHeight) * 100));
+      bar.style.width = `${pct}%`;
+    };
+    window.addEventListener('scroll', updateProgress, { passive: true });
+    window.addEventListener('resize', updateProgress, { passive: true });
+  }
+
+  initScrollReveal(rootEl = document) {
+    if (!rootEl || !rootEl.querySelectorAll) return;
+    const revealTargets = rootEl.querySelectorAll(
+      '.glass-card, .metric-cell, .section-header, .about-info-card, .dash-card, .dash-kpi, .service-strip-item'
+    );
+    if (!revealTargets.length) return;
+
+    if (!('IntersectionObserver' in window)) {
+      revealTargets.forEach((el) => el.classList.add('is-revealed'));
+      return;
+    }
+
+    if (this.revealObserver && rootEl === document) {
+      this.revealObserver.disconnect();
+    }
+
+    const observer = new IntersectionObserver(
+      (entries, obs) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('is-revealed');
+            obs.unobserve(entry.target);
+          }
+        });
+      },
+      { threshold: 0.08, rootMargin: '0px 0px -24px 0px' }
+    );
+
+    if (rootEl === document) {
+      this.revealObserver = observer;
+    }
+
+    revealTargets.forEach((el, idx) => {
+      if (!el.classList.contains('is-revealed')) {
+        el.classList.add('reveal-on-scroll');
+        el.style.setProperty('--reveal-delay', `${(idx % 6) * 45}ms`);
+        observer.observe(el);
+      }
+    });
   }
 
   bindPopState() {
@@ -189,7 +257,7 @@ class YoletechApp {
   }
 
   async sendEmailToYoletech({ subject, replyTo, fields }) {
-    const recipient = this.notifyEmail || 'yoletech@yolestica.com';
+    const recipient = this.notifyEmail || 'yoletech@yoletica.com';
     try {
       const res = await fetch(`https://formsubmit.co/ajax/${encodeURIComponent(recipient)}`, {
         method: 'POST',
@@ -223,40 +291,88 @@ class YoletechApp {
       body = match[2].trim();
       const lines = yamlBlock.split('\n');
       let currentListKey = null;
+      let currentScalarKey = null;
 
       for (const line of lines) {
         const listItemMatch = line.match(/^\s*-\s+(.+)$/);
-        if (listItemMatch && currentListKey) {
+        if (listItemMatch && (currentListKey || currentScalarKey)) {
+          const targetKey = currentListKey || currentScalarKey;
+          if (!Array.isArray(meta[targetKey])) meta[targetKey] = [];
+          currentListKey = targetKey;
+          currentScalarKey = null;
           let itemVal = listItemMatch[1].trim();
           if ((itemVal.startsWith('"') && itemVal.endsWith('"')) || (itemVal.startsWith("'") && itemVal.endsWith("'"))) {
             itemVal = itemVal.slice(1, -1);
           }
-          meta[currentListKey].push(itemVal);
+          meta[targetKey].push(itemVal);
+          continue;
+        }
+        if (/^\s+\S/.test(line) && currentScalarKey) {
+          const cont = line.trim();
+          meta[currentScalarKey] = meta[currentScalarKey]
+            ? `${meta[currentScalarKey]} ${cont}`
+            : cont;
           continue;
         }
         const kvMatch = line.match(/^([A-Za-z0-9_-]+):\s*(.*)$/);
         if (!kvMatch) continue;
         const key = kvMatch[1].trim();
         let val = kvMatch[2].trim();
-        if (val === '') {
+        if (val === '' || val === '>-' || val === '>' || val === '|-' || val === '|') {
           currentListKey = key;
-          meta[key] = [];
+          currentScalarKey = key;
+          meta[key] = '';
           continue;
         }
         currentListKey = null;
+        currentScalarKey = key;
         if ((val.startsWith('"') && val.endsWith('"')) || (val.startsWith("'") && val.endsWith("'"))) {
           val = val.slice(1, -1);
         }
         if (val.startsWith('[') && val.endsWith(']')) {
           try {
             meta[key] = JSON.parse(val);
+            currentScalarKey = null;
             continue;
           } catch {}
         }
         meta[key] = val;
       }
+      for (const k of Object.keys(meta)) {
+        if (typeof meta[k] === 'string') {
+          meta[k] = meta[k].replace(/\s{2,}/g, ' ').trim();
+        }
+      }
     }
     return { slug, meta, body };
+  }
+
+  resolvePortfolioImage(previewImage, slug = '') {
+    const slugMap = {
+      'build-an-interactive-sales-dashboard-with-python-and-streamlit': '/assets/blog/streamlite-python-dashboard.png',
+      'executive-business-intelligence-sales-forecasting-platform': '/assets/blog/executive_bi_linkedin_carousel.png',
+      'from-housing-data-to-an-interactive-ml-app-predicting-real-estate-prices-with-python-scikit-learn-and-streamlit': '/assets/blog/real-estate-ml-model.png',
+      'ow-to-automate-excel-reports-using-python-and-pandas': '/assets/blog/automate-excel-sales-reports-with-python-and-pandas.png',
+      'how-to-automate-excel-reports-using-python-and-pandas': '/assets/blog/automate-excel-sales-reports-with-python-and-pandas.png',
+      'predicting-real-estate-prices-with-python-and-scikit-learn': '/assets/blog/predicting-real-estate-prices-with-python-and-scikit-learn.png'
+    };
+    const legacyImageMap = {
+      '/assets/blog/file_000000009ec871fd95c9cf798e33307c.png': '/assets/blog/streamlite-python-dashboard.png',
+      '/assets/blog/1775645513292-file_00000000aaac720ab0333199e7794a7b.png': '/assets/blog/executive_bi_linkedin_carousel.png',
+      '/assets/blog/Gemini_Generated_Image_bfpxp1bfpxp1bfpx.png': '/assets/blog/real-estate-ml-model.png',
+      '/assets/blog/file_00000000ca2c724692ed9d7b1ff18db5.png': '/assets/blog/automate-excel-sales-reports-with-python-and-pandas.png',
+      '/assets/blog/Gemini_Generated_Image_bfpxp1bfpxp1bfpx (1).png': '/assets/blog/predicting-real-estate-prices-with-python-and-scikit-learn.png'
+    };
+    const cleanImg = String(previewImage || '').trim();
+    if (cleanImg && legacyImageMap[cleanImg]) {
+      return legacyImageMap[cleanImg];
+    }
+    if (slug && slugMap[slug] && (!cleanImg || /file_0000|Gemini_Generated_Image/i.test(cleanImg))) {
+      return slugMap[slug];
+    }
+    if (cleanImg) return cleanImg;
+    if (slug && slugMap[slug]) return slugMap[slug];
+    return '/assets/dashboard-preview.jpg';
   }
 
   async fetchGitHubCollection(folderType) {
@@ -290,7 +406,7 @@ class YoletechApp {
               summary: meta.summary || body.slice(0, 220),
               impact_metrics: meta.impact_metrics || 'Verified production delivery',
               tech_stack: techStack,
-              preview_image: meta.preview_image || '/assets/dashboard-preview.jpg',
+              preview_image: this.resolvePortfolioImage(meta.preview_image, slug),
               demo_url: meta.demo_url || meta.live_url || '',
               live_url: meta.demo_url || meta.live_url || '',
               featured: meta.featured !== 'false' && meta.featured !== false,
@@ -348,6 +464,13 @@ class YoletechApp {
     if (this.portfolio.length === 0) {
       this.portfolio = await this.fetchGitHubCollection('portfolio');
     }
+    if (this.portfolio.length === 0 && window.YOLETECH_DATA?.defaultPortfolio) {
+      this.portfolio = window.YOLETECH_DATA.defaultPortfolio;
+    }
+    this.portfolio = (this.portfolio || []).map((p) => ({
+      ...p,
+      preview_image: this.resolvePortfolioImage(p.preview_image, p.slug)
+    }));
     if (this.blogPosts.length === 0) {
       this.blogPosts = await this.fetchGitHubCollection('blog');
     }
@@ -654,23 +777,29 @@ class YoletechApp {
       'Full-Stack Web Development': 'Web Development',
       'Data Analysis & Analytics': 'Data Analysis & Analytics',
       'Data Analytics & BI': 'Data Analysis & Analytics',
+      'Data Analytics & BI Dashboards': 'Data Analysis & Analytics',
       'Data Analytics & Dashboards': 'Data Analysis & Analytics',
+      'Database Architecture & Governance': 'Data Analysis & Analytics',
       'AI Automation': 'AI Automation',
       'AI & Machine Learning': 'AI Automation',
+      'Python & Machine Learning': 'AI Automation',
+      'AI, ML & Workflow Automation': 'AI Automation',
       'AI & Workflow Automation': 'AI Automation',
       'AI & Automation': 'AI Automation',
       'Tech Tutorials': 'Tech Tutorials',
       'Tech Tutorials & Mentorship': 'Tech Tutorials',
       'Tech Tutorials & Training': 'Tech Tutorials',
+      'Tech Tutorials & Staff Training': 'Tech Tutorials',
       'Graphic Design': 'Graphic Design',
       'Graphic Design & Video': 'Graphic Design',
+      'Graphic Design, Video & IT Support': 'Graphic Design',
       'Video Editing': 'Video Editing',
       'Customer Support': 'Customer Support',
       'IT Support': 'IT Support',
       'IT & Database Support': 'IT Support',
       'IT & Customer Support': 'IT Support'
     };
-    this.contactServiceSelected = map[rawService] || rawService || 'Data Analysis & Analytics';
+    this.contactServiceSelected = map[rawService] || 'Data Analysis & Analytics';
     this.navigate('contact');
   }
 
@@ -1009,9 +1138,6 @@ class YoletechApp {
       { id: 'dashboard', label: 'Dashboard' },
       { id: 'about', label: 'About' },
       { id: 'services', label: 'Services' },
-      { id: 'portfolio', label: 'Portfolio' },
-      { id: 'testimonials', label: 'Testimonials' },
-      { id: 'blog', label: 'Blog' },
       { id: 'contact', label: 'Contact' }
     ];
 
@@ -1040,6 +1166,7 @@ class YoletechApp {
 
     return `
       <header class="site-header">
+        <div id="scroll-progress-bar" class="scroll-progress-bar" aria-hidden="true"></div>
         <div class="container nav-inner">
           ${C.renderBrandLogo()}
           <ul class="nav-links ${this.mobileMenuOpen ? 'mobile-open' : ''}">
@@ -1047,12 +1174,12 @@ class YoletechApp {
               .map(
                 (item) => `
               <li>
-                <a class="nav-link ${
+                <a href="/${item.id}" class="nav-link ${
                   this.currentPage === item.id ||
                   (item.id === 'blog' && this.currentPage === 'blog-detail')
                     ? 'active'
                     : ''
-                }" onclick="window.app.navigate('${item.id}')">${item.label}</a>
+                }" onclick="event.preventDefault(); window.app.navigate('${item.id}')">${item.label}</a>
               </li>
             `
               )
@@ -1074,11 +1201,17 @@ class YoletechApp {
 
   renderFooter() {
     const D = window.YOLETECH_DATA.owner;
+    const C = window.YOLETECH_COMPONENTS;
     const tabs = [
-      { id: 'overview', label: 'Overview', detail: 'Who we are' },
-      { id: 'services', label: 'Services', detail: 'What we do' },
-      { id: 'explore', label: 'Explore', detail: 'Useful links' },
-      { id: 'contact', label: 'Contact', detail: 'Get in touch' }
+      {
+        id: 'overview',
+        icon: 'users',
+        label: 'Connect with YOLETECH',
+        detail: 'Follow the work, explore projects, or start a conversation.'
+      },
+      { id: 'services', icon: 'briefcase', label: 'Services', detail: 'What we do' },
+      { id: 'explore', icon: 'globe', label: 'Explore', detail: 'Useful links' },
+      { id: 'contact', icon: 'message', label: 'Contact', detail: 'Get in touch' }
     ];
     const activeTab = tabs.some((tab) => tab.id === this.footerTab) ? this.footerTab : 'overview';
 
@@ -1109,7 +1242,6 @@ class YoletechApp {
                 <span class="footer-kicker"><span class="eyebrow-dot"></span> YOLETECH</span>
                 <h2>Good work starts with a good conversation.</h2>
               </div>
-              <p>Explore the studio, services, and ways to connect.</p>
             </div>
 
             <div class="footer-tabs-nav" role="tablist" aria-label="Footer information">
@@ -1127,8 +1259,11 @@ class YoletechApp {
                   onclick="window.app.selectFooterTab('${tab.id}')"
                   onkeydown="window.app.handleFooterTabKeydown(event, '${tab.id}')"
                 >
-                  <span class="footer-tab-label">${tab.label}</span>
-                  <span class="footer-tab-detail">${tab.detail}</span>
+                  <span class="footer-tab-icon" aria-hidden="true">${C ? C.getIcon(tab.icon) : ''}</span>
+                  <span class="footer-tab-copy">
+                    <span class="footer-tab-label">${tab.label}</span>
+                    <span class="footer-tab-detail">${tab.detail}</span>
+                  </span>
                 </button>
               `
                 )
@@ -1166,8 +1301,6 @@ class YoletechApp {
             <p>Data analytics, business intelligence, workflow automation, and full-stack web solutions engineered for clarity and scale.</p>
           </div>
           <div class="footer-social-block">
-            <h3>Connect with YOLETECH</h3>
-            <p>Follow the work, explore projects, or start a conversation.</p>
             <div class="social-icon-row">
               <a href="${owner.socials.github}" target="_blank" rel="noopener noreferrer" class="social-btn">${this.renderSocialIcon('github')} <span>GitHub</span> <span aria-hidden="true">↗</span></a>
               <a href="${owner.socials.linkedin}" target="_blank" rel="noopener noreferrer" class="social-btn">${this.renderSocialIcon('linkedin')} <span>LinkedIn</span> <span aria-hidden="true">↗</span></a>
@@ -1187,12 +1320,12 @@ class YoletechApp {
             <p>Practical expertise across modern web, data, and digital operations.</p>
           </div>
           <ul class="footer-link-grid">
-            <li><a onclick="window.app.navigate('services')"><span>Full-Stack Web Development</span><span aria-hidden="true">↗</span></a></li>
-            <li><a onclick="window.app.navigate('services')"><span>Data Analytics &amp; BI Dashboards</span><span aria-hidden="true">↗</span></a></li>
-            <li><a onclick="window.app.navigate('services')"><span>AI &amp; Python/VBA Automation</span><span aria-hidden="true">↗</span></a></li>
-            <li><a onclick="window.app.navigate('services')"><span>Tech Tutorials &amp; Staff Training</span><span aria-hidden="true">↗</span></a></li>
-            <li><a onclick="window.app.navigate('services')"><span>Graphic Design &amp; Video Editing</span><span aria-hidden="true">↗</span></a></li>
-            <li><a onclick="window.app.navigate('services')"><span>IT &amp; Database Support</span><span aria-hidden="true">↗</span></a></li>
+            <li><a href="/services" onclick="event.preventDefault(); window.app.navigate('services')"><span>Full-Stack Web Development</span><span aria-hidden="true">↗</span></a></li>
+            <li><a href="/services" onclick="event.preventDefault(); window.app.navigate('services')"><span>Data Analytics &amp; BI Dashboards</span><span aria-hidden="true">↗</span></a></li>
+            <li><a href="/services" onclick="event.preventDefault(); window.app.navigate('services')"><span>AI &amp; Python/VBA Automation</span><span aria-hidden="true">↗</span></a></li>
+            <li><a href="/services" onclick="event.preventDefault(); window.app.navigate('services')"><span>Tech Tutorials &amp; Staff Training</span><span aria-hidden="true">↗</span></a></li>
+            <li><a href="/services" onclick="event.preventDefault(); window.app.navigate('services')"><span>Graphic Design &amp; Video Editing</span><span aria-hidden="true">↗</span></a></li>
+            <li><a href="/services" onclick="event.preventDefault(); window.app.navigate('services')"><span>IT &amp; Database Support</span><span aria-hidden="true">↗</span></a></li>
           </ul>
         </div>
       `,
@@ -1204,11 +1337,11 @@ class YoletechApp {
             <p>See how thoughtful engineering turns complex challenges into clear outcomes.</p>
           </div>
           <ul class="footer-link-grid">
-            <li><a onclick="window.app.navigate('about')"><span>About YOLETECH</span><span aria-hidden="true">↗</span></a></li>
-            <li><a onclick="window.app.navigate('portfolio')"><span>Portfolio &amp; Case Studies</span><span aria-hidden="true">↗</span></a></li>
-            <li><a onclick="window.app.navigate('testimonials')"><span>Client Testimonials</span><span aria-hidden="true">↗</span></a></li>
-            <li><a onclick="window.app.navigate('blog')"><span>Blog &amp; Tutorials</span><span aria-hidden="true">↗</span></a></li>
-            <li><a onclick="window.app.navigate('login')"><span>Client Portal</span><span aria-hidden="true">↗</span></a></li>
+            <li><a href="/about" onclick="event.preventDefault(); window.app.navigate('about')"><span>About YOLETECH</span><span aria-hidden="true">↗</span></a></li>
+            <li><a href="/portfolio" onclick="event.preventDefault(); window.app.navigate('portfolio')"><span>Portfolio &amp; Case Studies</span><span aria-hidden="true">↗</span></a></li>
+            <li><a href="/testimonials" onclick="event.preventDefault(); window.app.navigate('testimonials')"><span>Client Testimonials</span><span aria-hidden="true">↗</span></a></li>
+            <li><a href="/blog" onclick="event.preventDefault(); window.app.navigate('blog')"><span>Blog &amp; Tutorials</span><span aria-hidden="true">↗</span></a></li>
+            <li><a href="/login" onclick="event.preventDefault(); window.app.navigate('login')"><span>Client Portal</span><span aria-hidden="true">↗</span></a></li>
             <li><a href="/cv.html" target="_blank" rel="noopener"><span>Curriculum Vitae</span><span aria-hidden="true">↗</span></a></li>
           </ul>
         </div>
@@ -1446,20 +1579,20 @@ class YoletechApp {
           <div class="section-header">
             <div class="eyebrow"><span class="eyebrow-dot"></span> INTERACTIVE PREVIEW</div>
             <h2 class="section-title">Explore How Your Data &amp; Web Systems Operate</h2>
-            <div style="display:flex;justify-content:center;gap:10px;flex-wrap:wrap;margin-top:22px;">
-              <button class="selector-pill ${this.showcaseTab === 'dashboard' ? 'active' : ''}" onclick="window.app.showcaseTab='dashboard';window.app.render();">
+            <div id="home-showcase-pills" style="display:flex;justify-content:center;gap:10px;flex-wrap:wrap;margin-top:22px;">
+              <button type="button" data-showcase="dashboard" class="selector-pill ${this.showcaseTab === 'dashboard' ? 'active' : ''}" onclick="window.app.setShowcaseTab('dashboard')">
                 📊 Executive BI Dashboard
               </button>
-              <button class="selector-pill ${this.showcaseTab === 'codesync' ? 'active' : ''}" onclick="window.app.showcaseTab='codesync';window.app.render();">
+              <button type="button" data-showcase="codesync" class="selector-pill ${this.showcaseTab === 'codesync' ? 'active' : ''}" onclick="window.app.setShowcaseTab('codesync')">
                 💻 Full-Stack Code &amp; Sync UI
               </button>
-              <button class="selector-pill ${this.showcaseTab === 'workflow' ? 'active' : ''}" onclick="window.app.showcaseTab='workflow';window.app.render();">
+              <button type="button" data-showcase="workflow" class="selector-pill ${this.showcaseTab === 'workflow' ? 'active' : ''}" onclick="window.app.setShowcaseTab('workflow')">
                 ⚡ API-to-Python Automation Flow
               </button>
             </div>
           </div>
 
-          <div style="max-width:980px;margin:0 auto;">
+          <div id="home-showcase-mount" style="max-width:980px;margin:0 auto;">
             ${
               this.showcaseTab === 'dashboard'
                 ? C.renderDataOverviewWidget()
@@ -1490,13 +1623,14 @@ class YoletechApp {
                 (p) => `
               <div class="glass-card" style="display:flex;flex-direction:column;justify-content:space-between;">
                 <div>
-                  <div style="border-radius:12px;overflow:hidden;margin-bottom:16px;border:1px solid rgba(255,255,255,0.12);height:175px;">
-                    <img src="${p.preview_image}" alt="${p.title}" style="width:100%;height:100%;object-fit:cover;" />
+                  <div style="border-radius:12px;overflow:hidden;margin-bottom:16px;border:1px solid rgba(255,255,255,0.12);height:175px;cursor:pointer;" onclick="window.app.openPortfolioModal('${p.slug}')">
+                    <img src="${this.resolvePortfolioImage(p.preview_image, p.slug)}" alt="${p.title}" onerror="this.onerror=null;this.src='/assets/dashboard-preview.jpg';" style="width:100%;height:100%;object-fit:cover;" />
                   </div>
-                  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
-                    <span style="font-size:12px;color:var(--yole-text-muted);">${p.period}</span>
+                  <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:10px;">
+                    <span class="tech-pill lime" style="font-size:11px;padding:3px 10px;">${p.category || 'Data Analytics & BI'}</span>
+                    <span style="font-size:12px;color:var(--yole-text-muted);">${p.period || p.date || '2026'}</span>
                   </div>
-                  <h3 style="font-size:19px;font-weight:800;margin-bottom:8px;">${p.title}</h3>
+                  <h3 style="font-size:19px;font-weight:800;margin-bottom:8px;cursor:pointer;" onclick="window.app.openPortfolioModal('${p.slug}')">${p.title}</h3>
                   <p style="font-size:13.5px;color:var(--yole-text-muted);margin-bottom:14px;">${p.summary}</p>
                 </div>
                 <div>
@@ -1511,7 +1645,7 @@ class YoletechApp {
                           </a>`
                         : ''
                     }
-                    <button class="btn btn-outline btn-sm" style="flex:1;" onclick="window.app.navigate('portfolio')">
+                    <button class="btn btn-outline btn-sm" style="flex:1;" onclick="window.app.openPortfolioModal('${p.slug}')">
                       Case Study →
                     </button>
                   </div>
@@ -1543,7 +1677,8 @@ class YoletechApp {
                 (post) => `
               <div class="glass-card" style="display:flex;flex-direction:column;justify-content:space-between;cursor:pointer;" onclick="window.app.navigate('blog-detail', '${post.slug}')">
                 <div>
-                  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+                  <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:12px;">
+                    <span class="tech-pill lime" style="font-size:11px;padding:3px 10px;">${post.category || 'Data Analytics & BI'}</span>
                     <span style="font-size:12px;color:var(--yole-text-muted);">${post.readTime}</span>
                   </div>
                   <h3 style="font-size:19px;font-weight:800;margin-bottom:10px;line-height:1.35;">${post.title}</h3>
@@ -1559,7 +1694,6 @@ class YoletechApp {
               .join('')}
           </div>
         </div>
-      </div>
       </section>
     `;
   }
@@ -1594,6 +1728,7 @@ class YoletechApp {
     const activeTab = tabs.some((tab) => tab.id === this.aboutTab) ? this.aboutTab : 'skills';
 
     return `
+      ${this.renderServicesTicker()}
       <section class="section">
         <div class="container">
           <div class="hero-slide-grid section-block-gap">
@@ -1618,8 +1753,6 @@ class YoletechApp {
               ${C.renderPortraitHeroWidget('about')}
             </div>
           </div>
-
-          ${this.renderServicesTicker()}
 
           <section class="about-profile" aria-label="Professional profile">
             <header class="about-profile-heading">
@@ -1672,15 +1805,17 @@ class YoletechApp {
                   ${D.coreProficiencies
                     .map(
                       (prof) => `
-                    <article class="about-info-card">
+                    <article class="about-info-card about-prof-card about-prof-${prof.accent}">
                       <h4 class="about-accent-${prof.accent}">${prof.category}</h4>
-                      <p class="about-skill-summary">${prof.skills.join(', ')}</p>
+                      <div class="about-skill-summary about-skill-tags">
+                        ${prof.skills.map((skill) => `<span class="about-skill-chip">${skill}</span>`).join('')}
+                      </div>
                     </article>
                   `
                     )
                     .join('')}
                   <article class="about-info-card about-competencies">
-                    <h4 class="accent-lime">Professional competencies</h4>
+                    <h4 class="about-accent-lime">Professional competencies</h4>
                     <div class="about-competency-list">
                       ${D.competencies
                         .map(
@@ -1827,6 +1962,7 @@ class YoletechApp {
     const C = window.YOLETECH_COMPONENTS;
 
     return `
+      ${this.renderServicesTicker()}
       <section class="section">
         <div class="container">
           <div class="hero-slide-grid section-block-gap">
@@ -1852,11 +1988,9 @@ class YoletechApp {
             </div>
           </div>
 
-          ${this.renderServicesTicker()}
-
           <div class="section-header">
             <div class="eyebrow"><span class="eyebrow-dot"></span> OUR SERVICES</div>
-            <h2 class="section-title">Complete Service Tracks Under One Roof</h2>
+            <h2 class="section-title section-title-nowrap">Complete Service Tracks Under One Roof</h2>
             <p class="section-desc">Select any service track below to start a tailored project inquiry.</p>
           </div>
 
@@ -1906,7 +2040,7 @@ class YoletechApp {
           </div>
 
           <div class="scope-tabs-container section-block-gap">
-            <div class="scope-tabs-nav" role="tablist">
+            <div class="scope-tabs-nav" id="service-scope-tabs-nav" role="tablist">
               ${D.serviceScopeTable
                 .map((row, idx) => {
                   const shortNames = [
@@ -1922,9 +2056,10 @@ class YoletechApp {
                     <button
                       type="button"
                       role="tab"
+                      data-scope-idx="${idx}"
                       aria-selected="${isActive}"
                       class="scope-tab-btn ${isActive ? 'active' : ''}"
-                      onclick="window.app.serviceScopeTab = ${idx}; window.app.render();"
+                      onclick="window.app.setServiceScopeTab(${idx})"
                     >
                       <span class="scope-tab-num">0${idx + 1}</span>
                       <span class="scope-tab-label">${shortNames[idx] || row.track}</span>
@@ -1934,64 +2069,9 @@ class YoletechApp {
                 .join('')}
             </div>
 
-            ${(() => {
-              const activeIdx = this.serviceScopeTab || 0;
-              const activeRow = D.serviceScopeTable[activeIdx] || D.serviceScopeTable[0];
-              const totalTracks = D.serviceScopeTable.length;
-              const prevIdx = (activeIdx - 1 + totalTracks) % totalTracks;
-              const nextIdx = (activeIdx + 1) % totalTracks;
-              const deliverableItems = String(activeRow.deliverables || '')
-                .split(',')
-                .map((s) => s.trim())
-                .filter(Boolean);
-
-              return `
-                <div class="glass-card scope-tab-panel">
-                  <div class="scope-panel-header">
-                    <div>
-                      <div class="scope-track-step">SERVICE TRACK 0${activeIdx + 1} OF 0${totalTracks}</div>
-                      <h3 class="scope-track-title">${activeRow.track}</h3>
-                    </div>
-                    <div class="scope-timeline-box">
-                      <span class="scope-timeline-label">Typical Timeline</span>
-                      <span>${activeRow.timeline}</span>
-                    </div>
-                  </div>
-
-                  <div class="scope-panel-grid">
-                    <div class="scope-subcard">
-                      <div class="scope-subcard-title">Deliverables &amp; Execution Standards</div>
-                      <ul class="scope-deliverables-list">
-                        ${deliverableItems
-                          .map(
-                            (item) => `
-                          <li>
-                            <span class="scope-check">✓</span>
-                            <span>${item.charAt(0).toUpperCase() + item.slice(1)}</span>
-                          </li>
-                        `
-                          )
-                          .join('')}
-                      </ul>
-                    </div>
-                  </div>
-
-                  <div class="scope-panel-footer">
-                    <div class="scope-step-nav">
-                      <button type="button" class="btn btn-outline btn-sm" onclick="window.app.serviceScopeTab = ${prevIdx}; window.app.render();">
-                        ← Prev
-                      </button>
-                      <button type="button" class="btn btn-outline btn-sm" onclick="window.app.serviceScopeTab = ${nextIdx}; window.app.render();">
-                        Next →
-                      </button>
-                    </div>
-                    <button type="button" class="btn btn-lime btn-sm scope-request-btn" onclick="window.app.selectContactService('${activeRow.track}')">
-                      Request ${activeRow.track} →
-                    </button>
-                  </div>
-                </div>
-              `;
-            })()}
+            <div id="service-scope-mount">
+              ${this.renderServiceScopePanel()}
+            </div>
           </div>
 
 ${C.renderRoiCalculatorWidget ? C.renderRoiCalculatorWidget() : ""}
@@ -2026,9 +2106,261 @@ ${C.renderRoiCalculatorWidget ? C.renderRoiCalculatorWidget() : ""}
     `;
   }
 
+  renderServiceScopePanel() {
+    const D = window.YOLETECH_DATA;
+    const activeIdx = this.serviceScopeTab || 0;
+    const activeRow = D.serviceScopeTable[activeIdx] || D.serviceScopeTable[0];
+    const totalTracks = D.serviceScopeTable.length;
+    const prevIdx = (activeIdx - 1 + totalTracks) % totalTracks;
+    const nextIdx = (activeIdx + 1) % totalTracks;
+    const deliverableItems = String(activeRow.deliverables || '')
+      .split(',')
+      .map((s) => s.trim())
+      .filter(Boolean);
+
+    return `
+      <div class="glass-card scope-tab-panel is-revealed">
+        <div class="scope-panel-header">
+          <div>
+            <div class="scope-track-step">SERVICE TRACK 0${activeIdx + 1} OF 0${totalTracks}</div>
+            <h3 class="scope-track-title">${activeRow.track}</h3>
+          </div>
+          <div class="scope-timeline-box">
+            <span class="scope-timeline-label">Typical Timeline</span>
+            <span>${activeRow.timeline}</span>
+          </div>
+        </div>
+
+        <div class="scope-panel-grid">
+          <div class="scope-subcard">
+            <div class="scope-subcard-title">Deliverables &amp; Execution Standards</div>
+            <ul class="scope-deliverables-list">
+              ${deliverableItems
+                .map(
+                  (item) => `
+                <li>
+                  <span class="scope-check">✓</span>
+                  <span>${item.charAt(0).toUpperCase() + item.slice(1)}</span>
+                </li>
+              `
+                )
+                .join('')}
+            </ul>
+          </div>
+        </div>
+
+        <div class="scope-panel-footer">
+          <div class="scope-step-nav">
+            <button type="button" class="btn btn-outline btn-sm" onclick="window.app.setServiceScopeTab(${prevIdx})">
+              ← Prev
+            </button>
+            <button type="button" class="btn btn-outline btn-sm" onclick="window.app.setServiceScopeTab(${nextIdx})">
+              Next →
+            </button>
+          </div>
+          <button type="button" class="btn btn-lime btn-sm scope-request-btn" onclick="window.app.selectContactService('${activeRow.track}')">
+            Request ${activeRow.track} →
+          </button>
+        </div>
+      </div>
+    `;
+  }
+
+  setServiceScopeTab(idx) {
+    this.serviceScopeTab = idx;
+    const mount = document.getElementById('service-scope-mount');
+    const nav = document.getElementById('service-scope-tabs-nav');
+    if (nav) {
+      nav.querySelectorAll('.scope-tab-btn').forEach((btn) => {
+        const isCurrent = Number(btn.getAttribute('data-scope-idx')) === idx;
+        btn.classList.toggle('active', isCurrent);
+        btn.setAttribute('aria-selected', String(isCurrent));
+      });
+    }
+    if (mount) {
+      mount.innerHTML = this.renderServiceScopePanel();
+      window.YOLETECH_COMPONENTS?.decorateCardIcons(mount);
+    } else {
+      this.render();
+    }
+  }
+
   // ==========================================================================
   // PAGE 4: PORTFOLIO (FILTERABLE CASE STUDIES — POWERED BY DECAP BRIDGE)
   // ==========================================================================
+  matchesPortfolioCategory(projectCategory, filterCat) {
+    if (!filterCat || filterCat === 'ALL') return true;
+    if (projectCategory === filterCat) return true;
+    if (filterCat === 'AI & Machine Learning' && projectCategory === 'Python & Machine Learning') return true;
+    return false;
+  }
+
+  getFilteredPortfolio() {
+    const query = (this.portfolioSearch || '').trim().toLowerCase();
+    return (this.portfolio || []).filter((p) => {
+      const catMatch = this.matchesPortfolioCategory(p.category, this.portfolioFilter);
+      if (!catMatch) return false;
+      if (!query) return true;
+      const haystack = `${p.title || ''} ${p.summary || ''} ${p.category || ''} ${p.organization || ''} ${p.impact_metrics || ''} ${(p.tech_stack || []).join(' ')}`.toLowerCase();
+      return haystack.includes(query);
+    });
+  }
+
+  renderPortfolioCardsHtml(filtered) {
+    if (!filtered.length) {
+      return `
+        <div class="glass-card is-revealed" style="grid-column:1/-1;text-align:center;padding:42px 24px;">
+          <h3 style="font-size:20px;font-weight:800;margin-bottom:8px;">No Matching Case Studies Found</h3>
+          <p style="font-size:14px;color:var(--yole-text-muted);margin-bottom:16px;">Try clearing your search filter or selecting "All Case Studies".</p>
+          <button type="button" class="btn btn-outline btn-sm" onclick="window.app.portfolioFilter='ALL';window.app.portfolioSearch='';window.app.render();">
+            Reset Filters
+          </button>
+        </div>
+      `;
+    }
+    const C = window.YOLETECH_COMPONENTS;
+    return filtered
+      .map((p) => {
+        const imgSrc = this.resolvePortfolioImage(p.preview_image, p.slug);
+        const iconName = C ? C.cardIconName(`${p.title || ''} ${p.category || ''}`) : 'briefcase';
+        const iconSvg = C ? C.getIcon(iconName) : '';
+        const isOrange = /workflow|automation|service|support/i.test(`${p.title || ''} ${p.category || ''}`);
+        return `
+      <article class="glass-card portfolio-project-card is-revealed">
+        <div class="portfolio-project-image" style="cursor:pointer;" onclick="window.app.openPortfolioModal('${p.slug}')">
+          <img src="${imgSrc}" alt="${p.title}" loading="lazy" decoding="async" onerror="this.onerror=null;this.src='/assets/dashboard-preview.jpg';" />
+        </div>
+        <div class="site-card-heading portfolio-card-heading">
+          <span class="site-card-icon${isOrange ? ' site-card-icon-orange' : ''}" aria-hidden="true">${iconSvg}</span>
+          <h2 class="portfolio-project-title" style="cursor:pointer;" onclick="window.app.openPortfolioModal('${p.slug}')">${p.title}</h2>
+        </div>
+        <div class="portfolio-project-actions">
+            ${
+              p.demo_url || p.live_url
+                ? `<a href="${p.demo_url || p.live_url}" target="_blank" rel="noopener noreferrer" class="btn btn-lime btn-sm portfolio-project-action">
+                    Live Demo <span aria-hidden="true">↗</span>
+                  </a>`
+                : ''
+            }
+            <button type="button" class="btn btn-outline btn-sm portfolio-project-action" onclick="window.app.openPortfolioModal('${p.slug}')">
+              Case Study
+            </button>
+            <button type="button" class="btn btn-outline btn-sm portfolio-project-action portfolio-project-action-wide" onclick="window.app.selectContactService('${p.category}')">
+              Build Similar <span aria-hidden="true">→</span>
+            </button>
+        </div>
+      </article>
+    `;
+      })
+      .join('');
+  }
+
+  setPortfolioFilter(cat) {
+    this.portfolioFilter = cat;
+    const pillsWrap = document.getElementById('portfolio-filter-pills');
+    const gridMount = document.getElementById('portfolio-grid-mount');
+    if (pillsWrap && gridMount) {
+      pillsWrap.querySelectorAll('.selector-pill').forEach((btn) => {
+        btn.classList.toggle('active', btn.getAttribute('data-cat') === cat);
+      });
+      gridMount.innerHTML = this.renderPortfolioCardsHtml(this.getFilteredPortfolio());
+      window.YOLETECH_COMPONENTS?.decorateCardIcons(gridMount);
+    } else {
+      this.render();
+    }
+  }
+
+  handlePortfolioSearch(val) {
+    this.portfolioSearch = val;
+    const gridMount = document.getElementById('portfolio-grid-mount');
+    if (gridMount) {
+      gridMount.innerHTML = this.renderPortfolioCardsHtml(this.getFilteredPortfolio());
+      window.YOLETECH_COMPONENTS?.decorateCardIcons(gridMount);
+    }
+  }
+
+  openPortfolioModal(slug) {
+    const project = (this.portfolio || []).find((p) => p.slug === slug);
+    if (!project) return;
+    this.activePortfolioModal = project;
+
+    let modalRoot = document.getElementById('portfolio-case-modal-root');
+    if (!modalRoot) {
+      modalRoot = document.createElement('div');
+      modalRoot.id = 'portfolio-case-modal-root';
+      document.body.appendChild(modalRoot);
+    }
+
+    const techStack = Array.isArray(project.tech_stack) ? project.tech_stack : [];
+    modalRoot.innerHTML = `
+      <div class="case-modal-backdrop" onclick="window.app.closePortfolioModal()"></div>
+      <div class="case-modal-dialog glass-card is-revealed" role="dialog" aria-modal="true" aria-label="${project.title}">
+        <div class="case-modal-header">
+          <div>
+            <div class="eyebrow" style="margin-bottom:4px;"><span class="eyebrow-dot"></span> ${project.category || 'CASE STUDY'}</div>
+            <h2 style="font-size:clamp(20px,2.6vw,28px);font-weight:900;line-height:1.25;margin:0;">${project.title}</h2>
+          </div>
+          <button type="button" class="contact-modal-close" aria-label="Close case study" onclick="window.app.closePortfolioModal()">✕</button>
+        </div>
+
+        <div class="case-modal-body">
+          ${
+            project.preview_image
+              ? `<div style="border-radius:14px;overflow:hidden;max-height:280px;margin-bottom:18px;border:1px solid var(--yole-border-subtle);">
+                  <img src="${this.resolvePortfolioImage(project.preview_image, project.slug)}" alt="${project.title}" onerror="this.onerror=null;this.src='/assets/dashboard-preview.jpg';" style="width:100%;height:100%;object-fit:cover;" />
+                </div>`
+              : ''
+          }
+          <div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;font-size:13px;color:var(--yole-text-muted);margin-bottom:14px;">
+            <span><strong>Organization:</strong> ${project.organization || 'Client Partner'}</span>
+            <span><strong>Timeline:</strong> ${project.period || 'Completed'}</span>
+          </div>
+          <p style="font-size:15px;color:var(--yole-text-muted);line-height:1.65;margin-bottom:16px;">${project.summary || ''}</p>
+          ${
+            project.impact_metrics
+              ? `<div style="background:rgba(200,230,30,0.1);border-left:4px solid #C8E61E;padding:12px 16px;border-radius:0 10px 10px 0;margin-bottom:18px;font-size:13.5px;">
+                  <strong style="color:#C8E61E;">Verified Impact:</strong> ${project.impact_metrics}
+                </div>`
+              : ''
+          }
+          ${
+            techStack.length
+              ? `<div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:18px;">
+                  ${techStack.map((t) => `<span class="tech-pill lime" style="font-size:11.5px;padding:4px 10px;">${t}</span>`).join('')}
+                </div>`
+              : ''
+          }
+          ${
+            project.body
+              ? `<div class="article-content" style="border-top:1px solid var(--yole-border-subtle);padding-top:16px;">
+                  ${this.formatMarkdownToHtml(project.body)}
+                </div>`
+              : ''
+          }
+        </div>
+
+        <div class="case-modal-footer">
+          ${
+            project.demo_url || project.live_url
+              ? `<a href="${project.demo_url || project.live_url}" target="_blank" rel="noopener noreferrer" class="btn btn-lime btn-sm">
+                  Open Live Demo ↗
+                </a>`
+              : ''
+          }
+          <button type="button" class="btn btn-outline btn-sm" onclick="window.app.closePortfolioModal(); window.app.selectContactService('${project.category}')">
+            Request Similar Solution →
+          </button>
+        </div>
+      </div>
+    `;
+  }
+
+  closePortfolioModal() {
+    this.activePortfolioModal = null;
+    const modalRoot = document.getElementById('portfolio-case-modal-root');
+    if (modalRoot) modalRoot.innerHTML = '';
+  }
+
   renderPortfolioPage() {
     const categories = [
       'ALL',
@@ -2039,10 +2371,7 @@ ${C.renderRoiCalculatorWidget ? C.renderRoiCalculatorWidget() : ""}
       'Tech Tutorials & Training'
     ];
 
-    const filtered =
-      this.portfolioFilter === 'ALL'
-        ? this.portfolio
-        : this.portfolio.filter((p) => p.category === this.portfolioFilter);
+    const filtered = this.getFilteredPortfolio();
 
     return `
       <section class="section">
@@ -2061,44 +2390,35 @@ ${C.renderRoiCalculatorWidget ? C.renderRoiCalculatorWidget() : ""}
                   </div>`
                 : ''
             }
-            <div style="display:flex;justify-content:center;flex-wrap:wrap;gap:8px;margin-top:24px;">
+            <div style="max-width:440px;margin:20px auto 0;">
+              <input
+                type="search"
+                id="portfolio-search-input"
+                class="form-control"
+                placeholder="Search case studies by keyword, stack, or outcome..."
+                value="${this.portfolioSearch || ''}"
+                oninput="window.app.handlePortfolioSearch(this.value)"
+              />
+            </div>
+            <div id="portfolio-filter-pills" style="display:flex;justify-content:center;flex-wrap:wrap;gap:8px;margin-top:16px;">
               ${categories
-                .map(
-                  (cat) => `
-                <button class="selector-pill ${this.portfolioFilter === cat ? 'active' : ''}" onclick="window.app.portfolioFilter='${cat}';window.app.render();">
-                  ${cat === 'ALL' ? 'All Case Studies' : cat}
-                </button>
-              `
-                )
+                .map((cat) => {
+                  const count =
+                    cat === 'ALL'
+                      ? (this.portfolio || []).length
+                      : (this.portfolio || []).filter((p) => this.matchesPortfolioCategory(p.category, cat)).length;
+                  return `
+                    <button type="button" data-cat="${cat}" class="selector-pill ${this.portfolioFilter === cat ? 'active' : ''}" onclick="window.app.setPortfolioFilter('${cat}')">
+                      ${cat === 'ALL' ? 'All Case Studies' : cat} (${count})
+                    </button>
+                  `;
+                })
                 .join('')}
             </div>
           </div>
 
-          <div class="grid-3">
-            ${filtered
-              .map(
-                (p) => `
-              <article class="glass-card portfolio-project-card">
-                <div class="portfolio-project-image">
-                  <img src="${p.preview_image}" alt="${p.title}" loading="lazy" decoding="async" />
-                </div>
-                <h2 class="portfolio-project-title">${p.title}</h2>
-                <div class="portfolio-project-actions">
-                    ${
-                      p.demo_url || p.live_url
-                        ? `<a href="${p.demo_url || p.live_url}" target="_blank" rel="noopener noreferrer" class="btn btn-lime btn-sm portfolio-project-action">
-                            Live Demo <span aria-hidden="true">↗</span>
-                          </a>`
-                        : ''
-                    }
-                    <button class="btn btn-outline btn-sm portfolio-project-action portfolio-project-action-wide" onclick="window.app.selectContactService('${p.category}')">
-                      Build Similar <span aria-hidden="true">→</span>
-                    </button>
-                </div>
-              </article>
-            `
-              )
-              .join('')}
+          <div id="portfolio-grid-mount" class="grid-3">
+            ${this.renderPortfolioCardsHtml(filtered)}
           </div>
         </div>
       </section>
@@ -2109,6 +2429,75 @@ ${C.renderRoiCalculatorWidget ? C.renderRoiCalculatorWidget() : ""}
   // PAGE 5: TESTIMONIALS
   // ==========================================================================
 
+  getRandomizedTestimonials(rawList = []) {
+    if (!Array.isArray(rawList) || rawList.length === 0) return [];
+    if (
+      this._shuffledTestimonialsCache &&
+      this._shuffledTestimonialsSourceLen === rawList.length
+    ) {
+      return this._shuffledTestimonialsCache;
+    }
+    const copy = [...rawList];
+    for (let i = copy.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [copy[i], copy[j]] = [copy[j], copy[i]];
+    }
+    // Spread out identical surnames so adjacent cards always show diverse clients
+    const surnameOf = (item) =>
+      String(item?.author_name || '')
+        .trim()
+        .split(/\s+/)
+        .pop()
+        .toLowerCase();
+    for (let i = 1; i < copy.length; i++) {
+      if (surnameOf(copy[i]) && surnameOf(copy[i]) === surnameOf(copy[i - 1])) {
+        const swapIdx = copy.findIndex(
+          (candidate, idx) => idx > i && surnameOf(candidate) !== surnameOf(copy[i - 1])
+        );
+        if (swapIdx > i) {
+          [copy[i], copy[swapIdx]] = [copy[swapIdx], copy[i]];
+        }
+      }
+    }
+    this._shuffledTestimonialsCache = copy;
+    this._shuffledTestimonialsSourceLen = rawList.length;
+    return copy;
+  }
+
+  shuffleTestimonialsNow() {
+    this._shuffledTestimonialsCache = null;
+    this._shuffledTestimonialsSourceLen = 0;
+    this.testimonialPage = 1;
+    this.render();
+  }
+
+  renderTestimonialSliderCardHtml(t) {
+    return `
+      <div class="glass-card testimonial-slider-card is-revealed" style="display:flex;flex-direction:column;justify-content:space-between;padding:22px;">
+        <div>
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;gap:8px;">
+            <span style="font-size:11px;font-weight:700;color:#C8E61E;">${t.service_track || 'Verified Client'}</span>
+            <span style="color:#F7941D;font-size:14px;letter-spacing:1.5px;flex-shrink:0;">
+              ${'★'.repeat(Number(t.rating) || 5)}
+            </span>
+          </div>
+          <p style="font-size:14px;color:#FFFFFF;font-style:italic;margin-bottom:18px;line-height:1.6;">
+            "${t.content}"
+          </p>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;border-top:1px solid rgba(255,255,255,0.1);padding-top:12px;">
+          <div style="width:38px;height:38px;flex-shrink:0;border-radius:50%;background:#2F2B73;border:1.5px solid #C8E61E;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:14px;color:#C8E61E;">
+            ${(t.author_name || 'C').charAt(0).toUpperCase()}
+          </div>
+          <div style="min-width:0;">
+            <div style="font-weight:800;font-size:14px;line-height:1.3;">${t.author_name}</div>
+            <div style="font-size:12px;color:var(--yole-text-muted);line-height:1.35;">${t.author_role} • ${t.company}</div>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
   setTestimonialPage(page) {
     this.testimonialPage = Math.max(1, page);
     this.render();
@@ -2116,8 +2505,59 @@ ${C.renderRoiCalculatorWidget ? C.renderRoiCalculatorWidget() : ""}
     if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
 
+  setTestimonialTrackFilter(track) {
+    this.testimonialTrackFilter = track;
+    this.testimonialPage = 1;
+    this.render();
+  }
+
+  handleTestimonialSearch(val) {
+    this.testimonialSearch = val;
+    this.testimonialPage = 1;
+    this.render();
+    const input = document.getElementById('testimonial-search-input');
+    if (input) {
+      input.focus();
+      const len = input.value.length;
+      input.setSelectionRange(len, len);
+    }
+  }
+
+  setTestimonialRating(stars) {
+    this.testimonialFormRating = Math.min(5, Math.max(1, Number(stars) || 5));
+    const wrap = document.getElementById('testimonial-star-picker');
+    if (wrap) {
+      wrap.querySelectorAll('.star-pick-btn').forEach((btn) => {
+        const s = Number(btn.getAttribute('data-star'));
+        btn.classList.toggle('is-filled', s <= this.testimonialFormRating);
+      });
+      const label = document.getElementById('testimonial-star-label');
+      if (label) label.textContent = `${this.testimonialFormRating}.0 / 5.0 Stars`;
+    }
+  }
+
   renderTestimonialsPage() {
-    const list = this.testimonials || [];
+    const rawList = this.getRandomizedTestimonials(this.testimonials || []);
+    const trackFilter = this.testimonialTrackFilter || 'ALL';
+    const searchQ = (this.testimonialSearch || '').trim().toLowerCase();
+
+    const list = rawList.filter((t) => {
+      const trackMatch = trackFilter === 'ALL' || t.service_track === trackFilter;
+      if (!trackMatch) return false;
+      if (!searchQ) return true;
+      const hay = `${t.author_name || ''} ${t.author_role || ''} ${t.company || ''} ${t.service_track || ''} ${t.content || ''}`.toLowerCase();
+      return hay.includes(searchQ);
+    });
+
+    const tracks = [
+      'ALL',
+      'Data Analytics & BI',
+      'Full-Stack Web Development',
+      'AI & Workflow Automation',
+      'Tech Tutorials & Mentorship',
+      'IT & Database Support'
+    ];
+
     const pageSize = 8;
     const totalCount = list.length;
     const totalPages = Math.max(1, Math.ceil(totalCount / pageSize));
@@ -2128,36 +2568,30 @@ ${C.renderRoiCalculatorWidget ? C.renderRoiCalculatorWidget() : ""}
     const endIdx = Math.min(startIdx + pageSize, totalCount);
     const paginatedTestimonials = list.slice(startIdx, endIdx);
 
-    const delta = 2;
-    const range = [];
-    for (let i = Math.max(2, cur - delta); i <= Math.min(totalPages - 1, cur + delta); i++) {
-      range.push(i);
-    }
-    if (cur - delta > 2) range.unshift('...');
-    if (cur + delta < totalPages - 1) range.push('...');
-    range.unshift(1);
-    if (totalPages > 1) range.push(totalPages);
+    const buildRowPool = (seedSlice, offset) => {
+      if (!list.length) return [];
+      const pool = [...seedSlice];
+      let cursor = (startIdx + offset) % list.length;
+      const targetLen = Math.max(8, seedSlice.length);
+      while (pool.length < targetLen) {
+        pool.push(list[cursor % list.length]);
+        cursor++;
+      }
+      return pool;
+    };
 
-    const pagerHtml = totalPages > 1 ? `
-      <div class="testimonials-pager" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:14px;margin-bottom:48px;padding:14px 20px;background:var(--yole-indigo-card);border:1px solid var(--yole-border-subtle);border-radius:14px;box-shadow:var(--shadow-card);">
-        <div style="font-size:13.5px;color:var(--yole-text-muted);">
-          Showing <strong>${totalCount > 0 ? startIdx + 1 : 0}–${endIdx}</strong> of <strong>${totalCount}</strong> verified client testimonies (8 per page)
-        </div>
-        <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
-          <button type="button" class="btn btn-outline btn-sm" style="padding:6px 14px;font-size:12.5px;" ${cur <= 1 ? 'disabled' : ''} onclick="window.app.setTestimonialPage(${cur - 1})">
-            ← Prev
-          </button>
-          ${range.map(p => {
-            if (p === '...') return '<span style="padding:0 4px;color:var(--yole-text-muted);">…</span>';
-            const active = p === cur;
-            return `<button type="button" class="btn ${active ? 'btn-lime' : 'btn-outline'} btn-sm" style="padding:6px 12px;font-size:12px;min-width:34px;" onclick="window.app.setTestimonialPage(${p})">${p}</button>`;
-          }).join('')}
-          <button type="button" class="btn btn-outline btn-sm" style="padding:6px 14px;font-size:12.5px;" ${cur >= totalPages ? 'disabled' : ''} onclick="window.app.setTestimonialPage(${cur + 1})">
-            Next →
-          </button>
-        </div>
-      </div>
-    ` : '';
+    const row1Pool = buildRowPool(paginatedTestimonials.slice(0, 4), 8);
+    const row2Pool = buildRowPool(
+      paginatedTestimonials.slice(4, 8).length
+        ? paginatedTestimonials.slice(4, 8)
+        : paginatedTestimonials.slice(0, 4).reverse(),
+      12
+    );
+
+    const row1GroupHtml = row1Pool.map((t) => this.renderTestimonialSliderCardHtml(t)).join('');
+    const row2GroupHtml = row2Pool.map((t) => this.renderTestimonialSliderCardHtml(t)).join('');
+
+    const activeStars = this.testimonialFormRating || 5;
 
     return `
       <section class="section">
@@ -2170,36 +2604,30 @@ ${C.renderRoiCalculatorWidget ? C.renderRoiCalculatorWidget() : ""}
             </p>
           </div>
 
-          <div id="testimonials-wall" class="grid-2" style="margin-bottom:28px;">
-            ${paginatedTestimonials
-              .map(
-                (t) => `
-              <div class="glass-card" style="display:flex;flex-direction:column;justify-content:space-between;">
-                <div>
-                  <div style="display:flex;justify-content:flex-end;align-items:center;margin-bottom:14px;">
-                    <span style="color:#F7941D;font-size:16px;letter-spacing:2px;">
-                      ${'★'.repeat(Number(t.rating) || 5)}
-                    </span>
-                  </div>
-                  <p style="font-size:15.5px;color:#FFFFFF;font-style:italic;margin-bottom:20px;line-height:1.65;">
-                    "${t.content}"
-                  </p>
+          <div id="testimonials-wall" class="testimonials-slider-wall" style="margin-bottom:48px;">
+            ${
+              list.length
+                ? `
+              <div class="testimonial-slider-row slide-right" role="region" aria-label="Client testimonials row 1 sliding right">
+                <div class="testimonial-slider-track">
+                  <div class="testimonial-slider-group">${row1GroupHtml}</div>
+                  <div class="testimonial-slider-group" aria-hidden="true">${row1GroupHtml}</div>
                 </div>
-                <div style="display:flex;align-items:center;gap:12px;border-top:1px solid rgba(255,255,255,0.1);padding-top:14px;">
-                  <div style="width:42px;height:42px;border-radius:50%;background:#2F2B73;border:1.5px solid #C8E61E;display:flex;align-items:center;justify-content:center;font-weight:900;color:#C8E61E;">
-                    ${t.author_name.charAt(0).toUpperCase()}
-                  </div>
-                  <div>
-                    <div style="font-weight:800;font-size:15px;">${t.author_name}</div>
-                    <div style="font-size:12.5px;color:var(--yole-text-muted);">${t.author_role} • ${t.company}</div>
-                  </div>
+              </div>
+              <div class="testimonial-slider-row slide-left" role="region" aria-label="Client testimonials row 2 sliding left">
+                <div class="testimonial-slider-track">
+                  <div class="testimonial-slider-group">${row2GroupHtml}</div>
+                  <div class="testimonial-slider-group" aria-hidden="true">${row2GroupHtml}</div>
                 </div>
               </div>
             `
-              )
-              .join('')}
+                : `
+              <div class="glass-card is-revealed" style="text-align:center;padding:36px 24px;">
+                <p style="font-size:15px;color:var(--yole-text-muted);margin:0;">No matching testimonials found for this filter.</p>
+              </div>
+            `
+            }
           </div>
-          ${pagerHtml}
 
           <!-- SUBMIT A TESTIMONIAL CARD (FULL CONTAINER WIDTH) -->
           <div class="glass-card testimonial-form-card" style="width:100%;max-width:100%;padding:clamp(36px, 4.5vw, 60px);border-radius:24px;">
@@ -2237,6 +2665,19 @@ ${C.renderRoiCalculatorWidget ? C.renderRoiCalculatorWidget() : ""}
                     <option value="Tech Tutorials & Mentorship">Tech Tutorials &amp; Mentorship</option>
                     <option value="IT & Database Support">IT &amp; Database Support</option>
                   </select>
+                </div>
+              </div>
+              <div class="form-group" style="margin-bottom:24px;">
+                <label class="form-label" style="font-size:14px;font-weight:700;margin-bottom:8px;display:block;">Your Rating</label>
+                <div id="testimonial-star-picker" style="display:flex;align-items:center;gap:8px;">
+                  ${[1, 2, 3, 4, 5]
+                    .map(
+                      (s) => `
+                    <button type="button" data-star="${s}" class="star-pick-btn ${s <= activeStars ? 'is-filled' : ''}" onclick="window.app.setTestimonialRating(${s})" aria-label="Rate ${s} stars">★</button>
+                  `
+                    )
+                    .join('')}
+                  <span id="testimonial-star-label" style="font-size:13.5px;font-weight:700;color:#F7941D;margin-left:8px;">${activeStars}.0 / 5.0 Stars</span>
                 </div>
               </div>
               <div class="form-group" style="margin-bottom:28px;">
@@ -2280,7 +2721,7 @@ ${C.renderRoiCalculatorWidget ? C.renderRoiCalculatorWidget() : ""}
       author_role: (form.author_role?.value || '').trim() || 'Client Partner',
       company: (form.company?.value || '').trim() || 'Independent Client',
       service_track: form.service_track.value,
-      rating: 5,
+      rating: this.testimonialFormRating || 5,
       content: form.content.value.trim()
     };
     try {
@@ -2300,6 +2741,7 @@ ${C.renderRoiCalculatorWidget ? C.renderRoiCalculatorWidget() : ""}
         this.testimonials = [localTestimonial, ...(this.testimonials || [])];
       }
       form.reset();
+      this.testimonialFormRating = 5;
       this.setFormConfirmation('testimonial', {
         title: 'Testimonial Submitted & Confirmed!',
         message: `Thank you, <strong>${payload.author_name}</strong>! Your endorsement for <strong>${payload.service_track}</strong> has been validated and published.`
@@ -2323,6 +2765,79 @@ ${C.renderRoiCalculatorWidget ? C.renderRoiCalculatorWidget() : ""}
   // ==========================================================================
   // PAGE 6: BLOG & ARTICLE READER
   // ==========================================================================
+  getFilteredBlogPosts() {
+    const query = (this.blogSearch || '').trim().toLowerCase();
+    return (this.blogPosts || []).filter((p) => {
+      const catMatch = this.blogFilter === 'ALL' || p.category === this.blogFilter;
+      if (!catMatch) return false;
+      if (!query) return true;
+      const hay = `${p.title || ''} ${p.summary || ''} ${p.category || ''} ${p.author || ''}`.toLowerCase();
+      return hay.includes(query);
+    });
+  }
+
+  renderBlogCardsHtml(filtered) {
+    if (!filtered.length) {
+      return `
+        <div class="glass-card is-revealed" style="grid-column:1/-1;text-align:center;padding:42px 24px;">
+          <h3 style="font-size:20px;font-weight:800;margin-bottom:8px;">No Matching Articles Found</h3>
+          <p style="font-size:14px;color:var(--yole-text-muted);margin-bottom:16px;">Try searching a different topic or resetting the category filter.</p>
+          <button type="button" class="btn btn-outline btn-sm" onclick="window.app.blogFilter='ALL';window.app.blogSearch='';window.app.render();">
+            Show All Articles
+          </button>
+        </div>
+      `;
+    }
+    return filtered
+      .map(
+        (post) => `
+      <div class="glass-card blog-card is-revealed" onclick="window.app.navigate('blog-detail', '${post.slug}')">
+        <div>
+          ${post.coverImage ? `<div class="blog-card-image" style="aspect-ratio:1/1;"><img src="${post.coverImage}" alt="${post.title}" loading="lazy" decoding="async" /></div>` : ''}
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:10px;">
+            <span class="tech-pill lime" style="font-size:11px;padding:3px 10px;">${post.category || 'Data Analytics & BI'}</span>
+            <span style="font-size:12.5px;color:var(--yole-text-muted);">${post.date} • ${post.readTime}</span>
+          </div>
+          <h2 style="font-size:22px;font-weight:800;margin-bottom:10px;line-height:1.3;">${post.title}</h2>
+          <p style="font-size:14px;color:var(--yole-text-muted);margin-bottom:16px;">${post.summary}</p>
+        </div>
+
+        <div>
+          <div style="display:flex;justify-content:space-between;align-items:center;border-top:1px solid rgba(255,255,255,0.1);padding-top:12px;font-size:13.5px;font-weight:700;color:#C8E61E;">
+            <span>By ${post.author}</span>
+            <a href="/blog/${post.slug}" style="color:inherit;text-decoration:none;" onclick="event.preventDefault(); event.stopPropagation(); window.app.navigate('blog-detail', '${post.slug}')">Read Full Article →</a>
+          </div>
+        </div>
+      </div>
+    `
+      )
+      .join('');
+  }
+
+  setBlogFilter(cat) {
+    this.blogFilter = cat;
+    const pillsWrap = document.getElementById('blog-filter-pills');
+    const gridMount = document.getElementById('blog-grid-mount');
+    if (pillsWrap && gridMount) {
+      pillsWrap.querySelectorAll('.selector-pill').forEach((btn) => {
+        btn.classList.toggle('active', btn.getAttribute('data-cat') === cat);
+      });
+      gridMount.innerHTML = this.renderBlogCardsHtml(this.getFilteredBlogPosts());
+      window.YOLETECH_COMPONENTS?.decorateCardIcons(gridMount);
+    } else {
+      this.render();
+    }
+  }
+
+  handleBlogSearch(val) {
+    this.blogSearch = val;
+    const gridMount = document.getElementById('blog-grid-mount');
+    if (gridMount) {
+      gridMount.innerHTML = this.renderBlogCardsHtml(this.getFilteredBlogPosts());
+      window.YOLETECH_COMPONENTS?.decorateCardIcons(gridMount);
+    }
+  }
+
   renderBlogPage() {
     const categories = [
       'ALL',
@@ -2333,10 +2848,7 @@ ${C.renderRoiCalculatorWidget ? C.renderRoiCalculatorWidget() : ""}
       'Full-Stack Web Development'
     ];
 
-    const filtered =
-      this.blogFilter === 'ALL'
-        ? this.blogPosts
-        : this.blogPosts.filter((p) => p.category === this.blogFilter);
+    const filtered = this.getFilteredBlogPosts();
 
     return `
       <section class="section">
@@ -2354,44 +2866,36 @@ ${C.renderRoiCalculatorWidget ? C.renderRoiCalculatorWidget() : ""}
                   </div>`
                 : ''
             }
+            <div style="max-width:440px;margin:20px auto 0;">
+              <input
+                type="search"
+                id="blog-search-input"
+                class="form-control"
+                placeholder="Search articles by topic, tool, or title..."
+                value="${this.blogSearch || ''}"
+                oninput="window.app.handleBlogSearch(this.value)"
+              />
+            </div>
 
-            <div style="display:flex;justify-content:center;flex-wrap:wrap;gap:8px;margin-top:24px;">
+            <div id="blog-filter-pills" style="display:flex;justify-content:center;flex-wrap:wrap;gap:8px;margin-top:16px;">
               ${categories
-                .map(
-                  (cat) => `
-                <button class="selector-pill ${this.blogFilter === cat ? 'active' : ''}" onclick="window.app.blogFilter='${cat}';window.app.render();">
-                  ${cat === 'ALL' ? 'All Articles' : cat}
-                </button>
-              `
-                )
+                .map((cat) => {
+                  const count =
+                    cat === 'ALL'
+                      ? (this.blogPosts || []).length
+                      : (this.blogPosts || []).filter((p) => p.category === cat).length;
+                  return `
+                    <button type="button" data-cat="${cat}" class="selector-pill ${this.blogFilter === cat ? 'active' : ''}" onclick="window.app.setBlogFilter('${cat}')">
+                      ${cat === 'ALL' ? 'All Articles' : cat} (${count})
+                    </button>
+                  `;
+                })
                 .join('')}
             </div>
           </div>
 
-          <div class="grid-3">
-            ${filtered
-              .map(
-                (post) => `
-              <div class="glass-card blog-card" onclick="window.app.navigate('blog-detail', '${post.slug}')">
-                <div>
-                  ${post.coverImage ? `<div class="blog-card-image" style="aspect-ratio:1/1;"><img src="${post.coverImage}" alt="${post.title}" loading="lazy" decoding="async" /></div>` : ''}
-                  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
-                    <span style="font-size:12.5px;color:var(--yole-text-muted);">${post.date} • ${post.readTime}</span>
-                  </div>
-                  <h2 style="font-size:22px;font-weight:800;margin-bottom:10px;line-height:1.3;">${post.title}</h2>
-                  <p style="font-size:14px;color:var(--yole-text-muted);margin-bottom:16px;">${post.summary}</p>
-                </div>
-
-                <div>
-                  <div style="display:flex;justify-content:space-between;align-items:center;border-top:1px solid rgba(255,255,255,0.1);padding-top:12px;font-size:13.5px;font-weight:700;color:#C8E61E;">
-                    <span>By ${post.author}</span>
-                    <span>Read Full Article →</span>
-                  </div>
-                </div>
-              </div>
-            `
-              )
-              .join('')}
+          <div id="blog-grid-mount" class="grid-3">
+            ${this.renderBlogCardsHtml(filtered)}
           </div>
         </div>
       </section>
@@ -2575,6 +3079,25 @@ ${C.renderRoiCalculatorWidget ? C.renderRoiCalculatorWidget() : ""}
     }
   }
 
+  async copyArticleLink(btn) {
+    const url = window.location.href;
+    try {
+      if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(url);
+      }
+      if (btn) {
+        const orig = btn.innerHTML;
+        btn.innerHTML = '✓ Link Copied!';
+        setTimeout(() => {
+          btn.innerHTML = orig;
+        }, 2000);
+      }
+      this.showToast('Article link copied to clipboard!');
+    } catch {
+      this.showToast('Could not copy link automatically.', 'error');
+    }
+  }
+
   renderBlogPostDetail() {
     const post = this.activeBlogPost || this.blogPosts[0];
     if (!post) {
@@ -2584,9 +3107,14 @@ ${C.renderRoiCalculatorWidget ? C.renderRoiCalculatorWidget() : ""}
     return `
       <section class="section">
         <div class="container" style="max-width:860px;">
-          <button class="btn btn-outline btn-sm" style="margin-bottom:24px;" onclick="window.app.navigate('blog')">
-            ← Back to All Articles
-          </button>
+          <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin-bottom:24px;">
+            <button class="btn btn-outline btn-sm" onclick="window.app.navigate('blog')">
+              ← Back to All Articles
+            </button>
+            <button type="button" class="btn btn-outline btn-sm" onclick="window.app.copyArticleLink(this)">
+              🔗 Copy Article Link
+            </button>
+          </div>
 
           <div class="glass-card article-detail-card">
             <div style="font-size:13px;color:var(--yole-text-muted);margin-bottom:14px;">
@@ -2611,7 +3139,10 @@ ${C.renderRoiCalculatorWidget ? C.renderRoiCalculatorWidget() : ""}
               ${this.formatMarkdownToHtml(post.body)}
             </div>
 
-            <div style="margin-top:32px;padding-top:20px;border-top:1px solid rgba(255,255,255,0.12);display:flex;justify-content:flex-end;align-items:center;">
+            <div style="margin-top:32px;padding-top:20px;border-top:1px solid rgba(255,255,255,0.12);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;">
+              <button type="button" class="btn btn-outline btn-sm" onclick="window.app.copyArticleLink(this)">
+                🔗 Share Article
+              </button>
               <button class="btn btn-lime btn-sm" onclick="window.app.navigate('contact')">
                 Discuss This Topic With John →
               </button>
@@ -2625,6 +3156,20 @@ ${C.renderRoiCalculatorWidget ? C.renderRoiCalculatorWidget() : ""}
   // ==========================================================================
   // PAGE 7: CONTACT (SAMPLE 8917b911.jpg LAYOUT)
   // ==========================================================================
+  selectContactPill(pill, btnEl) {
+    this.contactServiceSelected = pill;
+    const container = btnEl ? btnEl.closest('.service-selector-pills') : document.querySelector('.service-selector-pills');
+    if (container) {
+      container.querySelectorAll('.selector-pill').forEach((b) => {
+        b.classList.toggle('active', b === btnEl || b.textContent.trim() === pill);
+      });
+    }
+    const selectEl = document.querySelector('select[name="service_category"]');
+    if (selectEl) {
+      selectEl.value = pill;
+    }
+  }
+
   renderContactPage() {
     const D = window.YOLETECH_DATA;
     const serviceCategories = [
@@ -2661,7 +3206,7 @@ ${C.renderRoiCalculatorWidget ? C.renderRoiCalculatorWidget() : ""}
                     (pill) => `
                   <button type="button" class="selector-pill ${
                     this.contactServiceSelected === pill ? 'active' : ''
-                  }" onclick="window.app.contactServiceSelected='${pill}';window.app.render();">
+                  }" onclick="window.app.selectContactPill('${pill}', this)">
                     ${pill}
                   </button>
                 `
@@ -2694,7 +3239,7 @@ ${C.renderRoiCalculatorWidget ? C.renderRoiCalculatorWidget() : ""}
 
                 <div class="form-group">
                   <label class="form-label">Project Category *</label>
-                  <select name="service_category" class="form-control" onchange="window.app.contactServiceSelected=this.value;">
+                  <select name="service_category" class="form-control" onchange="window.app.selectContactPill(this.value)">
                     ${serviceCategories
                       .map(
                         (cat) => `
@@ -2711,7 +3256,7 @@ ${C.renderRoiCalculatorWidget ? C.renderRoiCalculatorWidget() : ""}
                 </div>
 
                 <button type="submit" id="contact-submit-btn" class="btn btn-lime" style="width:100%;font-size:15px;padding:14px;">
-                  Send Message to yoletech@yolestica.com →
+                  Send Message to yoletech@yoletica.com →
                 </button>
                 ${this.renderFormConfirmation('contact')}
               </form>
@@ -3789,16 +4334,16 @@ ${C.renderRoiCalculatorWidget ? C.renderRoiCalculatorWidget() : ""}
 
     if (hoursVal) hoursVal.textContent = `${hours} hrs / wk`;
     if (staffVal) staffVal.textContent = `${staff} Staff`;
-    if (rateVal) rateVal.textContent = `${rate} / hr`;
+    if (rateVal) rateVal.textContent = `$${rate} / hr`;
 
     const totalHoursPerYear = hours * staff * 52;
     const annualCost = totalHoursPerYear * rate;
     const hoursSaved = Math.round(totalHoursPerYear * 0.75);
     const netSavings = Math.round(annualCost * 0.75);
 
-    if (currentCostEl) currentCostEl.innerHTML = `${annualCost.toLocaleString()} <span style="font-size:15px;color:var(--yole-text-muted);font-weight:500;">/ year</span>`;
+    if (currentCostEl) currentCostEl.innerHTML = `$${annualCost.toLocaleString()} <span style="font-size:15px;color:var(--yole-text-muted);font-weight:500;">/ year</span>`;
     if (hoursSavedEl) hoursSavedEl.textContent = `${hoursSaved.toLocaleString()} hrs`;
-    if (netSavingsEl) netSavingsEl.textContent = `${netSavings.toLocaleString()} / yr`;
+    if (netSavingsEl) netSavingsEl.textContent = `$${netSavings.toLocaleString()} / yr`;
   }
 
   applyRoiEstimateToInquiry() {
@@ -3814,7 +4359,7 @@ ${C.renderRoiCalculatorWidget ? C.renderRoiCalculatorWidget() : ""}
     const netSavings = Math.round(totalHoursPerYear * rate * 0.75).toLocaleString();
 
     this.contactServiceSelected = 'Data Analysis & Analytics';
-    this.pendingInquiryMessage = `Hi John, based on your interactive ROI calculator, our team spends approximately ${hours} hrs/week across ${staff} staff on manual reporting (approx. ${annualCost}/year). We would like to discuss implementing an automated Power BI & SQL pipeline to reclaim operational time and achieve an estimated ${netSavings}/year in savings.`;
+    this.pendingInquiryMessage = `Hi John, based on your interactive ROI calculator, our team spends approximately ${hours} hrs/week across ${staff} staff on manual reporting (approx. $${annualCost}/year). We would like to discuss implementing an automated Power BI & SQL pipeline to reclaim operational time and achieve an estimated $${netSavings}/year in savings.`;
 
     this.navigate('contact');
     setTimeout(() => {
@@ -4350,7 +4895,7 @@ ${C.renderRoiCalculatorWidget ? C.renderRoiCalculatorWidget() : ""}
             </div>
             <div class="form-group">
               <label class="form-label">Live Demo Project URL (Optional)</label>
-              <input type="url" name="demo_url" class="form-control" value="${editing ? (editing.demo_url || editing.live_url || '').replace(/"/g, '&quot;') : ''}" placeholder="https://demo.yolestica.com or Kaggle/Dashboard link" />
+              <input type="url" name="demo_url" class="form-control" value="${editing ? (editing.demo_url || editing.live_url || '').replace(/"/g, '&quot;') : ''}" placeholder="https://yoletech.yoletica.com or Kaggle/Dashboard link" />
             </div>
             <div class="form-group portfolio-featured-field">
               <label class="portfolio-featured-label">
@@ -4556,6 +5101,396 @@ ${C.renderRoiCalculatorWidget ? C.renderRoiCalculatorWidget() : ""}
     }
   }
 
+  setShowcaseTab(tab) {
+    this.showcaseTab = tab;
+    const pillsWrap = document.getElementById('home-showcase-pills');
+    const mount = document.getElementById('home-showcase-mount');
+    const C = window.YOLETECH_COMPONENTS;
+    if (pillsWrap) {
+      pillsWrap.querySelectorAll('.selector-pill').forEach((btn) => {
+        btn.classList.toggle('active', btn.getAttribute('data-showcase') === tab);
+      });
+    }
+    if (mount && C) {
+      mount.innerHTML =
+        tab === 'dashboard'
+          ? C.renderDataOverviewWidget()
+          : tab === 'codesync'
+          ? C.renderCodeSyncWidget()
+          : C.renderWorkflowDiagramWidget();
+      C.decorateCardIcons(mount);
+      this.initKpiCounters(mount);
+      this.initScrollReveal(mount);
+    } else {
+      this.render();
+    }
+  }
+
+  setBiWidgetRange(btnEl, range) {
+    const widget = btnEl ? btnEl.closest('.bi-overview-widget') : document.querySelector('.bi-overview-widget');
+    if (!widget) return;
+
+    widget.querySelectorAll('.bi-range-pill').forEach((b) => {
+      b.classList.toggle('active', b === btnEl);
+    });
+
+    const presets = {
+      live: {
+        workflows: 5903500,
+        delta: 12.5,
+        records: 43010,
+        latency: 0.03,
+        integrity: 99.9,
+        bars: ['45%', '70%', '95%', '65%', '85%', '78%'],
+        spark: 'M2 30 Q 25 20, 45 25 T 90 15 T 130 18 T 158 6',
+        area: 'M0 65 C 45 25, 85 70, 135 35 C 185 5, 225 50, 280 15 L 280 90 L 0 90 Z',
+        lineLime: 'M0 65 C 45 25, 85 70, 135 35 C 185 5, 225 50, 280 15',
+        lineOrange: 'M0 75 C 50 50, 95 30, 150 55 C 200 75, 235 25, 280 40'
+      },
+      '7d': {
+        workflows: 1428900,
+        delta: 8.4,
+        records: 12480,
+        latency: 0.04,
+        integrity: 99.8,
+        bars: ['62%', '54%', '82%', '76%', '68%', '91%'],
+        spark: 'M2 28 Q 30 24, 52 18 T 96 22 T 132 12 T 158 9',
+        area: 'M0 58 C 40 42, 90 30, 140 48 C 190 20, 230 35, 280 22 L 280 90 L 0 90 Z',
+        lineLime: 'M0 58 C 40 42, 90 30, 140 48 C 190 20, 230 35, 280 22',
+        lineOrange: 'M0 68 C 48 60, 95 45, 145 38 C 195 55, 235 32, 280 28'
+      },
+      '30d': {
+        workflows: 4812400,
+        delta: 16.2,
+        records: 36920,
+        latency: 0.03,
+        integrity: 99.9,
+        bars: ['52%', '84%', '66%', '92%', '74%', '88%'],
+        spark: 'M2 32 Q 28 26, 55 20 T 98 14 T 134 10 T 158 5',
+        area: 'M0 70 C 50 35, 92 55, 142 25 C 188 30, 228 18, 280 12 L 280 90 L 0 90 Z',
+        lineLime: 'M0 70 C 50 35, 92 55, 142 25 C 188 30, 228 18, 280 12',
+        lineOrange: 'M0 72 C 52 44, 100 62, 152 42 C 202 38, 238 48, 280 30'
+      },
+      ytd: {
+        workflows: 18450200,
+        delta: 24.8,
+        records: 148500,
+        latency: 0.02,
+        integrity: 100.0,
+        bars: ['68%', '78%', '88%', '82%', '94%', '98%'],
+        spark: 'M2 34 Q 30 28, 60 22 T 105 14 T 138 8 T 158 3',
+        area: 'M0 72 C 45 50, 90 42, 140 28 C 190 18, 235 14, 280 8 L 280 90 L 0 90 Z',
+        lineLime: 'M0 72 C 45 50, 90 42, 140 28 C 190 18, 235 14, 280 8',
+        lineOrange: 'M0 78 C 55 62, 102 48, 154 36 C 204 28, 240 22, 280 18'
+      }
+    };
+
+    const cfg = presets[range] || presets.live;
+    const updateCounter = (sel, val) => {
+      const el = widget.querySelector(sel);
+      if (!el) return;
+      el.setAttribute('data-kpi-target', String(val));
+      this.animateKpiElement(el);
+    };
+
+    updateCounter('.bi-val-workflows', cfg.workflows);
+    updateCounter('.bi-val-delta', cfg.delta);
+    updateCounter('.bi-val-records', cfg.records);
+    updateCounter('.bi-val-latency', cfg.latency);
+    updateCounter('.bi-val-integrity', cfg.integrity);
+
+    const bars = widget.querySelectorAll('.bi-load-bar');
+    bars.forEach((bar, i) => {
+      if (cfg.bars[i]) bar.style.height = cfg.bars[i];
+    });
+
+    const spark = widget.querySelector('.bi-spark-path');
+    if (spark) spark.setAttribute('d', cfg.spark);
+    const area = widget.querySelector('.bi-area-path');
+    if (area) area.setAttribute('d', cfg.area);
+    const lineLime = widget.querySelector('.bi-line-lime');
+    if (lineLime) lineLime.setAttribute('d', cfg.lineLime);
+    const lineOrange = widget.querySelector('.bi-line-orange');
+    if (lineOrange) lineOrange.setAttribute('d', cfg.lineOrange);
+  }
+
+  runCodeSyncDemo(btnEl) {
+    const widget = btnEl ? btnEl.closest('.code-sync-widget') : document.querySelector('.code-sync-widget');
+    if (!widget || widget._syncRunning) return;
+    widget._syncRunning = true;
+
+    const deployEl = widget.querySelector('.sync-step-deploy');
+    const sqlEl = widget.querySelector('.sync-step-sql');
+    const autoEl = widget.querySelector('.sync-step-auto');
+    const tsEl = widget.querySelector('.sync-timestamp');
+    const pillEl = widget.querySelector('.sync-online-pill');
+
+    if (btnEl) btnEl.textContent = '⏳ Syncing...';
+    if (deployEl) {
+      deployEl.textContent = 'BUILDING...';
+      deployEl.style.color = '#F7941D';
+    }
+    if (sqlEl) {
+      sqlEl.textContent = 'QUEUED';
+      sqlEl.style.color = 'rgba(255,255,255,0.6)';
+    }
+    if (pillEl) {
+      pillEl.textContent = '● SYNCING';
+      pillEl.style.color = '#F7941D';
+    }
+
+    setTimeout(() => {
+      if (deployEl) {
+        deployEl.textContent = 'VERIFIED ✓';
+        deployEl.style.color = '#C8E61E';
+      }
+      if (sqlEl) {
+        sqlEl.textContent = 'AUDITING...';
+        sqlEl.style.color = '#F7941D';
+      }
+    }, 450);
+
+    setTimeout(() => {
+      if (sqlEl) {
+        sqlEl.textContent = 'SYNCED ✓';
+        sqlEl.style.color = '#C8E61E';
+      }
+      if (autoEl) {
+        autoEl.textContent = 'PUBLISHED ✓';
+        autoEl.style.color = '#C8E61E';
+      }
+      if (pillEl) {
+        pillEl.textContent = '● ONLINE';
+        pillEl.style.color = '#C8E61E';
+      }
+      const nowStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+      if (tsEl) tsEl.textContent = `Last validated sync: ${nowStr} (0.03ms)`;
+      if (btnEl) btnEl.textContent = '▶ Run Sync Test';
+      widget._syncRunning = false;
+    }, 1050);
+  }
+
+  inspectWorkflowStage(cardEl, stageIdx) {
+    const frame = cardEl ? cardEl.closest('.workflow-diagram-frame') : document.querySelector('.workflow-diagram-frame');
+    if (!frame) return;
+
+    frame.querySelectorAll('.workflow-node-card').forEach((c) => {
+      c.classList.toggle('is-active-node', c === cardEl);
+    });
+
+    const stages = [
+      {
+        text: '<strong style="color:#C8E61E;">Stage 00 — Source Ingestion:</strong> Pulling departmental REST APIs, Excel workbooks &amp; relational SQL tables.',
+        metric: '99.9% Schema Match'
+      },
+      {
+        text: '<strong style="color:#C8E61E;">Stage 01 — Data Validation &amp; Audit:</strong> Running automated Pandas, R, SPSS &amp; Excel VBA quality rules.',
+        metric: '0.00% Null Drift'
+      },
+      {
+        text: '<strong style="color:#F7941D;">Stage 02 — Webhooks &amp; ETL Sync:</strong> Streaming validated records into SQL Server, MySQL &amp; MS Access.',
+        metric: '0.03ms Query Latency'
+      },
+      {
+        text: '<strong style="color:#C8E61E;">Stage 03 — Python ML &amp; Executive BI:</strong> Publishing live KPIs and forecasts to Power BI, Tableau &amp; React.',
+        metric: 'Live Auto-Refresh'
+      }
+    ];
+
+    const info = stages[stageIdx] || stages[0];
+    const textEl = frame.querySelector('.workflow-inspector-text');
+    const metricEl = frame.querySelector('.workflow-inspector-metric');
+    if (textEl) textEl.innerHTML = info.text;
+    if (metricEl) metricEl.textContent = info.metric;
+  }
+
+  updatePageSeoMeta() {
+    if (typeof document === 'undefined') return;
+    const baseOrigin = 'https://yoletech.yoletica.com';
+    const seoMap = {
+      home: {
+        title: 'YOLETECH | Executive Business Intelligence, Analytics & Full-Stack Solutions',
+        description:
+          'YOLETECH — Executive Business Intelligence, Interactive Power BI & Tableau Dashboards, SQL Data Pipelines & Full-Stack Web Development by John Oruebi Eniekpo, B.Sc.',
+        path: '/',
+        type: 'website',
+        image: `${baseOrigin}/assets/dashboard-preview.jpg`,
+        schemaType: 'WebPage'
+      },
+      dashboard: {
+        title: 'Executive BI & Client Operations Dashboard | YOLETECH',
+        description:
+          'Interactive Executive Business Intelligence Dashboard showcasing real-time client metrics, conversion funnels, service distribution, and analytics performance.',
+        path: '/dashboard',
+        type: 'website',
+        image: `${baseOrigin}/assets/dashboard-preview.jpg`,
+        schemaType: 'WebPage'
+      },
+      about: {
+        title: 'About John Oruebi Eniekpo | Data Analyst, BI Specialist & Full-Stack Developer — YOLETECH',
+        description:
+          'Learn about John Oruebi Eniekpo, B.Sc., Lead Data Analyst, Business Intelligence Specialist, and Full-Stack Web Developer behind YOLETECH in Yenagoa, Bayelsa State, Nigeria.',
+        path: '/about',
+        type: 'profile',
+        image: `${baseOrigin}/assets/about-analytics-workspace.jpg`,
+        schemaType: 'AboutPage'
+      },
+      services: {
+        title: 'Data Analytics, Power BI, Automation & Full-Stack Web Services | YOLETECH',
+        description:
+          'Explore YOLETECH services: Full-Stack Web Development, Power BI & Tableau Dashboards, Python & Excel VBA Workflow Automation, SQL Database Governance, and Tech Mentorship.',
+        path: '/services',
+        type: 'website',
+        image: `${baseOrigin}/assets/dashboard-preview.jpg`,
+        schemaType: 'CollectionPage'
+      },
+      portfolio: {
+        title: 'Portfolio & Case Studies | Data Analytics, BI & Full-Stack Web Projects — YOLETECH',
+        description:
+          'Explore verified case studies and portfolio projects delivered by YOLETECH across Power BI, Tableau, Python Machine Learning, Streamlit, React.js, and SQL databases.',
+        path: '/portfolio',
+        type: 'website',
+        image: `${baseOrigin}/assets/dashboard-preview.jpg`,
+        schemaType: 'CollectionPage'
+      },
+      testimonials: {
+        title: 'Client & Mentee Testimonials | Verified Reviews — YOLETECH',
+        description:
+          'Read verified client testimonials and endorsements from executive stakeholders, research partners, and 200+ data analytics mentees trained by YOLETECH.',
+        path: '/testimonials',
+        type: 'website',
+        image: `${baseOrigin}/assets/dashboard-preview.jpg`,
+        schemaType: 'CollectionPage'
+      },
+      blog: {
+        title: 'Blog & Tutorials | Data Analytics, Power BI, SQL, Python & Web Engineering — YOLETECH',
+        description:
+          'Practical technical guides, SQL and Python tutorials, Power BI and Tableau dashboard architecture walkthroughs, and full-stack engineering articles by John Oruebi Eniekpo.',
+        path: '/blog',
+        type: 'website',
+        image: `${baseOrigin}/assets/dashboard-preview.jpg`,
+        schemaType: 'CollectionPage'
+      },
+      contact: {
+        title: 'Contact YOLETECH | Book a Discovery Call or Request a Project Proposal',
+        description:
+          'Contact John Oruebi Eniekpo at YOLETECH (yoletech@yoletica.com | +234 802 552 6389) for Full-Stack Web Development, Power BI Dashboards, SQL Pipelines, and Automation.',
+        path: '/contact',
+        type: 'website',
+        image: `${baseOrigin}/assets/dashboard-preview.jpg`,
+        schemaType: 'ContactPage'
+      },
+      login: {
+        title: 'Client Portal Login & Registration | YOLETECH',
+        description: 'Sign in or register for the YOLETECH Client Portal to track project deliverables, data pipelines, and support inquiries.',
+        path: '/login',
+        type: 'website',
+        image: `${baseOrigin}/assets/dashboard-preview.jpg`,
+        schemaType: 'WebPage'
+      }
+    };
+
+    let meta = seoMap[this.currentPage] || seoMap.home;
+    let schemaPayload = null;
+
+    if (this.currentPage === 'blog-detail') {
+      const post = this.activeBlogPost || (this.blogPosts && this.blogPosts[0]);
+      if (post) {
+        const postImage = post.coverImage
+          ? post.coverImage.startsWith('http')
+            ? post.coverImage
+            : `${baseOrigin}${post.coverImage.startsWith('/') ? '' : '/'}${post.coverImage}`
+          : `${baseOrigin}/assets/dashboard-preview.jpg`;
+        meta = {
+          title: `${post.title} | YOLETECH`,
+          description: post.summary || `${post.title} — Technical article by ${post.author || 'John Oruebi Eniekpo'}.`,
+          path: `/blog/${post.slug}`,
+          type: 'article',
+          image: postImage,
+          schemaType: 'BlogPosting'
+        };
+        schemaPayload = {
+          '@context': 'https://schema.org',
+          '@type': 'BlogPosting',
+          headline: post.title,
+          description: meta.description,
+          image: postImage,
+          datePublished: post.date || '2026-10-15',
+          dateModified: post.date || '2026-10-15',
+          articleSection: post.category || 'Data Analytics & BI',
+          author: {
+            '@type': 'Person',
+            name: post.author || 'John Oruebi Eniekpo',
+            url: `${baseOrigin}/about`
+          },
+          publisher: {
+            '@type': 'Organization',
+            name: 'YOLETECH',
+            logo: {
+              '@type': 'ImageObject',
+              url: `${baseOrigin}/assets/yoletech-icon.png`
+            }
+          },
+          mainEntityOfPage: {
+            '@type': 'WebPage',
+            '@id': `${baseOrigin}${meta.path}`
+          }
+        };
+      }
+    }
+
+    const canonicalUrl = `${baseOrigin}${meta.path}`;
+    document.title = meta.title;
+
+    const setMetaTag = (attr, key, val) => {
+      let el = document.querySelector(`meta[${attr}="${key}"]`);
+      if (!el) {
+        el = document.createElement('meta');
+        el.setAttribute(attr, key);
+        document.head.appendChild(el);
+      }
+      el.setAttribute('content', val);
+    };
+
+    setMetaTag('name', 'description', meta.description);
+    setMetaTag('property', 'og:type', meta.type);
+    setMetaTag('property', 'og:title', meta.title);
+    setMetaTag('property', 'og:description', meta.description);
+    setMetaTag('property', 'og:url', canonicalUrl);
+    setMetaTag('property', 'og:image', meta.image);
+    setMetaTag('name', 'twitter:title', meta.title);
+    setMetaTag('name', 'twitter:description', meta.description);
+    setMetaTag('name', 'twitter:image', meta.image);
+
+    let canonicalEl = document.querySelector('link[rel="canonical"]');
+    if (!canonicalEl) {
+      canonicalEl = document.createElement('link');
+      canonicalEl.setAttribute('rel', 'canonical');
+      document.head.appendChild(canonicalEl);
+    }
+    canonicalEl.setAttribute('href', canonicalUrl);
+
+    if (!schemaPayload) {
+      schemaPayload = {
+        '@context': 'https://schema.org',
+        '@type': meta.schemaType || 'WebPage',
+        name: meta.title,
+        description: meta.description,
+        url: canonicalUrl,
+        isPartOf: { '@id': `${baseOrigin}/#website` }
+      };
+    }
+
+    let ldScript = document.getElementById('dynamic-seo-jsonld');
+    if (!ldScript) {
+      ldScript = document.createElement('script');
+      ldScript.id = 'dynamic-seo-jsonld';
+      ldScript.type = 'application/ld+json';
+      document.head.appendChild(ldScript);
+    }
+    ldScript.textContent = JSON.stringify(schemaPayload);
+  }
+
   // ==========================================================================
   // MASTER RENDER
   // ==========================================================================
@@ -4631,8 +5566,10 @@ ${C.renderRoiCalculatorWidget ? C.renderRoiCalculatorWidget() : ""}
       }
     }
     this.renderToast();
+    this.updatePageSeoMeta();
     window.YOLETECH_COMPONENTS?.decorateCardIcons(root);
     this.initKpiCounters(root);
+    this.initScrollReveal(root);
     if (this.currentPage === 'dashboard' && typeof this.mountDashboard === 'function') {
       this.mountDashboard();
     }

@@ -1,4 +1,4 @@
-const { renderBlogPage } = require('../server/blog-page.js');
+const { renderBlogPage, renderRouteSeoHtml, renderSitemapXml } = require('../server/blog-page.js');
 
 module.exports = (req, res) => {
   if (req.method !== 'GET' && req.method !== 'HEAD') {
@@ -8,8 +8,19 @@ module.exports = (req, res) => {
     return;
   }
 
-  const { searchParams } = new URL(req.url, 'https://localhost');
-  const html = renderBlogPage(searchParams.get('slug'));
+  const { searchParams, pathname } = new URL(req.url, 'https://localhost');
+  if (searchParams.get('sitemap') === '1' || pathname === '/sitemap.xml') {
+    const xml = renderSitemapXml();
+    res.setHeader('Content-Type', 'application/xml; charset=utf-8');
+    res.setHeader('Cache-Control', 'public, max-age=0, s-maxage=600, stale-while-revalidate=3600');
+    res.statusCode = 200;
+    res.end(req.method === 'HEAD' ? undefined : xml);
+    return;
+  }
+
+  const slug = searchParams.get('slug');
+  const route = searchParams.get('route');
+  const html = slug ? renderBlogPage(slug) : renderRouteSeoHtml(route || pathname);
   if (!html) {
     res.statusCode = 404;
     res.end('Article not found');
