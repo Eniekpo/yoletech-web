@@ -2426,6 +2426,75 @@ ${C.renderRoiCalculatorWidget ? C.renderRoiCalculatorWidget() : ""}
   // PAGE 5: TESTIMONIALS
   // ==========================================================================
 
+  getRandomizedTestimonials(rawList = []) {
+    if (!Array.isArray(rawList) || rawList.length === 0) return [];
+    if (
+      this._shuffledTestimonialsCache &&
+      this._shuffledTestimonialsSourceLen === rawList.length
+    ) {
+      return this._shuffledTestimonialsCache;
+    }
+    const copy = [...rawList];
+    for (let i = copy.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [copy[i], copy[j]] = [copy[j], copy[i]];
+    }
+    // Spread out identical surnames so adjacent cards always show diverse clients
+    const surnameOf = (item) =>
+      String(item?.author_name || '')
+        .trim()
+        .split(/\s+/)
+        .pop()
+        .toLowerCase();
+    for (let i = 1; i < copy.length; i++) {
+      if (surnameOf(copy[i]) && surnameOf(copy[i]) === surnameOf(copy[i - 1])) {
+        const swapIdx = copy.findIndex(
+          (candidate, idx) => idx > i && surnameOf(candidate) !== surnameOf(copy[i - 1])
+        );
+        if (swapIdx > i) {
+          [copy[i], copy[swapIdx]] = [copy[swapIdx], copy[i]];
+        }
+      }
+    }
+    this._shuffledTestimonialsCache = copy;
+    this._shuffledTestimonialsSourceLen = rawList.length;
+    return copy;
+  }
+
+  shuffleTestimonialsNow() {
+    this._shuffledTestimonialsCache = null;
+    this._shuffledTestimonialsSourceLen = 0;
+    this.testimonialPage = 1;
+    this.render();
+  }
+
+  renderTestimonialSliderCardHtml(t) {
+    return `
+      <div class="glass-card testimonial-slider-card is-revealed" style="display:flex;flex-direction:column;justify-content:space-between;padding:22px;">
+        <div>
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;gap:8px;">
+            <span style="font-size:11px;font-weight:700;color:#C8E61E;">${t.service_track || 'Verified Client'}</span>
+            <span style="color:#F7941D;font-size:14px;letter-spacing:1.5px;flex-shrink:0;">
+              ${'★'.repeat(Number(t.rating) || 5)}
+            </span>
+          </div>
+          <p style="font-size:14px;color:#FFFFFF;font-style:italic;margin-bottom:18px;line-height:1.6;">
+            "${t.content}"
+          </p>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;border-top:1px solid rgba(255,255,255,0.1);padding-top:12px;">
+          <div style="width:38px;height:38px;flex-shrink:0;border-radius:50%;background:#2F2B73;border:1.5px solid #C8E61E;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:14px;color:#C8E61E;">
+            ${(t.author_name || 'C').charAt(0).toUpperCase()}
+          </div>
+          <div style="min-width:0;">
+            <div style="font-weight:800;font-size:14px;line-height:1.3;">${t.author_name}</div>
+            <div style="font-size:12px;color:var(--yole-text-muted);line-height:1.35;">${t.author_role} • ${t.company}</div>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
   setTestimonialPage(page) {
     this.testimonialPage = Math.max(1, page);
     this.render();
@@ -2465,7 +2534,7 @@ ${C.renderRoiCalculatorWidget ? C.renderRoiCalculatorWidget() : ""}
   }
 
   renderTestimonialsPage() {
-    const rawList = this.testimonials || [];
+    const rawList = this.getRandomizedTestimonials(this.testimonials || []);
     const trackFilter = this.testimonialTrackFilter || 'ALL';
     const searchQ = (this.testimonialSearch || '').trim().toLowerCase();
 
@@ -2496,6 +2565,29 @@ ${C.renderRoiCalculatorWidget ? C.renderRoiCalculatorWidget() : ""}
     const endIdx = Math.min(startIdx + pageSize, totalCount);
     const paginatedTestimonials = list.slice(startIdx, endIdx);
 
+    const buildRowPool = (seedSlice, offset) => {
+      if (!list.length) return [];
+      const pool = [...seedSlice];
+      let cursor = (startIdx + offset) % list.length;
+      const targetLen = Math.max(8, seedSlice.length);
+      while (pool.length < targetLen) {
+        pool.push(list[cursor % list.length]);
+        cursor++;
+      }
+      return pool;
+    };
+
+    const row1Pool = buildRowPool(paginatedTestimonials.slice(0, 4), 8);
+    const row2Pool = buildRowPool(
+      paginatedTestimonials.slice(4, 8).length
+        ? paginatedTestimonials.slice(4, 8)
+        : paginatedTestimonials.slice(0, 4).reverse(),
+      12
+    );
+
+    const row1GroupHtml = row1Pool.map((t) => this.renderTestimonialSliderCardHtml(t)).join('');
+    const row2GroupHtml = row2Pool.map((t) => this.renderTestimonialSliderCardHtml(t)).join('');
+
     const delta = 2;
     const range = [];
     for (let i = Math.max(2, cur - delta); i <= Math.min(totalPages - 1, cur + delta); i++) {
@@ -2509,9 +2601,12 @@ ${C.renderRoiCalculatorWidget ? C.renderRoiCalculatorWidget() : ""}
     const pagerHtml = totalPages > 1 ? `
       <div class="testimonials-pager" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:14px;margin-bottom:48px;padding:14px 20px;background:var(--yole-indigo-card);border:1px solid var(--yole-border-subtle);border-radius:14px;box-shadow:var(--shadow-card);">
         <div style="font-size:13.5px;color:var(--yole-text-muted);">
-          Showing <strong>${totalCount > 0 ? startIdx + 1 : 0}–${endIdx}</strong> of <strong>${totalCount}</strong> verified client testimonies (8 per page)
+          Showing <strong>${totalCount > 0 ? startIdx + 1 : 0}–${endIdx}</strong> of <strong>${totalCount}</strong> verified client testimonies (randomized slider)
         </div>
-        <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+        <div class="testimonials-pager-controls" style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+          <button type="button" class="btn btn-outline btn-sm" style="padding:6px 14px;font-size:12.5px;" onclick="window.app.shuffleTestimonialsNow()" title="Shuffle random testimonials">
+            ↻ Shuffle
+          </button>
           <button type="button" class="btn btn-outline btn-sm" style="padding:6px 14px;font-size:12.5px;" ${cur <= 1 ? 'disabled' : ''} onclick="window.app.setTestimonialPage(${cur - 1})">
             ← Prev
           </button>
@@ -2565,35 +2660,29 @@ ${C.renderRoiCalculatorWidget ? C.renderRoiCalculatorWidget() : ""}
             </div>
           </div>
 
-          <div id="testimonials-wall" class="grid-4" style="margin-bottom:28px;">
-            ${paginatedTestimonials
-              .map(
-                (t) => `
-              <div class="glass-card" style="display:flex;flex-direction:column;justify-content:space-between;padding:22px;">
-                <div>
-                  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;gap:8px;">
-                    <span style="font-size:11px;font-weight:700;color:#C8E61E;">${t.service_track || 'Verified Client'}</span>
-                    <span style="color:#F7941D;font-size:14px;letter-spacing:1.5px;flex-shrink:0;">
-                      ${'★'.repeat(Number(t.rating) || 5)}
-                    </span>
-                  </div>
-                  <p style="font-size:14px;color:#FFFFFF;font-style:italic;margin-bottom:18px;line-height:1.6;">
-                    "${t.content}"
-                  </p>
+          <div id="testimonials-wall" class="testimonials-slider-wall" style="margin-bottom:28px;">
+            ${
+              list.length
+                ? `
+              <div class="testimonial-slider-row slide-right" role="region" aria-label="Client testimonials row 1 sliding right">
+                <div class="testimonial-slider-track">
+                  <div class="testimonial-slider-group">${row1GroupHtml}</div>
+                  <div class="testimonial-slider-group" aria-hidden="true">${row1GroupHtml}</div>
                 </div>
-                <div style="display:flex;align-items:center;gap:10px;border-top:1px solid rgba(255,255,255,0.1);padding-top:12px;">
-                  <div style="width:38px;height:38px;flex-shrink:0;border-radius:50%;background:#2F2B73;border:1.5px solid #C8E61E;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:14px;color:#C8E61E;">
-                    ${t.author_name.charAt(0).toUpperCase()}
-                  </div>
-                  <div style="min-width:0;">
-                    <div style="font-weight:800;font-size:14px;line-height:1.3;">${t.author_name}</div>
-                    <div style="font-size:12px;color:var(--yole-text-muted);line-height:1.35;">${t.author_role} • ${t.company}</div>
-                  </div>
+              </div>
+              <div class="testimonial-slider-row slide-left" role="region" aria-label="Client testimonials row 2 sliding left">
+                <div class="testimonial-slider-track">
+                  <div class="testimonial-slider-group">${row2GroupHtml}</div>
+                  <div class="testimonial-slider-group" aria-hidden="true">${row2GroupHtml}</div>
                 </div>
               </div>
             `
-              )
-              .join('')}
+                : `
+              <div class="glass-card is-revealed" style="text-align:center;padding:36px 24px;">
+                <p style="font-size:15px;color:var(--yole-text-muted);margin:0;">No matching testimonials found for this filter.</p>
+              </div>
+            `
+            }
           </div>
           ${pagerHtml}
 

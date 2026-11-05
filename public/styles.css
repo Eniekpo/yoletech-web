@@ -3078,21 +3078,8 @@ details > summary {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .services-ticker-track {
-    animation: none;
-  }
-
   html {
     scroll-behavior: auto !important;
-  }
-
-  *,
-  *::before,
-  *::after {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    scroll-behavior: auto !important;
-    transition-duration: 0.01ms !important;
   }
 }
 
@@ -5409,5 +5396,88 @@ h1, h2, h3, h4, h5, h6, .hero-title, .section-title, .brand-wordmark {
   .hero-actions .btn {
     width: 100%;
     justify-content: center;
+  }
+}
+
+/* ============================================================================
+   2-ROW TESTIMONIALS CARD SLIDER (ROW 1 SLIDES RIGHT, ROW 2 SLIDES LEFT)
+   4 cards visible per row on desktop, 2 on tablet, 1 on mobile
+   ============================================================================ */
+.testimonials-slider-wall {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  width: 100%;
+}
+
+.testimonial-slider-row {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+  padding: 6px 0;
+}
+
+.testimonial-slider-track {
+  display: flex;
+  width: max-content;
+  align-items: stretch;
+  will-change: transform;
+}
+
+.testimonial-slider-row.slide-right .testimonial-slider-track {
+  animation: testimonial-slide-right 48s linear infinite !important;
+}
+
+.testimonial-slider-row.slide-left .testimonial-slider-track {
+  animation: testimonial-slide-left 48s linear infinite !important;
+}
+
+.testimonial-slider-row:hover .testimonial-slider-track {
+  animation-play-state: paused !important;
+}
+
+.testimonial-slider-group {
+  display: flex;
+  align-items: stretch;
+  flex-shrink: 0;
+  gap: 20px;
+  padding-right: 20px;
+}
+
+.testimonial-slider-card {
+  flex: 0 0 calc((min(1212px, 100vw - 48px) - 60px) / 4);
+  width: calc((min(1212px, 100vw - 48px) - 60px) / 4);
+  min-width: 0;
+}
+
+@keyframes testimonial-slide-right {
+  0% {
+    transform: translate3d(-50%, 0, 0);
+  }
+  100% {
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes testimonial-slide-left {
+  0% {
+    transform: translate3d(0, 0, 0);
+  }
+  100% {
+    transform: translate3d(-50%, 0, 0);
+  }
+}
+
+@media (max-width: 1024px) {
+  .testimonial-slider-card {
+    flex: 0 0 calc((100vw - 48px - 20px) / 2);
+    width: calc((100vw - 48px - 20px) / 2);
+  }
+}
+
+@media (max-width: 640px) {
+  .testimonial-slider-card {
+    flex: 0 0 calc(100vw - 32px);
+    width: calc(100vw - 32px);
   }
 }
