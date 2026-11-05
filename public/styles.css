@@ -586,7 +586,7 @@ button, input, select, textarea {
 
 .section-header {
   text-align: center;
-  max-width: 740px;
+  max-width: 980px;
   margin: 0 auto 48px;
 }
 
@@ -598,9 +598,22 @@ button, input, select, textarea {
   margin-bottom: 14px;
 }
 
+.section-title-nowrap {
+  white-space: nowrap;
+}
+
+@media (max-width: 768px) {
+  .section-title-nowrap {
+    white-space: normal;
+  }
+}
+
 .section-desc {
   font-size: 16px;
   color: var(--yole-text-muted);
+  max-width: 740px;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .metrics-strip {
@@ -1161,8 +1174,9 @@ button, input, select, textarea {
 
 .footer-tab-btn {
   display: flex;
-  flex-direction: column;
-  align-items: flex-start;
+  flex-direction: row;
+  align-items: center;
+  gap: 12px;
   min-width: 0;
   padding: 12px 15px;
   background: transparent;
@@ -1172,6 +1186,37 @@ button, input, select, textarea {
   text-align: left;
   cursor: pointer;
   transition: background-color 180ms ease, border-color 180ms ease, color 180ms ease, transform 180ms ease;
+}
+
+.footer-tab-icon {
+  width: 36px;
+  height: 36px;
+  flex: 0 0 36px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  color: var(--yole-lime);
+  background: rgba(200, 230, 30, 0.12);
+  border: 1px solid rgba(200, 230, 30, 0.3);
+  transition: background-color 180ms ease, border-color 180ms ease, color 180ms ease;
+}
+
+.footer-tab-icon svg {
+  width: 18px;
+  height: 18px;
+}
+
+.footer-tab-btn.active .footer-tab-icon {
+  background: rgba(200, 230, 30, 0.22);
+  border-color: var(--yole-lime);
+}
+
+.footer-tab-copy {
+  min-width: 0;
+  display: flex;
+  flex: 1;
+  flex-direction: column;
 }
 
 .footer-tab-btn:hover {
@@ -4057,6 +4102,18 @@ details > summary {
 
 [data-theme="light"] .footer-tab-detail {
   color: #64748B;
+}
+
+[data-theme="light"] .footer-tab-icon {
+  color: #3F6212;
+  background: #ECFCCB;
+  border-color: #84CC16;
+}
+
+[data-theme="light"] .footer-tab-btn.active .footer-tab-icon {
+  color: #C8E61E;
+  background: #1E1B54;
+  border-color: #1E1B54;
 }
 
 [data-theme="light"] .footer-social-block .social-btn {

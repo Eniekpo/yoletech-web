@@ -1201,15 +1201,17 @@ class YoletechApp {
 
   renderFooter() {
     const D = window.YOLETECH_DATA.owner;
+    const C = window.YOLETECH_COMPONENTS;
     const tabs = [
       {
         id: 'overview',
+        icon: 'users',
         label: 'Connect with YOLETECH',
         detail: 'Follow the work, explore projects, or start a conversation.'
       },
-      { id: 'services', label: 'Services', detail: 'What we do' },
-      { id: 'explore', label: 'Explore', detail: 'Useful links' },
-      { id: 'contact', label: 'Contact', detail: 'Get in touch' }
+      { id: 'services', icon: 'briefcase', label: 'Services', detail: 'What we do' },
+      { id: 'explore', icon: 'globe', label: 'Explore', detail: 'Useful links' },
+      { id: 'contact', icon: 'message', label: 'Contact', detail: 'Get in touch' }
     ];
     const activeTab = tabs.some((tab) => tab.id === this.footerTab) ? this.footerTab : 'overview';
 
@@ -1257,8 +1259,11 @@ class YoletechApp {
                   onclick="window.app.selectFooterTab('${tab.id}')"
                   onkeydown="window.app.handleFooterTabKeydown(event, '${tab.id}')"
                 >
-                  <span class="footer-tab-label">${tab.label}</span>
-                  <span class="footer-tab-detail">${tab.detail}</span>
+                  <span class="footer-tab-icon" aria-hidden="true">${C ? C.getIcon(tab.icon) : ''}</span>
+                  <span class="footer-tab-copy">
+                    <span class="footer-tab-label">${tab.label}</span>
+                    <span class="footer-tab-detail">${tab.detail}</span>
+                  </span>
                 </button>
               `
                 )
@@ -1985,7 +1990,7 @@ class YoletechApp {
 
           <div class="section-header">
             <div class="eyebrow"><span class="eyebrow-dot"></span> OUR SERVICES</div>
-            <h2 class="section-title">Complete Service Tracks Under One Roof</h2>
+            <h2 class="section-title section-title-nowrap">Complete Service Tracks Under One Roof</h2>
             <p class="section-desc">Select any service track below to start a tailored project inquiry.</p>
           </div>
 
