@@ -52,7 +52,6 @@ class YoletechApp {
     this.lastContactSubmission = null;
     this.formConfirmations = {};
     this.renderedPage = null;
-    this.registrationSuccessOnly = false;
     const savedTheme = localStorage.getItem('yoletech_theme');
     const prefersLight = typeof window !== 'undefined' && window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches;
     this.theme = savedTheme || (prefersLight ? 'light' : 'dark');
@@ -143,7 +142,6 @@ class YoletechApp {
   bindPopState() {
     window.addEventListener('popstate', () => {
       this.resolveInitialRoute();
-      if (this.currentPage !== 'portal') this.registrationSuccessOnly = false;
       this.render();
     });
   }
@@ -595,6 +593,42 @@ class YoletechApp {
     }, 4500);
   }
 
+  showRegistrationSuccessModal() {
+    let modalRoot = document.getElementById('registration-success-modal-root');
+    if (!modalRoot) {
+      modalRoot = document.createElement('div');
+      modalRoot.id = 'registration-success-modal-root';
+      document.body.appendChild(modalRoot);
+    }
+
+    modalRoot.innerHTML = `
+      <div class="registration-success-backdrop" onclick="window.app.closeRegistrationSuccessModal()"></div>
+      <div class="registration-success-modal" role="dialog" aria-modal="true" aria-labelledby="registration-success-message" tabindex="-1">
+        <button type="button" class="registration-success-close" aria-label="Close" onclick="window.app.closeRegistrationSuccessModal()">×</button>
+        <p id="registration-success-message">Sign Up Successful</p>
+      </div>
+    `;
+
+    this.registrationSuccessPreviousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    modalRoot.querySelector('.registration-success-modal')?.focus();
+    this.registrationSuccessEscapeHandler = (event) => {
+      if (event.key === 'Escape') this.closeRegistrationSuccessModal();
+    };
+    window.addEventListener('keydown', this.registrationSuccessEscapeHandler);
+  }
+
+  closeRegistrationSuccessModal() {
+    const modalRoot = document.getElementById('registration-success-modal-root');
+    if (modalRoot) modalRoot.remove();
+    if (this.registrationSuccessEscapeHandler) {
+      window.removeEventListener('keydown', this.registrationSuccessEscapeHandler);
+      this.registrationSuccessEscapeHandler = null;
+    }
+    document.body.style.overflow = this.registrationSuccessPreviousOverflow || '';
+    this.registrationSuccessPreviousOverflow = null;
+  }
+
   renderToast() {
     let container = document.getElementById('toast-container');
     if (!container) return;
@@ -807,7 +841,6 @@ class YoletechApp {
 
   async navigate(page, extra = null) {
     this.mobileMenuOpen = false;
-    if (page !== 'portal') this.registrationSuccessOnly = false;
     if (page === 'blog-detail' && extra) {
       this.currentPage = 'blog-detail';
       this.activeBlogSlug = extra;
@@ -3794,8 +3827,18 @@ ${C.renderRoiCalculatorWidget ? C.renderRoiCalculatorWidget() : ""}
       const { token, user } = regData;
       this.saveLocalRegisteredUser(user, payload.password);
 
-      // Dispatch new client registration notification email to yoletech@yolestica.com
-      await this.sendEmailToYoletech({
+      this.token = token;
+      this.user = user;
+      localStorage.setItem('yoletech_token', token);
+      localStorage.setItem('yoletech_user', JSON.stringify(user));
+      this.currentPage = 'portal';
+      window.history.pushState({}, '', '/portal');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      this.render();
+      this.showRegistrationSuccessModal();
+
+      // Dispatch the registration notification without delaying portal access.
+      this.sendEmailToYoletech({
         subject: `[YOLETECH New Client Registration] ${user.name} — ${user.service_interest}`,
         replyTo: user.email,
         fields: {
@@ -3809,15 +3852,9 @@ ${C.renderRoiCalculatorWidget ? C.renderRoiCalculatorWidget() : ""}
         }
       });
 
-      this.token = token;
-      this.user = user;
-      localStorage.setItem('yoletech_token', token);
-      localStorage.setItem('yoletech_user', JSON.stringify(user));
-      await this.loadClientData();
-      if (typeof this.loadDashboardData === 'function') await this.loadDashboardData(true);
-
-      this.registrationSuccessOnly = true;
-      this.navigate('portal');
+      this.loadClientData().then(() => {
+        if (this.currentPage === 'portal') this.render();
+      });
     } catch (err) {
       this.setFormConfirmation('register', {
         type: 'error',
@@ -5492,15 +5529,6 @@ ${C.renderRoiCalculatorWidget ? C.renderRoiCalculatorWidget() : ""}
   render() {
     const root = document.getElementById('app-root');
     if (!root) return;
-    if (this.registrationSuccessOnly && this.currentPage === 'portal') {
-      root.innerHTML = '<main role="status" aria-live="polite" style="min-height:100vh;display:grid;place-items:center;padding:24px;text-align:center;font-size:28px;font-weight:800;">Sign Up Successful</main>';
-      ['contact-modal-backdrop', 'contact-options-modal', 'contact-widget-launcher'].forEach((id) => {
-        const element = document.getElementById(id);
-        if (element) element.hidden = true;
-      });
-      this.renderedPage = this.currentPage;
-      return;
-    }
     ['contact-modal-backdrop', 'contact-options-modal', 'contact-widget-launcher'].forEach((id) => {
       const element = document.getElementById(id);
       if (element) element.hidden = false;
