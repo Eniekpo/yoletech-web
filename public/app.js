@@ -2515,29 +2515,29 @@ ${C.renderRoiCalculatorWidget ? C.renderRoiCalculatorWidget() : ""}
             </div>
           </div>
 
-          <div id="testimonials-wall" class="grid-2" style="margin-bottom:28px;">
+          <div id="testimonials-wall" class="grid-4" style="margin-bottom:28px;">
             ${paginatedTestimonials
               .map(
                 (t) => `
-              <div class="glass-card" style="display:flex;flex-direction:column;justify-content:space-between;">
+              <div class="glass-card" style="display:flex;flex-direction:column;justify-content:space-between;padding:22px;">
                 <div>
-                  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;gap:8px;">
-                    <span style="font-size:11.5px;font-weight:700;color:#C8E61E;">${t.service_track || 'Verified Client'}</span>
-                    <span style="color:#F7941D;font-size:16px;letter-spacing:2px;">
+                  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;gap:8px;">
+                    <span style="font-size:11px;font-weight:700;color:#C8E61E;">${t.service_track || 'Verified Client'}</span>
+                    <span style="color:#F7941D;font-size:14px;letter-spacing:1.5px;flex-shrink:0;">
                       ${'★'.repeat(Number(t.rating) || 5)}
                     </span>
                   </div>
-                  <p style="font-size:15.5px;color:#FFFFFF;font-style:italic;margin-bottom:20px;line-height:1.65;">
+                  <p style="font-size:14px;color:#FFFFFF;font-style:italic;margin-bottom:18px;line-height:1.6;">
                     "${t.content}"
                   </p>
                 </div>
-                <div style="display:flex;align-items:center;gap:12px;border-top:1px solid rgba(255,255,255,0.1);padding-top:14px;">
-                  <div style="width:42px;height:42px;border-radius:50%;background:#2F2B73;border:1.5px solid #C8E61E;display:flex;align-items:center;justify-content:center;font-weight:900;color:#C8E61E;">
+                <div style="display:flex;align-items:center;gap:10px;border-top:1px solid rgba(255,255,255,0.1);padding-top:12px;">
+                  <div style="width:38px;height:38px;flex-shrink:0;border-radius:50%;background:#2F2B73;border:1.5px solid #C8E61E;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:14px;color:#C8E61E;">
                     ${t.author_name.charAt(0).toUpperCase()}
                   </div>
-                  <div>
-                    <div style="font-weight:800;font-size:15px;">${t.author_name}</div>
-                    <div style="font-size:12.5px;color:var(--yole-text-muted);">${t.author_role} • ${t.company}</div>
+                  <div style="min-width:0;">
+                    <div style="font-weight:800;font-size:14px;line-height:1.3;">${t.author_name}</div>
+                    <div style="font-size:12px;color:var(--yole-text-muted);line-height:1.35;">${t.author_role} • ${t.company}</div>
                   </div>
                 </div>
               </div>

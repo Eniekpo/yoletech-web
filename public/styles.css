@@ -655,6 +655,12 @@ button, input, select, textarea {
   border-color: rgba(200, 230, 30, 0.6);
 }
 
+.grid-4 {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 20px;
+}
+
 .grid-3 {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -1656,6 +1662,7 @@ a.footer-contact-item:hover {
     min-height: 0;
   }
 
+  .grid-4,
   .grid-3 {
     grid-template-columns: repeat(2, 1fr);
     gap: 20px;
@@ -1778,6 +1785,7 @@ a.footer-contact-item:hover {
     padding: 46px 0;
   }
 
+  .grid-4,
   .grid-3,
   .grid-2,
   .dashboard-charts-row {
