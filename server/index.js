@@ -1028,6 +1028,27 @@ function getAllBlogPosts() {
   return posts.sort((a, b) => (a.date < b.date ? 1 : -1));
 }
 
+const PORTFOLIO_IMAGE_MAP = {
+  'build-an-interactive-sales-dashboard-with-python-and-streamlit': '/assets/blog/streamlite-python-dashboard.png',
+  'executive-business-intelligence-sales-forecasting-platform': '/assets/blog/executive_bi_linkedin_carousel.png',
+  'from-housing-data-to-an-interactive-ml-app-predicting-real-estate-prices-with-python-scikit-learn-and-streamlit': '/assets/blog/real-estate-ml-model.png',
+  'ow-to-automate-excel-reports-using-python-and-pandas': '/assets/blog/automate-excel-sales-reports-with-python-and-pandas.png',
+  'how-to-automate-excel-reports-using-python-and-pandas': '/assets/blog/automate-excel-sales-reports-with-python-and-pandas.png',
+  'predicting-real-estate-prices-with-python-and-scikit-learn': '/assets/blog/predicting-real-estate-prices-with-python-and-scikit-learn.png'
+};
+
+function resolvePortfolioPreviewImage(previewImage, slug) {
+  const img = String(previewImage || '').trim();
+  if (img && img.startsWith('/')) {
+    const localFile = path.join(PUBLIC_DIR, img.replace(/^\/+/, ''));
+    if (fs.existsSync(localFile)) return img;
+  }
+  if (slug && PORTFOLIO_IMAGE_MAP[slug]) {
+    return PORTFOLIO_IMAGE_MAP[slug];
+  }
+  return img || '/assets/dashboard-preview.jpg';
+}
+
 function parsePortfolioMarkdownFile(filePath) {
   const raw = fs.readFileSync(filePath, 'utf8');
   const slug = path.basename(filePath, '.md');
@@ -1044,7 +1065,7 @@ function parsePortfolioMarkdownFile(filePath) {
     category,
     organization: frontmatter.organization || 'YOLETECH',
     period: frontmatter.period || (frontmatter.date ? String(frontmatter.date).slice(0, 4) : '2026'),
-    preview_image: frontmatter.preview_image || '/assets/dashboard-preview.jpg',
+    preview_image: resolvePortfolioPreviewImage(frontmatter.preview_image, slug),
     demo_url: demoUrl,
     live_url: demoUrl,
     impact_metrics: frontmatter.impact_metrics || `Production ${category} architecture & automated analytics workflow`,

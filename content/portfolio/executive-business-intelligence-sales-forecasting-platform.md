@@ -4,7 +4,7 @@ date: "2026-04-08"
 category: "Data Analytics & BI"
 organization: "Enterprise Retail & Operations"
 period: "2025 – 2026"
-preview_image: "/assets/blog/1775645513292-file_00000000aaac720ab0333199e7794a7b.png"
+preview_image: "/assets/blog/executive_bi_linkedin_carousel.png"
 demo_url: "https://sales-analytics-suite.streamlit.app/"
 impact_metrics: "40% faster executive reporting cycle & automated 90-day rolling revenue forecast"
 tech_stack: ["Power BI", "Python", "SQL", "Streamlit", "Time-Series Forecasting"]

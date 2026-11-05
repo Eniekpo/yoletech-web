@@ -4,7 +4,7 @@ date: "2026-04-12"
 category: "Python & Machine Learning"
 organization: "YOLETECH AI & Data Science"
 period: "2026"
-preview_image: "/assets/blog/Gemini_Generated_Image_bfpxp1bfpxp1bfpx.png"
+preview_image: "/assets/blog/real-estate-ml-model.png"
 demo_url: "https://house-price-prediction-system.streamlit.app/"
 impact_metrics: "R² > 0.88 validation accuracy with live sub-second Streamlit inference"
 tech_stack: ["Python", "Scikit-Learn", "Streamlit", "Pandas", "Machine Learning"]

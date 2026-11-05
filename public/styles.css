@@ -733,13 +733,23 @@ button, input, select, textarea {
   transform: scale(1.025);
 }
 
+.portfolio-card-heading {
+  margin: 16px 0 18px;
+  align-items: flex-start;
+}
+
 .portfolio-project-title {
-  margin: 17px 0 18px;
+  margin: 0;
   color: var(--yole-white);
   font-size: 19px;
   font-weight: 850;
-  line-height: 1.45;
+  line-height: 1.4;
   overflow-wrap: anywhere;
+}
+
+[data-theme="light"] .portfolio-project-image {
+  background: #F1F5F9;
+  border-color: #E2E8F0;
 }
 
 .portfolio-project-actions {

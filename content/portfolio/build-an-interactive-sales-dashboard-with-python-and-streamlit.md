@@ -4,7 +4,7 @@ date: "2026-04-11"
 category: "Data Analytics & BI"
 organization: "YOLETECH Analytics Lab"
 period: "2026"
-preview_image: "/assets/blog/file_000000009ec871fd95c9cf798e33307c.png"
+preview_image: "/assets/blog/streamlite-python-dashboard.png"
 demo_url: "https://sales-analytics-suite.streamlit.app/"
 impact_metrics: "Real-time KPI filtering, regional revenue cohort drilldowns & automated CSV/Excel ingestion"
 tech_stack: ["Python", "Streamlit", "Pandas", "Plotly", "Data Analytics"]

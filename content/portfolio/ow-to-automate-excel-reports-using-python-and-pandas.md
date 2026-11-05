@@ -4,7 +4,7 @@ date: "2026-04-12"
 category: "AI & Workflow Automation"
 organization: "YOLETECH Automation Engineering"
 period: "2026"
-preview_image: "/assets/blog/file_00000000ca2c724692ed9d7b1ff18db5.png"
+preview_image: "/assets/blog/automate-excel-sales-reports-with-python-and-pandas.png"
 demo_url: "/blog/how-to-automate-excel-reports-using-python-and-pandas"
 impact_metrics: "Eliminated 85% of manual copy-paste reporting time & zero formula-breakage errors"
 tech_stack: ["Python", "Pandas", "OpenPyXL", "ETL Automation", "Excel"]

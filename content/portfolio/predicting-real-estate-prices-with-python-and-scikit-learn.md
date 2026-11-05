@@ -4,7 +4,7 @@ date: "2026-04-12"
 category: "Python & Machine Learning"
 organization: "YOLETECH AI & Data Science"
 period: "2026"
-preview_image: "/assets/blog/Gemini_Generated_Image_bfpxp1bfpxp1bfpx (1).png"
+preview_image: "/assets/blog/predicting-real-estate-prices-with-python-and-scikit-learn.png"
 demo_url: "https://house-price-prediction-system.streamlit.app/"
 impact_metrics: "Automated feature pipeline, ensemble regression & interactive valuation simulator"
 tech_stack: ["Python", "Scikit-Learn", "Pandas", "NumPy", "Streamlit"]

@@ -41,7 +41,7 @@ class YoletechApp {
     this.token = localStorage.getItem('yoletech_token') || null;
     this.user = JSON.parse(localStorage.getItem('yoletech_user') || 'null');
 
-    this.portfolio = [];
+    this.portfolio = window.YOLETECH_DATA?.defaultPortfolio || [];
     this.testimonials = window.YOLETECH_DATA?.defaultTestimonials || [];
     this.blogPosts = [];
     this.clients = [];
@@ -347,6 +347,34 @@ class YoletechApp {
     return { slug, meta, body };
   }
 
+  resolvePortfolioImage(previewImage, slug = '') {
+    const slugMap = {
+      'build-an-interactive-sales-dashboard-with-python-and-streamlit': '/assets/blog/streamlite-python-dashboard.png',
+      'executive-business-intelligence-sales-forecasting-platform': '/assets/blog/executive_bi_linkedin_carousel.png',
+      'from-housing-data-to-an-interactive-ml-app-predicting-real-estate-prices-with-python-scikit-learn-and-streamlit': '/assets/blog/real-estate-ml-model.png',
+      'ow-to-automate-excel-reports-using-python-and-pandas': '/assets/blog/automate-excel-sales-reports-with-python-and-pandas.png',
+      'how-to-automate-excel-reports-using-python-and-pandas': '/assets/blog/automate-excel-sales-reports-with-python-and-pandas.png',
+      'predicting-real-estate-prices-with-python-and-scikit-learn': '/assets/blog/predicting-real-estate-prices-with-python-and-scikit-learn.png'
+    };
+    const legacyImageMap = {
+      '/assets/blog/file_000000009ec871fd95c9cf798e33307c.png': '/assets/blog/streamlite-python-dashboard.png',
+      '/assets/blog/1775645513292-file_00000000aaac720ab0333199e7794a7b.png': '/assets/blog/executive_bi_linkedin_carousel.png',
+      '/assets/blog/Gemini_Generated_Image_bfpxp1bfpxp1bfpx.png': '/assets/blog/real-estate-ml-model.png',
+      '/assets/blog/file_00000000ca2c724692ed9d7b1ff18db5.png': '/assets/blog/automate-excel-sales-reports-with-python-and-pandas.png',
+      '/assets/blog/Gemini_Generated_Image_bfpxp1bfpxp1bfpx (1).png': '/assets/blog/predicting-real-estate-prices-with-python-and-scikit-learn.png'
+    };
+    const cleanImg = String(previewImage || '').trim();
+    if (cleanImg && legacyImageMap[cleanImg]) {
+      return legacyImageMap[cleanImg];
+    }
+    if (slug && slugMap[slug] && (!cleanImg || /file_0000|Gemini_Generated_Image/i.test(cleanImg))) {
+      return slugMap[slug];
+    }
+    if (cleanImg) return cleanImg;
+    if (slug && slugMap[slug]) return slugMap[slug];
+    return '/assets/dashboard-preview.jpg';
+  }
+
   async fetchGitHubCollection(folderType) {
     try {
       const apiUrl = `https://api.github.com/repos/Eniekpo/yoletech-web/contents/content/${folderType}?ref=main`;
@@ -378,7 +406,7 @@ class YoletechApp {
               summary: meta.summary || body.slice(0, 220),
               impact_metrics: meta.impact_metrics || 'Verified production delivery',
               tech_stack: techStack,
-              preview_image: meta.preview_image || '/assets/dashboard-preview.jpg',
+              preview_image: this.resolvePortfolioImage(meta.preview_image, slug),
               demo_url: meta.demo_url || meta.live_url || '',
               live_url: meta.demo_url || meta.live_url || '',
               featured: meta.featured !== 'false' && meta.featured !== false,
@@ -436,6 +464,13 @@ class YoletechApp {
     if (this.portfolio.length === 0) {
       this.portfolio = await this.fetchGitHubCollection('portfolio');
     }
+    if (this.portfolio.length === 0 && window.YOLETECH_DATA?.defaultPortfolio) {
+      this.portfolio = window.YOLETECH_DATA.defaultPortfolio;
+    }
+    this.portfolio = (this.portfolio || []).map((p) => ({
+      ...p,
+      preview_image: this.resolvePortfolioImage(p.preview_image, p.slug)
+    }));
     if (this.blogPosts.length === 0) {
       this.blogPosts = await this.fetchGitHubCollection('blog');
     }
@@ -1586,7 +1621,7 @@ class YoletechApp {
               <div class="glass-card" style="display:flex;flex-direction:column;justify-content:space-between;">
                 <div>
                   <div style="border-radius:12px;overflow:hidden;margin-bottom:16px;border:1px solid rgba(255,255,255,0.12);height:175px;cursor:pointer;" onclick="window.app.openPortfolioModal('${p.slug}')">
-                    <img src="${p.preview_image}" alt="${p.title}" style="width:100%;height:100%;object-fit:cover;" />
+                    <img src="${this.resolvePortfolioImage(p.preview_image, p.slug)}" alt="${p.title}" onerror="this.onerror=null;this.src='/assets/dashboard-preview.jpg';" style="width:100%;height:100%;object-fit:cover;" />
                   </div>
                   <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:10px;">
                     <span class="tech-pill lime" style="font-size:11px;padding:3px 10px;">${p.category || 'Data Analytics & BI'}</span>
@@ -2150,10 +2185,17 @@ ${C.renderRoiCalculatorWidget ? C.renderRoiCalculatorWidget() : ""}
   // ==========================================================================
   // PAGE 4: PORTFOLIO (FILTERABLE CASE STUDIES — POWERED BY DECAP BRIDGE)
   // ==========================================================================
+  matchesPortfolioCategory(projectCategory, filterCat) {
+    if (!filterCat || filterCat === 'ALL') return true;
+    if (projectCategory === filterCat) return true;
+    if (filterCat === 'AI & Machine Learning' && projectCategory === 'Python & Machine Learning') return true;
+    return false;
+  }
+
   getFilteredPortfolio() {
     const query = (this.portfolioSearch || '').trim().toLowerCase();
     return (this.portfolio || []).filter((p) => {
-      const catMatch = this.portfolioFilter === 'ALL' || p.category === this.portfolioFilter;
+      const catMatch = this.matchesPortfolioCategory(p.category, this.portfolioFilter);
       if (!catMatch) return false;
       if (!query) return true;
       const haystack = `${p.title || ''} ${p.summary || ''} ${p.category || ''} ${p.organization || ''} ${p.impact_metrics || ''} ${(p.tech_stack || []).join(' ')}`.toLowerCase();
@@ -2173,14 +2215,22 @@ ${C.renderRoiCalculatorWidget ? C.renderRoiCalculatorWidget() : ""}
         </div>
       `;
     }
+    const C = window.YOLETECH_COMPONENTS;
     return filtered
-      .map(
-        (p) => `
+      .map((p) => {
+        const imgSrc = this.resolvePortfolioImage(p.preview_image, p.slug);
+        const iconName = C ? C.cardIconName(`${p.title || ''} ${p.category || ''}`) : 'briefcase';
+        const iconSvg = C ? C.getIcon(iconName) : '';
+        const isOrange = /workflow|automation|service|support/i.test(`${p.title || ''} ${p.category || ''}`);
+        return `
       <article class="glass-card portfolio-project-card is-revealed">
         <div class="portfolio-project-image" style="cursor:pointer;" onclick="window.app.openPortfolioModal('${p.slug}')">
-          <img src="${p.preview_image}" alt="${p.title}" loading="lazy" decoding="async" />
+          <img src="${imgSrc}" alt="${p.title}" loading="lazy" decoding="async" onerror="this.onerror=null;this.src='/assets/dashboard-preview.jpg';" />
         </div>
-        <h2 class="portfolio-project-title" style="cursor:pointer;" onclick="window.app.openPortfolioModal('${p.slug}')">${p.title}</h2>
+        <div class="site-card-heading portfolio-card-heading">
+          <span class="site-card-icon${isOrange ? ' site-card-icon-orange' : ''}" aria-hidden="true">${iconSvg}</span>
+          <h2 class="portfolio-project-title" style="cursor:pointer;" onclick="window.app.openPortfolioModal('${p.slug}')">${p.title}</h2>
+        </div>
         <div class="portfolio-project-actions">
             ${
               p.demo_url || p.live_url
@@ -2197,8 +2247,8 @@ ${C.renderRoiCalculatorWidget ? C.renderRoiCalculatorWidget() : ""}
             </button>
         </div>
       </article>
-    `
-      )
+    `;
+      })
       .join('');
   }
 
@@ -2254,7 +2304,7 @@ ${C.renderRoiCalculatorWidget ? C.renderRoiCalculatorWidget() : ""}
           ${
             project.preview_image
               ? `<div style="border-radius:14px;overflow:hidden;max-height:280px;margin-bottom:18px;border:1px solid var(--yole-border-subtle);">
-                  <img src="${project.preview_image}" alt="${project.title}" style="width:100%;height:100%;object-fit:cover;" />
+                  <img src="${this.resolvePortfolioImage(project.preview_image, project.slug)}" alt="${project.title}" onerror="this.onerror=null;this.src='/assets/dashboard-preview.jpg';" style="width:100%;height:100%;object-fit:cover;" />
                 </div>`
               : ''
           }
@@ -2353,7 +2403,7 @@ ${C.renderRoiCalculatorWidget ? C.renderRoiCalculatorWidget() : ""}
                   const count =
                     cat === 'ALL'
                       ? (this.portfolio || []).length
-                      : (this.portfolio || []).filter((p) => p.category === cat).length;
+                      : (this.portfolio || []).filter((p) => this.matchesPortfolioCategory(p.category, cat)).length;
                   return `
                     <button type="button" data-cat="${cat}" class="selector-pill ${this.portfolioFilter === cat ? 'active' : ''}" onclick="window.app.setPortfolioFilter('${cat}')">
                       ${cat === 'ALL' ? 'All Case Studies' : cat} (${count})
