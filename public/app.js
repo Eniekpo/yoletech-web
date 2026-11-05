@@ -52,6 +52,7 @@ class YoletechApp {
     this.lastContactSubmission = null;
     this.formConfirmations = {};
     this.renderedPage = null;
+    this.registrationSuccessOnly = false;
     const savedTheme = localStorage.getItem('yoletech_theme');
     const prefersLight = typeof window !== 'undefined' && window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches;
     this.theme = savedTheme || (prefersLight ? 'light' : 'dark');
@@ -142,6 +143,7 @@ class YoletechApp {
   bindPopState() {
     window.addEventListener('popstate', () => {
       this.resolveInitialRoute();
+      if (this.currentPage !== 'portal') this.registrationSuccessOnly = false;
       this.render();
     });
   }
@@ -805,6 +807,7 @@ class YoletechApp {
 
   async navigate(page, extra = null) {
     this.mobileMenuOpen = false;
+    if (page !== 'portal') this.registrationSuccessOnly = false;
     if (page === 'blog-detail' && extra) {
       this.currentPage = 'blog-detail';
       this.activeBlogSlug = extra;
@@ -3813,15 +3816,7 @@ ${C.renderRoiCalculatorWidget ? C.renderRoiCalculatorWidget() : ""}
       await this.loadClientData();
       if (typeof this.loadDashboardData === 'function') await this.loadDashboardData(true);
 
-      this.setFormConfirmation('register', {
-        title: 'Registration Confirmed!',
-        message: `Account created for <strong>${user.name}</strong> (${user.email}). Welcome to YOLETECH!`
-      });
-      this.setFormConfirmation('auth-welcome', {
-        title: 'Registration Confirmed — Welcome to YOLETECH!',
-        message: `Thank you for registering, <strong>${user.name}</strong>! Your Client Portal account is now active under the <strong>${user.service_interest}</strong> track, and a confirmation has been dispatched to <strong>${this.notifyEmail}</strong>.`
-      });
-      this.showToast(`Account created! Welcome to YOLETECH, ${user.name}.`);
+      this.registrationSuccessOnly = true;
       this.navigate('portal');
     } catch (err) {
       this.setFormConfirmation('register', {
@@ -5497,6 +5492,19 @@ ${C.renderRoiCalculatorWidget ? C.renderRoiCalculatorWidget() : ""}
   render() {
     const root = document.getElementById('app-root');
     if (!root) return;
+    if (this.registrationSuccessOnly && this.currentPage === 'portal') {
+      root.innerHTML = '<main role="status" aria-live="polite" style="min-height:100vh;display:grid;place-items:center;padding:24px;text-align:center;font-size:28px;font-weight:800;">Sign Up Successful</main>';
+      ['contact-modal-backdrop', 'contact-options-modal', 'contact-widget-launcher'].forEach((id) => {
+        const element = document.getElementById(id);
+        if (element) element.hidden = true;
+      });
+      this.renderedPage = this.currentPage;
+      return;
+    }
+    ['contact-modal-backdrop', 'contact-options-modal', 'contact-widget-launcher'].forEach((id) => {
+      const element = document.getElementById(id);
+      if (element) element.hidden = false;
+    });
     const pageChanged = this.renderedPage !== this.currentPage;
 
     const activeEl = document.activeElement;
