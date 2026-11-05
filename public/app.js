@@ -2588,40 +2588,6 @@ ${C.renderRoiCalculatorWidget ? C.renderRoiCalculatorWidget() : ""}
     const row1GroupHtml = row1Pool.map((t) => this.renderTestimonialSliderCardHtml(t)).join('');
     const row2GroupHtml = row2Pool.map((t) => this.renderTestimonialSliderCardHtml(t)).join('');
 
-    const delta = 2;
-    const range = [];
-    for (let i = Math.max(2, cur - delta); i <= Math.min(totalPages - 1, cur + delta); i++) {
-      range.push(i);
-    }
-    if (cur - delta > 2) range.unshift('...');
-    if (cur + delta < totalPages - 1) range.push('...');
-    range.unshift(1);
-    if (totalPages > 1) range.push(totalPages);
-
-    const pagerHtml = totalPages > 1 ? `
-      <div class="testimonials-pager" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:14px;margin-bottom:48px;padding:14px 20px;background:var(--yole-indigo-card);border:1px solid var(--yole-border-subtle);border-radius:14px;box-shadow:var(--shadow-card);">
-        <div style="font-size:13.5px;color:var(--yole-text-muted);">
-          Showing <strong>${totalCount > 0 ? startIdx + 1 : 0}–${endIdx}</strong> of <strong>${totalCount}</strong> verified client testimonies (randomized slider)
-        </div>
-        <div class="testimonials-pager-controls" style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
-          <button type="button" class="btn btn-outline btn-sm" style="padding:6px 14px;font-size:12.5px;" onclick="window.app.shuffleTestimonialsNow()" title="Shuffle random testimonials">
-            ↻ Shuffle
-          </button>
-          <button type="button" class="btn btn-outline btn-sm" style="padding:6px 14px;font-size:12.5px;" ${cur <= 1 ? 'disabled' : ''} onclick="window.app.setTestimonialPage(${cur - 1})">
-            ← Prev
-          </button>
-          ${range.map(p => {
-            if (p === '...') return '<span style="padding:0 4px;color:var(--yole-text-muted);">…</span>';
-            const active = p === cur;
-            return `<button type="button" class="btn ${active ? 'btn-lime' : 'btn-outline'} btn-sm" style="padding:6px 12px;font-size:12px;min-width:34px;" onclick="window.app.setTestimonialPage(${p})">${p}</button>`;
-          }).join('')}
-          <button type="button" class="btn btn-outline btn-sm" style="padding:6px 14px;font-size:12.5px;" ${cur >= totalPages ? 'disabled' : ''} onclick="window.app.setTestimonialPage(${cur + 1})">
-            Next →
-          </button>
-        </div>
-      </div>
-    ` : '';
-
     const activeStars = this.testimonialFormRating || 5;
 
     return `
@@ -2660,7 +2626,7 @@ ${C.renderRoiCalculatorWidget ? C.renderRoiCalculatorWidget() : ""}
             </div>
           </div>
 
-          <div id="testimonials-wall" class="testimonials-slider-wall" style="margin-bottom:28px;">
+          <div id="testimonials-wall" class="testimonials-slider-wall" style="margin-bottom:48px;">
             ${
               list.length
                 ? `
@@ -2684,7 +2650,6 @@ ${C.renderRoiCalculatorWidget ? C.renderRoiCalculatorWidget() : ""}
             `
             }
           </div>
-          ${pagerHtml}
 
           <!-- SUBMIT A TESTIMONIAL CARD (FULL CONTAINER WIDTH) -->
           <div class="glass-card testimonial-form-card" style="width:100%;max-width:100%;padding:clamp(36px, 4.5vw, 60px);border-radius:24px;">
