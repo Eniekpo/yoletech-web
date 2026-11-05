@@ -1205,7 +1205,11 @@ class YoletechApp {
   renderFooter() {
     const D = window.YOLETECH_DATA.owner;
     const tabs = [
-      { id: 'overview', label: 'Overview', detail: 'Who we are' },
+      {
+        id: 'overview',
+        label: 'Connect with YOLETECH',
+        detail: 'Follow the work, explore projects, or start a conversation.'
+      },
       { id: 'services', label: 'Services', detail: 'What we do' },
       { id: 'explore', label: 'Explore', detail: 'Useful links' },
       { id: 'contact', label: 'Contact', detail: 'Get in touch' }
@@ -1239,7 +1243,6 @@ class YoletechApp {
                 <span class="footer-kicker"><span class="eyebrow-dot"></span> YOLETECH</span>
                 <h2>Good work starts with a good conversation.</h2>
               </div>
-              <p>Explore the studio, services, and ways to connect.</p>
             </div>
 
             <div class="footer-tabs-nav" role="tablist" aria-label="Footer information">
@@ -1296,8 +1299,6 @@ class YoletechApp {
             <p>Data analytics, business intelligence, workflow automation, and full-stack web solutions engineered for clarity and scale.</p>
           </div>
           <div class="footer-social-block">
-            <h3>Connect with YOLETECH</h3>
-            <p>Follow the work, explore projects, or start a conversation.</p>
             <div class="social-icon-row">
               <a href="${owner.socials.github}" target="_blank" rel="noopener noreferrer" class="social-btn">${this.renderSocialIcon('github')} <span>GitHub</span> <span aria-hidden="true">↗</span></a>
               <a href="${owner.socials.linkedin}" target="_blank" rel="noopener noreferrer" class="social-btn">${this.renderSocialIcon('linkedin')} <span>LinkedIn</span> <span aria-hidden="true">↗</span></a>
@@ -2599,31 +2600,6 @@ ${C.renderRoiCalculatorWidget ? C.renderRoiCalculatorWidget() : ""}
             <p class="section-desc">
               Feedback from executive research stakeholders, departmental supervisors, and graduates of our <strong style="color:#C8E61E;" data-kpi-target="200" data-kpi-suffix="+">200+</strong> intern analytics mentorship program.
             </p>
-            <div style="max-width:440px;margin:20px auto 0;">
-              <input
-                type="search"
-                id="testimonial-search-input"
-                class="form-control"
-                placeholder="Filter endorsements by client, company, or topic..."
-                value="${this.testimonialSearch || ''}"
-                oninput="window.app.handleTestimonialSearch(this.value)"
-              />
-            </div>
-            <div style="display:flex;justify-content:center;flex-wrap:wrap;gap:8px;margin-top:16px;">
-              ${tracks
-                .map((tr) => {
-                  const count =
-                    tr === 'ALL'
-                      ? rawList.length
-                      : rawList.filter((item) => item.service_track === tr).length;
-                  return `
-                    <button type="button" class="selector-pill ${trackFilter === tr ? 'active' : ''}" onclick="window.app.setTestimonialTrackFilter('${tr}')">
-                      ${tr === 'ALL' ? 'All Endorsements' : tr} (${count})
-                    </button>
-                  `;
-                })
-                .join('')}
-            </div>
           </div>
 
           <div id="testimonials-wall" class="testimonials-slider-wall" style="margin-bottom:48px;">
