@@ -572,6 +572,7 @@
     </main>
   </div>
 
+
   <!-- FLOATING CONTACT WIDGET LAUNCHER & 4-OPTION MODAL -->
   <div id="contact-modal-backdrop" class="contact-modal-backdrop" onclick="window.closeContactMenu()"
     aria-hidden="true"></div>
@@ -699,33 +700,13 @@
     </svg>
   </button>
 
+
   <script src="/data.js"></script>
   <script src="/components.js"></script>
   <script src="/app.js"></script>
   <script src="/dashboard.js"></script>
 
   <script>
-    window.chatwootSettings = {
-      position: "right",
-      type: "standard",
-      launcherTitle: "",
-      hideMessageBubble: true
-    };
-
-    (function (d, t) {
-      var BASE_URL = "https://app.chatwoot.com";
-      var g = d.createElement(t), s = d.getElementsByTagName(t)[0];
-      g.src = BASE_URL + "/packs/js/sdk.js";
-      g.async = true;
-      s.parentNode.insertBefore(g, s);
-      g.onload = function () {
-        window.chatwootSDK.run({
-          websiteToken: "UZELGXmSGK6zdWSHAaKCTmFo",
-          baseUrl: BASE_URL
-        });
-      };
-    })(document, "script");
-
     window.toggleContactMenu = function () {
       var modal = document.getElementById("contact-options-modal");
       var backdrop = document.getElementById("contact-modal-backdrop");
@@ -737,16 +718,17 @@
       var isOpen = modal.classList.contains("is-open");
       if (isOpen) {
         window.closeContactMenu();
-      } else {
-        modal.classList.add("is-open");
-        if (backdrop) backdrop.classList.add("is-open");
-        if (launcher) {
-          launcher.classList.add("is-active");
-          launcher.setAttribute("aria-expanded", "true");
-        }
-        if (chatIcon) chatIcon.style.display = "none";
-        if (closeIcon) closeIcon.style.display = "block";
+        return;
       }
+
+      modal.classList.add("is-open");
+      if (backdrop) backdrop.classList.add("is-open");
+      if (launcher) {
+        launcher.classList.add("is-active");
+        launcher.setAttribute("aria-expanded", "true");
+      }
+      if (chatIcon) chatIcon.style.display = "none";
+      if (closeIcon) closeIcon.style.display = "block";
     };
 
     window.closeContactMenu = function () {
@@ -766,30 +748,81 @@
       if (closeIcon) closeIcon.style.display = "none";
     };
 
-    window.openChatwootLiveChat = function () {
+    var chatwootLoadPromise = null;
+    window.openChatwootLiveChat = async function () {
       window.closeContactMenu();
-      if (window.$chatwoot && typeof window.$chatwoot.toggle === "function") {
+
+      try {
+        if (!window.$chatwoot || typeof window.$chatwoot.toggle !== "function") {
+          if (!chatwootLoadPromise) {
+            chatwootLoadPromise = new Promise(function (resolve, reject) {
+              var timeout = window.setTimeout(function () {
+                reject(new Error("Chatwoot did not become ready in time."));
+              }, 10000);
+              var script = document.createElement("script");
+              script.src = "https://app.chatwoot.com/packs/js/sdk.js";
+              script.async = true;
+              script.onload = function () {
+                if (!window.chatwootSDK || typeof window.chatwootSDK.run !== "function") {
+                  window.clearTimeout(timeout);
+                  reject(new Error("Chatwoot SDK did not initialize."));
+                  return;
+                }
+
+                window.chatwootSettings = {
+                  position: "right",
+                  type: "standard",
+                  launcherTitle: "",
+                  hideMessageBubble: true
+                };
+                window.addEventListener("chatwoot:ready", function () {
+                  window.clearTimeout(timeout);
+                  resolve();
+                }, { once: true });
+
+                try {
+                  window.chatwootSDK.run({
+                    websiteToken: "UZELGXmSGK6zdWSHAaKCTmFo",
+                    baseUrl: "https://app.chatwoot.com"
+                  });
+                } catch (error) {
+                  window.clearTimeout(timeout);
+                  reject(error);
+                }
+              };
+              script.onerror = function () {
+                window.clearTimeout(timeout);
+                reject(new Error("Chatwoot SDK failed to load."));
+              };
+              document.head.appendChild(script);
+            }).catch(function (error) {
+              chatwootLoadPromise = null;
+              throw error;
+            });
+          }
+
+          await chatwootLoadPromise;
+        }
+
+        if (!window.$chatwoot || typeof window.$chatwoot.toggle !== "function") {
+          throw new Error("Chatwoot is not available.");
+        }
         window.$chatwoot.toggle("open");
-      } else {
-        window.addEventListener("chatwoot:ready", function () {
-          if (window.$chatwoot && typeof window.$chatwoot.toggle === "function") {
-            window.$chatwoot.toggle("open");
-          }
-        }, { once: true });
-        setTimeout(function () {
-          if (window.$chatwoot && typeof window.$chatwoot.toggle === "function") {
-            window.$chatwoot.toggle("open");
-          }
-        }, 600);
+      } catch (error) {
+        console.warn("Could not open live chat:", error);
+        if (window.app && typeof window.app.showToast === "function") {
+          window.app.showToast("Live chat is unavailable right now. Please try WhatsApp or email.", "error");
+        }
       }
     };
 
-    document.addEventListener("keydown", function (e) {
-      if (e.key === "Escape") {
+    document.addEventListener("keydown", function (event) {
+      if (event.key === "Escape") {
         window.closeContactMenu();
       }
     });
   </script>
+
 </body>
 
 </html>

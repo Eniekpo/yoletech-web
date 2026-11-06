@@ -593,6 +593,42 @@ class YoletechApp {
     }, 4500);
   }
 
+  showRegistrationSuccessModal() {
+    let modalRoot = document.getElementById('registration-success-modal-root');
+    if (!modalRoot) {
+      modalRoot = document.createElement('div');
+      modalRoot.id = 'registration-success-modal-root';
+      document.body.appendChild(modalRoot);
+    }
+
+    modalRoot.innerHTML = `
+      <div class="registration-success-backdrop" onclick="window.app.closeRegistrationSuccessModal()"></div>
+      <div class="registration-success-modal" role="dialog" aria-modal="true" aria-labelledby="registration-success-message" tabindex="-1">
+        <button type="button" class="registration-success-close" aria-label="Close" onclick="window.app.closeRegistrationSuccessModal()">×</button>
+        <p id="registration-success-message">Sign Up Successful</p>
+      </div>
+    `;
+
+    this.registrationSuccessPreviousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    modalRoot.querySelector('.registration-success-modal')?.focus();
+    this.registrationSuccessEscapeHandler = (event) => {
+      if (event.key === 'Escape') this.closeRegistrationSuccessModal();
+    };
+    window.addEventListener('keydown', this.registrationSuccessEscapeHandler);
+  }
+
+  closeRegistrationSuccessModal() {
+    const modalRoot = document.getElementById('registration-success-modal-root');
+    if (modalRoot) modalRoot.remove();
+    if (this.registrationSuccessEscapeHandler) {
+      window.removeEventListener('keydown', this.registrationSuccessEscapeHandler);
+      this.registrationSuccessEscapeHandler = null;
+    }
+    document.body.style.overflow = this.registrationSuccessPreviousOverflow || '';
+    this.registrationSuccessPreviousOverflow = null;
+  }
+
   renderToast() {
     let container = document.getElementById('toast-container');
     if (!container) return;
@@ -3791,8 +3827,18 @@ ${C.renderRoiCalculatorWidget ? C.renderRoiCalculatorWidget() : ""}
       const { token, user } = regData;
       this.saveLocalRegisteredUser(user, payload.password);
 
-      // Dispatch new client registration notification email to yoletech@yolestica.com
-      await this.sendEmailToYoletech({
+      this.token = token;
+      this.user = user;
+      localStorage.setItem('yoletech_token', token);
+      localStorage.setItem('yoletech_user', JSON.stringify(user));
+      this.currentPage = 'portal';
+      window.history.pushState({}, '', '/portal');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      this.render();
+      this.showRegistrationSuccessModal();
+
+      // Dispatch the registration notification without delaying portal access.
+      this.sendEmailToYoletech({
         subject: `[YOLETECH New Client Registration] ${user.name} — ${user.service_interest}`,
         replyTo: user.email,
         fields: {
@@ -3806,23 +3852,9 @@ ${C.renderRoiCalculatorWidget ? C.renderRoiCalculatorWidget() : ""}
         }
       });
 
-      this.token = token;
-      this.user = user;
-      localStorage.setItem('yoletech_token', token);
-      localStorage.setItem('yoletech_user', JSON.stringify(user));
-      await this.loadClientData();
-      if (typeof this.loadDashboardData === 'function') await this.loadDashboardData(true);
-
-      this.setFormConfirmation('register', {
-        title: 'Registration Confirmed!',
-        message: `Account created for <strong>${user.name}</strong> (${user.email}). Welcome to YOLETECH!`
+      this.loadClientData().then(() => {
+        if (this.currentPage === 'portal') this.render();
       });
-      this.setFormConfirmation('auth-welcome', {
-        title: 'Registration Confirmed — Welcome to YOLETECH!',
-        message: `Thank you for registering, <strong>${user.name}</strong>! Your Client Portal account is now active under the <strong>${user.service_interest}</strong> track, and a confirmation has been dispatched to <strong>${this.notifyEmail}</strong>.`
-      });
-      this.showToast(`Account created! Welcome to YOLETECH, ${user.name}.`);
-      this.navigate('portal');
     } catch (err) {
       this.setFormConfirmation('register', {
         type: 'error',
@@ -5497,6 +5529,10 @@ ${C.renderRoiCalculatorWidget ? C.renderRoiCalculatorWidget() : ""}
   render() {
     const root = document.getElementById('app-root');
     if (!root) return;
+    ['contact-modal-backdrop', 'contact-options-modal', 'contact-widget-launcher'].forEach((id) => {
+      const element = document.getElementById(id);
+      if (element) element.hidden = false;
+    });
     const pageChanged = this.renderedPage !== this.currentPage;
 
     const activeEl = document.activeElement;
