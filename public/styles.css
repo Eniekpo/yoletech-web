@@ -5612,3 +5612,306 @@ h1, h2, h3, h4, h5, h6, .hero-title, .section-title, .brand-wordmark {
     width: calc(100vw - 32px);
   }
 }
+
+/* ============================================================================
+   YOLETECH INITIAL PRE-LOAD ANIMATION (LOGO + STACKED BAR & GROWTH CHART)
+   ============================================================================ */
+body.preloader-active {
+  overflow: hidden;
+}
+
+.yole-preloader {
+  position: fixed;
+  inset: 0;
+  z-index: 999999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background-color: #FFFFFF;
+  background-image:
+    radial-gradient(circle at 82% 16%, rgba(247, 148, 29, 0.12) 0%, transparent 38%),
+    radial-gradient(circle at 18% 84%, rgba(197, 230, 27, 0.14) 0%, transparent 42%);
+  opacity: 1;
+  visibility: visible;
+  transition:
+    opacity 0.45s cubic-bezier(0.22, 1, 0.36, 1),
+    visibility 0.45s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.yole-preloader.is-hidden {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transform: scale(1.015);
+}
+
+.yole-preloader-stage {
+  width: min(820px, 100%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px;
+}
+
+/* Brand Logo (Matching Image 2) */
+.yole-preloader-logo {
+  display: inline-flex;
+  align-items: center;
+  gap: 14px;
+  animation: yolePreloaderLogoIn 0.55s cubic-bezier(0.22, 1, 0.36, 1) both !important;
+}
+
+.yole-preloader-icon-box {
+  width: 54px;
+  height: 54px;
+  border-radius: 14px;
+  background: #1A1752;
+  border: 2.5px solid #65A30D;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Plus Jakarta Sans', 'Arial Black', 'Inter', sans-serif;
+  font-weight: 900;
+  font-size: 26px;
+  letter-spacing: 0.01em;
+  box-shadow: 0 8px 22px rgba(26, 23, 82, 0.18);
+}
+
+.yole-preloader-icon-box .y {
+  color: #FFFFFF;
+}
+
+.yole-preloader-icon-box .t {
+  color: #C8E61E;
+}
+
+.yole-preloader-wordmark {
+  position: relative;
+  display: inline-flex;
+  align-items: baseline;
+  font-family: 'Plus Jakarta Sans', 'Arial Black', 'Inter', sans-serif;
+  font-weight: 900;
+  font-size: clamp(28px, 4vw, 38px);
+  letter-spacing: 0.02em;
+  line-height: 1;
+}
+
+.yole-preloader-wordmark .yole {
+  color: #1A1752;
+}
+
+.yole-preloader-wordmark .tech {
+  color: #4D7C0F;
+  position: relative;
+}
+
+.yole-preloader-swoosh {
+  position: absolute;
+  top: -11px;
+  right: -8px;
+  width: 32px;
+  height: 15px;
+  transform-origin: left bottom;
+  animation: yolePreloaderSwooshIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) 0.25s both !important;
+}
+
+/* Chart Card & SVG (Matching Image 1) */
+.yole-preloader-chart-card {
+  width: 100%;
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  border-radius: 20px;
+  padding: clamp(18px, 3vw, 32px) clamp(16px, 3vw, 34px) clamp(16px, 2.5vw, 26px);
+  box-shadow: 0 22px 54px rgba(15, 23, 42, 0.08);
+  animation: yolePreloaderCardIn 0.55s cubic-bezier(0.22, 1, 0.36, 1) 0.08s both !important;
+}
+
+.yole-preloader-svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+
+.yole-preloader-gridline {
+  stroke: #E2E8F0;
+  stroke-width: 1.25;
+}
+
+.yole-preloader-axis-label {
+  fill: #64748B;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.yole-preloader-axis-title {
+  fill: #334155;
+  font-family: 'Plus Jakarta Sans', 'Inter', sans-serif;
+  font-size: 13.5px;
+  font-weight: 800;
+}
+
+.yole-preloader-bar {
+  transform-origin: 0px 272px;
+  transform: scaleY(0);
+  animation: yolePreloaderBarGrow 0.62s cubic-bezier(0.22, 1, 0.36, 1) forwards !important;
+  animation-delay: calc(0.22s + var(--bar-i, 0) * 0.14s) !important;
+}
+
+.yole-preloader-clip-rect {
+  width: 0;
+  animation: yolePreloaderClipGrow 2.35s cubic-bezier(0.25, 0.8, 0.35, 1) 0.32s forwards !important;
+}
+
+.yole-preloader-trendline {
+  stroke: #191746;
+  stroke-width: 2.6;
+  stroke-dasharray: 7 6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.yole-preloader-dot {
+  fill: #191746;
+  transform-box: fill-box;
+  transform-origin: center;
+  transform: scale(0);
+  opacity: 0;
+  animation: yolePreloaderDotPop 0.36s cubic-bezier(0.34, 1.56, 0.64, 1) forwards !important;
+  animation-delay: calc(0.32s + var(--dot-i, 0) * 0.15s) !important;
+}
+
+/* Progress Bar Below Chart */
+.yole-preloader-progress-wrap {
+  margin-top: 18px;
+  padding-top: 14px;
+  border-top: 1px solid #F1F5F9;
+}
+
+.yole-preloader-progress-track {
+  width: 100%;
+  height: 6px;
+  border-radius: 999px;
+  background: #F1F5F9;
+  overflow: hidden;
+}
+
+.yole-preloader-progress-fill {
+  width: 0%;
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #1A1752 0%, #65A30D 55%, #C5E61B 82%, #F5931D 100%);
+  animation: yolePreloaderProgress 3.75s cubic-bezier(0.25, 0.8, 0.4, 1) forwards !important;
+}
+
+.yole-preloader-progress-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 9px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: #64748B;
+}
+
+.yole-preloader-progress-meta strong {
+  color: #1A1752;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+@keyframes yolePreloaderLogoIn {
+  0% {
+    opacity: 0;
+    transform: translateY(-10px) scale(0.95);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes yolePreloaderSwooshIn {
+  0% {
+    opacity: 0;
+    transform: scale(0.4) rotate(-12deg);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) rotate(0deg);
+  }
+}
+
+@keyframes yolePreloaderCardIn {
+  0% {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes yolePreloaderBarGrow {
+  0% {
+    transform: scaleY(0);
+  }
+  100% {
+    transform: scaleY(1);
+  }
+}
+
+@keyframes yolePreloaderClipGrow {
+  0% {
+    width: 0;
+  }
+  100% {
+    width: 760px;
+  }
+}
+
+@keyframes yolePreloaderDotPop {
+  0% {
+    opacity: 0;
+    transform: scale(0);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes yolePreloaderProgress {
+  0% {
+    width: 0%;
+  }
+  100% {
+    width: 100%;
+  }
+}
+
+@media (max-width: 640px) {
+  .yole-preloader {
+    padding: 14px;
+  }
+
+  .yole-preloader-stage {
+    gap: 18px;
+  }
+
+  .yole-preloader-icon-box {
+    width: 44px;
+    height: 44px;
+    font-size: 21px;
+    border-radius: 11px;
+  }
+
+  .yole-preloader-progress-meta {
+    font-size: 11.5px;
+  }
+}
