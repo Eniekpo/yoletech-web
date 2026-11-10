@@ -1,94 +1,94 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>https://yoletech.yoletica.com/</loc>
+    <loc>https://yolestica.com/</loc>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
   </url>
   <url>
-    <loc>https://yoletech.yoletica.com/services</loc>
+    <loc>https://yolestica.com/services</loc>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
-    <loc>https://yoletech.yoletica.com/portfolio</loc>
+    <loc>https://yolestica.com/portfolio</loc>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
-    <loc>https://yoletech.yoletica.com/about</loc>
+    <loc>https://yolestica.com/about</loc>
     <changefreq>monthly</changefreq>
     <priority>0.85</priority>
   </url>
   <url>
-    <loc>https://yoletech.yoletica.com/blog</loc>
+    <loc>https://yolestica.com/blog</loc>
     <changefreq>weekly</changefreq>
     <priority>0.85</priority>
   </url>
   <url>
-    <loc>https://yoletech.yoletica.com/testimonials</loc>
+    <loc>https://yolestica.com/testimonials</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://yoletech.yoletica.com/dashboard</loc>
+    <loc>https://yolestica.com/dashboard</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://yoletech.yoletica.com/contact</loc>
+    <loc>https://yolestica.com/contact</loc>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://yoletech.yoletica.com/cv.html</loc>
+    <loc>https://yolestica.com/cv.html</loc>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://yoletech.yoletica.com/blog/automating-customer-support-node-js-whatsapp-and-email-alerts</loc>
+    <loc>https://yolestica.com/blog/automating-customer-support-node-js-whatsapp-and-email-alerts</loc>
     <lastmod>2026-10-30</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://yoletech.yoletica.com/blog/build-an-interactive-sales-dashboard-with-python-and-streamlit</loc>
+    <loc>https://yolestica.com/blog/build-an-interactive-sales-dashboard-with-python-and-streamlit</loc>
     <lastmod>2026-10-31</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://yoletech.yoletica.com/blog/building-a-fast-client-booking-portal-with-next-js-and-supabase</loc>
+    <loc>https://yolestica.com/blog/building-a-fast-client-booking-portal-with-next-js-and-supabase</loc>
     <lastmod>2026-10-30</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://yoletech.yoletica.com/blog/designing-executive-power-bi-tableau-dashboards</loc>
+    <loc>https://yolestica.com/blog/designing-executive-power-bi-tableau-dashboards</loc>
     <lastmod>2026-10-15</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://yoletech.yoletica.com/blog/from-housing-data-to-an-interactive-ml-app-predicting-real-estate-prices-with-python-scikit-learn-and-streamlit</loc>
+    <loc>https://yolestica.com/blog/from-housing-data-to-an-interactive-ml-app-predicting-real-estate-prices-with-python-scikit-learn-and-streamlit</loc>
     <lastmod>2026-10-31</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://yoletech.yoletica.com/blog/how-to-automate-excel-reports-using-python-and-pandas</loc>
+    <loc>https://yolestica.com/blog/how-to-automate-excel-reports-using-python-and-pandas</loc>
     <lastmod>2026-10-31</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://yoletech.yoletica.com/blog/mastering-sql-window-functions-for-fast-financial-reporting</loc>
+    <loc>https://yolestica.com/blog/mastering-sql-window-functions-for-fast-financial-reporting</loc>
     <lastmod>2026-11-01</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://yoletech.yoletica.com/blog/predicting-real-estate-prices-with-python-and-scikit-learn</loc>
+    <loc>https://yolestica.com/blog/predicting-real-estate-prices-with-python-and-scikit-learn</loc>
     <lastmod>2026-10-31</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>

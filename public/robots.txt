@@ -5,4 +5,4 @@ Disallow: /admin-dashboard
 Disallow: /portal
 Disallow: /api/
 
-Sitemap: https://yoletech.yoletica.com/sitemap.xml
+Sitemap: https://yolestica.com/sitemap.xml

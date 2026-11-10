@@ -2092,9 +2092,13 @@ const requestHandler = async (req, res) => {
       return;
     }
 
+    const hostHeader = String(req.headers['x-forwarded-host'] || req.headers.host || '').split(',')[0].trim();
+    const protoHeader = String(req.headers['x-forwarded-proto'] || 'https').split(',')[0].trim();
+    const reqOrigin = hostHeader ? `${protoHeader}://${hostHeader}` : undefined;
+
     // Dynamic XML Sitemap for SEO crawlers
     if (pathname === '/sitemap.xml') {
-      const xml = renderSitemapXml();
+      const xml = renderSitemapXml(reqOrigin);
       res.writeHead(200, { 'Content-Type': 'application/xml; charset=utf-8' });
       res.end(req.method === 'HEAD' ? undefined : xml);
       return;
@@ -2113,7 +2117,7 @@ const requestHandler = async (req, res) => {
       return sendJson(res, 403, { error: 'Forbidden' });
     }
 
-    if (fs.existsSync(filePath) && fs.statSync(filePath).isFile()) {
+    if (pathname !== '/' && fs.existsSync(filePath) && fs.statSync(filePath).isFile()) {
       const ext = path.extname(filePath).toLowerCase();
       res.writeHead(200, { 'Content-Type': MIME_TYPES[ext] || 'application/octet-stream' });
       if (req.method === 'HEAD') {
@@ -2127,7 +2131,7 @@ const requestHandler = async (req, res) => {
     // SPA fallback to route-aware SEO HTML (or index.html)
     const indexHtml = path.join(PUBLIC_DIR, 'index.html');
     if (fs.existsSync(indexHtml)) {
-      const seoHtml = renderRouteSeoHtml(pathname);
+      const seoHtml = renderRouteSeoHtml(pathname, reqOrigin);
       if (seoHtml) {
         res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
         res.end(req.method === 'HEAD' ? undefined : seoHtml);

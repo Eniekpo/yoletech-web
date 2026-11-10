@@ -8,9 +8,13 @@ module.exports = (req, res) => {
     return;
   }
 
+  const hostHeader = String(req.headers['x-forwarded-host'] || req.headers.host || '').split(',')[0].trim();
+  const protoHeader = String(req.headers['x-forwarded-proto'] || 'https').split(',')[0].trim();
+  const reqOrigin = hostHeader ? `${protoHeader}://${hostHeader}` : undefined;
+
   const { searchParams, pathname } = new URL(req.url, 'https://localhost');
   if (searchParams.get('sitemap') === '1' || pathname === '/sitemap.xml') {
-    const xml = renderSitemapXml();
+    const xml = renderSitemapXml(reqOrigin);
     res.setHeader('Content-Type', 'application/xml; charset=utf-8');
     res.setHeader('Cache-Control', 'public, max-age=0, s-maxage=600, stale-while-revalidate=3600');
     res.statusCode = 200;
@@ -20,7 +24,7 @@ module.exports = (req, res) => {
 
   const slug = searchParams.get('slug');
   const route = searchParams.get('route');
-  const html = slug ? renderBlogPage(slug) : renderRouteSeoHtml(route || pathname);
+  const html = slug ? renderBlogPage(slug, reqOrigin) : renderRouteSeoHtml(route || pathname, reqOrigin);
   if (!html) {
     res.statusCode = 404;
     res.end('Article not found');

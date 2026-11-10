@@ -5338,7 +5338,14 @@ ${C.renderRoiCalculatorWidget ? C.renderRoiCalculatorWidget() : ""}
 
   updatePageSeoMeta() {
     if (typeof document === 'undefined') return;
-    const baseOrigin = 'https://yoletech.yoletica.com';
+    const baseOrigin =
+      typeof window !== 'undefined' &&
+      window.location &&
+      /^https?:/i.test(window.location.origin) &&
+      !/localhost|127\.0\.0\.1/.test(window.location.hostname)
+        ? window.location.origin
+        : 'https://yolestica.com';
+    const siteLogoUrl = `${baseOrigin}/assets/yoletech-icon.png`;
     const seoMap = {
       home: {
         title: 'YOLETECH | Executive Business Intelligence, Analytics & Full-Stack Solutions',
@@ -5346,7 +5353,7 @@ ${C.renderRoiCalculatorWidget ? C.renderRoiCalculatorWidget() : ""}
           'YOLETECH — Executive Business Intelligence, Interactive Power BI & Tableau Dashboards, SQL Data Pipelines & Full-Stack Web Development by John Oruebi Eniekpo, B.Sc.',
         path: '/',
         type: 'website',
-        image: `${baseOrigin}/assets/dashboard-preview.jpg`,
+        image: siteLogoUrl,
         schemaType: 'WebPage'
       },
       dashboard: {
@@ -5355,7 +5362,7 @@ ${C.renderRoiCalculatorWidget ? C.renderRoiCalculatorWidget() : ""}
           'Interactive Executive Business Intelligence Dashboard showcasing real-time client metrics, conversion funnels, service distribution, and analytics performance.',
         path: '/dashboard',
         type: 'website',
-        image: `${baseOrigin}/assets/dashboard-preview.jpg`,
+        image: siteLogoUrl,
         schemaType: 'WebPage'
       },
       about: {
@@ -5364,7 +5371,7 @@ ${C.renderRoiCalculatorWidget ? C.renderRoiCalculatorWidget() : ""}
           'Learn about John Oruebi Eniekpo, B.Sc., Lead Data Analyst, Business Intelligence Specialist, and Full-Stack Web Developer behind YOLETECH in Yenagoa, Bayelsa State, Nigeria.',
         path: '/about',
         type: 'profile',
-        image: `${baseOrigin}/assets/about-analytics-workspace.jpg`,
+        image: siteLogoUrl,
         schemaType: 'AboutPage'
       },
       services: {
@@ -5373,7 +5380,7 @@ ${C.renderRoiCalculatorWidget ? C.renderRoiCalculatorWidget() : ""}
           'Explore YOLETECH services: Full-Stack Web Development, Power BI & Tableau Dashboards, Python & Excel VBA Workflow Automation, SQL Database Governance, and Tech Mentorship.',
         path: '/services',
         type: 'website',
-        image: `${baseOrigin}/assets/dashboard-preview.jpg`,
+        image: siteLogoUrl,
         schemaType: 'CollectionPage'
       },
       portfolio: {
@@ -5382,7 +5389,7 @@ ${C.renderRoiCalculatorWidget ? C.renderRoiCalculatorWidget() : ""}
           'Explore verified case studies and portfolio projects delivered by YOLETECH across Power BI, Tableau, Python Machine Learning, Streamlit, React.js, and SQL databases.',
         path: '/portfolio',
         type: 'website',
-        image: `${baseOrigin}/assets/dashboard-preview.jpg`,
+        image: siteLogoUrl,
         schemaType: 'CollectionPage'
       },
       testimonials: {
@@ -5391,7 +5398,7 @@ ${C.renderRoiCalculatorWidget ? C.renderRoiCalculatorWidget() : ""}
           'Read verified client testimonials and endorsements from executive stakeholders, research partners, and 200+ data analytics mentees trained by YOLETECH.',
         path: '/testimonials',
         type: 'website',
-        image: `${baseOrigin}/assets/dashboard-preview.jpg`,
+        image: siteLogoUrl,
         schemaType: 'CollectionPage'
       },
       blog: {
@@ -5400,7 +5407,7 @@ ${C.renderRoiCalculatorWidget ? C.renderRoiCalculatorWidget() : ""}
           'Practical technical guides, SQL and Python tutorials, Power BI and Tableau dashboard architecture walkthroughs, and full-stack engineering articles by John Oruebi Eniekpo.',
         path: '/blog',
         type: 'website',
-        image: `${baseOrigin}/assets/dashboard-preview.jpg`,
+        image: siteLogoUrl,
         schemaType: 'CollectionPage'
       },
       contact: {
@@ -5409,7 +5416,7 @@ ${C.renderRoiCalculatorWidget ? C.renderRoiCalculatorWidget() : ""}
           'Contact John Oruebi Eniekpo at YOLETECH (yoletech@yoletica.com | +234 802 552 6389) for Full-Stack Web Development, Power BI Dashboards, SQL Pipelines, and Automation.',
         path: '/contact',
         type: 'website',
-        image: `${baseOrigin}/assets/dashboard-preview.jpg`,
+        image: siteLogoUrl,
         schemaType: 'ContactPage'
       },
       login: {
@@ -5417,7 +5424,7 @@ ${C.renderRoiCalculatorWidget ? C.renderRoiCalculatorWidget() : ""}
         description: 'Sign in or register for the YOLETECH Client Portal to track project deliverables, data pipelines, and support inquiries.',
         path: '/login',
         type: 'website',
-        image: `${baseOrigin}/assets/dashboard-preview.jpg`,
+        image: siteLogoUrl,
         schemaType: 'WebPage'
       }
     };
@@ -5432,7 +5439,7 @@ ${C.renderRoiCalculatorWidget ? C.renderRoiCalculatorWidget() : ""}
           ? post.coverImage.startsWith('http')
             ? post.coverImage
             : `${baseOrigin}${post.coverImage.startsWith('/') ? '' : '/'}${post.coverImage}`
-          : `${baseOrigin}/assets/dashboard-preview.jpg`;
+          : siteLogoUrl;
         meta = {
           title: `${post.title} | YOLETECH`,
           description: post.summary || `${post.title} — Technical article by ${post.author || 'John Oruebi Eniekpo'}.`,
@@ -5490,6 +5497,8 @@ ${C.renderRoiCalculatorWidget ? C.renderRoiCalculatorWidget() : ""}
     setMetaTag('property', 'og:description', meta.description);
     setMetaTag('property', 'og:url', canonicalUrl);
     setMetaTag('property', 'og:image', meta.image);
+    setMetaTag('property', 'og:image:secure_url', meta.image);
+    setMetaTag('property', 'og:logo', siteLogoUrl);
     setMetaTag('name', 'twitter:title', meta.title);
     setMetaTag('name', 'twitter:description', meta.description);
     setMetaTag('name', 'twitter:image', meta.image);

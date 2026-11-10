@@ -4,7 +4,14 @@ const path = require('node:path');
 const ROOT_DIR = path.join(__dirname, '..');
 const BLOG_DIR = path.join(ROOT_DIR, 'content', 'blog');
 const INDEX_PATH = path.join(ROOT_DIR, 'public', 'index.html');
-const SITE_ORIGIN = (process.env.SITE_URL || 'https://yoletech.yoletica.com').replace(/\/+$/, '');
+const SITE_ORIGIN = (process.env.SITE_URL || 'https://yolestica.com').replace(/\/+$/, '');
+
+function resolveSiteOrigin(reqOrigin) {
+  if (reqOrigin && /^https?:\/\/[^/\s]+$/i.test(reqOrigin) && !/localhost|127\.0\.0\.1/i.test(reqOrigin)) {
+    return reqOrigin.replace(/\/+$/, '');
+  }
+  return SITE_ORIGIN;
+}
 
 function escapeHtml(value) {
   return String(value || '').replace(/[&<>"']/g, (character) => ({
@@ -72,12 +79,13 @@ function injectDynamicJsonLd(html, schemaObj) {
   return html.replace('</head>', `<script id="dynamic-seo-jsonld" type="application/ld+json">${jsonText}</script>\n</head>`);
 }
 
-function renderBlogPage(slug) {
+function renderBlogPage(slug, reqOrigin) {
   if (!slug || path.basename(slug) !== slug || slug === '.' || slug === '..') return null;
 
   const postPath = path.join(BLOG_DIR, `${slug}.md`);
   if (!fs.existsSync(postPath)) return null;
 
+  const origin = resolveSiteOrigin(reqOrigin);
   const post = readFrontmatter(postPath);
   const title = stripQuotes(post.title) || slug;
   const description = stripQuotes(post.summary) || `${title} — Technical article by John Oruebi Eniekpo on YOLETECH.`;
@@ -85,28 +93,30 @@ function renderBlogPage(slug) {
   const date = stripQuotes(post.date) || '2026-10-15';
   const category = stripQuotes(post.category) || 'Data Analytics & BI';
   const imagePath = stripQuotes(post.coverImage || '');
-  let imageUrl = `${SITE_ORIGIN}/assets/dashboard-preview.jpg`;
+  let imageUrl = `${origin}/assets/yoletech-icon.png`;
   if (imagePath) {
     try {
-      const parsedImageUrl = new URL(imagePath, `${SITE_ORIGIN}/`);
+      const parsedImageUrl = new URL(imagePath, `${origin}/`);
       if (parsedImageUrl.protocol === 'http:' || parsedImageUrl.protocol === 'https:') imageUrl = parsedImageUrl.href;
     } catch (error) {
       console.warn(`Invalid cover image URL for blog post "${slug}":`, error.message);
     }
   }
-  const pageUrl = new URL(`/blog/${encodeURIComponent(slug)}`, `${SITE_ORIGIN}/`).href;
+  const pageUrl = new URL(`/blog/${encodeURIComponent(slug)}`, `${origin}/`).href;
 
   let html = fs.readFileSync(INDEX_PATH, 'utf8');
   html = removeMeta(html, 'property', 'og:image');
+  html = removeMeta(html, 'property', 'og:image:secure_url');
   html = removeMeta(html, 'name', 'twitter:image');
   html = replaceMeta(html, 'name', 'description', description);
   html = replaceMeta(html, 'property', 'og:type', 'article');
   html = replaceMeta(html, 'property', 'og:title', title);
   html = replaceMeta(html, 'property', 'og:description', description);
+  html = replaceMeta(html, 'property', 'og:logo', `${origin}/assets/yoletech-icon.png`);
   if (imageUrl) {
     html = html.replace(
       '</head>',
-      `<meta property="og:image" content="${escapeHtml(imageUrl)}" />\n<meta name="twitter:image" content="${escapeHtml(imageUrl)}" />\n</head>`
+      `<meta property="og:image" content="${escapeHtml(imageUrl)}" />\n<meta property="og:image:secure_url" content="${escapeHtml(imageUrl)}" />\n<meta name="twitter:image" content="${escapeHtml(imageUrl)}" />\n</head>`
     );
   }
   html = replaceMeta(html, 'property', 'og:url', pageUrl);
@@ -130,14 +140,14 @@ function renderBlogPage(slug) {
     author: {
       '@type': 'Person',
       name: author,
-      url: `${SITE_ORIGIN}/about`
+      url: `${origin}/about`
     },
     publisher: {
       '@type': 'Organization',
       name: 'YOLETECH',
       logo: {
         '@type': 'ImageObject',
-        url: `${SITE_ORIGIN}/assets/yoletech-icon.png`
+        url: `${origin}/assets/yoletech-icon.png`
       }
     },
     mainEntityOfPage: {
@@ -244,23 +254,29 @@ const ROUTE_SEO_CONFIG = {
   }
 };
 
-function renderRouteSeoHtml(pathname) {
+function renderRouteSeoHtml(pathname, reqOrigin) {
   const cleanPath = pathname === '/' ? '/' : `/${String(pathname || '').replace(/^\/+|\/+$/g, '')}`;
   if (cleanPath.startsWith('/blog/')) {
     const slug = cleanPath.slice('/blog/'.length);
-    return renderBlogPage(slug);
+    return renderBlogPage(slug, reqOrigin);
   }
 
+  const origin = resolveSiteOrigin(reqOrigin);
+  const logoUrl = `${origin}/assets/yoletech-icon.png`;
   const cfg = ROUTE_SEO_CONFIG[cleanPath] || ROUTE_SEO_CONFIG['/'];
-  const pageUrl = new URL(cleanPath === '/' ? '/' : cleanPath, `${SITE_ORIGIN}/`).href;
+  const pageUrl = new URL(cleanPath === '/' ? '/' : cleanPath, `${origin}/`).href;
 
   let html = fs.readFileSync(INDEX_PATH, 'utf8');
   html = replaceMeta(html, 'name', 'description', cfg.description);
   html = replaceMeta(html, 'property', 'og:title', cfg.title);
   html = replaceMeta(html, 'property', 'og:description', cfg.description);
   html = replaceMeta(html, 'property', 'og:url', pageUrl);
+  html = replaceMeta(html, 'property', 'og:image', logoUrl);
+  html = replaceMeta(html, 'property', 'og:image:secure_url', logoUrl);
+  html = replaceMeta(html, 'property', 'og:logo', logoUrl);
   html = replaceMeta(html, 'name', 'twitter:title', cfg.title);
   html = replaceMeta(html, 'name', 'twitter:description', cfg.description);
+  html = replaceMeta(html, 'name', 'twitter:image', logoUrl);
   html = html.replace(/<title>[^<]*<\/title>/, `<title>${escapeHtml(cfg.title)}</title>`);
   html = html.replace(
     /<link rel="canonical" href="[^"]*"\s*\/>/,
@@ -273,13 +289,14 @@ function renderRouteSeoHtml(pathname) {
     name: cfg.title,
     description: cfg.description,
     url: pageUrl,
-    isPartOf: { '@id': `${SITE_ORIGIN}/#website` }
+    isPartOf: { '@id': `${origin}/#website` }
   });
 
   return html;
 }
 
-function renderSitemapXml() {
+function renderSitemapXml(reqOrigin) {
+  const origin = resolveSiteOrigin(reqOrigin);
   const staticRoutes = [
     { path: '/', changefreq: 'weekly', priority: '1.0' },
     { path: '/services', changefreq: 'weekly', priority: '0.9' },
@@ -294,7 +311,7 @@ function renderSitemapXml() {
 
   const urls = staticRoutes.map(
     (r) => `  <url>
-    <loc>${escapeHtml(`${SITE_ORIGIN}${r.path}`)}</loc>
+    <loc>${escapeHtml(`${origin}${r.path}`)}</loc>
     <changefreq>${r.changefreq}</changefreq>
     <priority>${r.priority}</priority>
   </url>`
@@ -307,7 +324,7 @@ function renderSitemapXml() {
       const post = readFrontmatter(path.join(BLOG_DIR, file));
       const lastmod = stripQuotes(post.date);
       urls.push(`  <url>
-    <loc>${escapeHtml(`${SITE_ORIGIN}/blog/${encodeURIComponent(slug)}`)}</loc>${
+    <loc>${escapeHtml(`${origin}/blog/${encodeURIComponent(slug)}`)}</loc>${
       /^\d{4}-\d{2}-\d{2}$/.test(lastmod) ? `\n    <lastmod>${lastmod}</lastmod>` : ''
     }
     <changefreq>monthly</changefreq>
