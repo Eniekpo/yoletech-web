@@ -5345,7 +5345,7 @@ ${C.renderRoiCalculatorWidget ? C.renderRoiCalculatorWidget() : ""}
       !/localhost|127\.0\.0\.1/.test(window.location.hostname)
         ? window.location.origin
         : 'https://yolestica.com';
-    const siteLogoUrl = `${baseOrigin}/assets/yoletech-icon.png`;
+    const siteLogoUrl = `${baseOrigin}/assets/yoletech-social-logo.png`;
     const seoMap = {
       home: {
         title: 'YOLETECH | Executive Business Intelligence, Analytics & Full-Stack Solutions',

@@ -54,16 +54,17 @@ function readFrontmatter(filePath) {
 
 function replaceMeta(html, attribute, name, content) {
   const escapedName = name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  const pattern = new RegExp(`<meta\\s+[\\s\\S]*?${attribute}="${escapedName}"[\\s\\S]*?\\/?>`, 'i');
+  const pattern = new RegExp(`<meta\\s+[^>]*?\\b${attribute}="${escapedName}"[^>]*?\\/?>`, 'i');
+  const extraAttr = attribute === 'property' && name === 'og:image' ? 'name="image" ' : '';
   if (pattern.test(html)) {
-    return html.replace(pattern, `<meta ${attribute}="${name}" content="${escapeHtml(content)}" />`);
+    return html.replace(pattern, `<meta ${extraAttr}${attribute}="${name}" content="${escapeHtml(content)}" />`);
   }
-  return html.replace('</head>', `    <meta ${attribute}="${name}" content="${escapeHtml(content)}" />\n  </head>`);
+  return html.replace('</head>', `    <meta ${extraAttr}${attribute}="${name}" content="${escapeHtml(content)}" />\n  </head>`);
 }
 
 function removeMeta(html, attribute, name) {
   const escapedName = name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  const pattern = new RegExp(`<meta\\s+${attribute}="${escapedName}"\\s+content="[^"]*"\\s*\\/?>\\s*`);
+  const pattern = new RegExp(`<meta\\s+[^>]*?\\b${attribute}="${escapedName}"[^>]*?\\/?>\\s*`, 'i');
   return html.replace(pattern, '');
 }
 
@@ -93,7 +94,7 @@ function renderBlogPage(slug, reqOrigin) {
   const date = stripQuotes(post.date) || '2026-10-15';
   const category = stripQuotes(post.category) || 'Data Analytics & BI';
   const imagePath = stripQuotes(post.coverImage || '');
-  let imageUrl = `${origin}/assets/yoletech-icon.png`;
+  let imageUrl = `${origin}/assets/yoletech-social-logo.png`;
   if (imagePath) {
     try {
       const parsedImageUrl = new URL(imagePath, `${origin}/`);
@@ -112,11 +113,11 @@ function renderBlogPage(slug, reqOrigin) {
   html = replaceMeta(html, 'property', 'og:type', 'article');
   html = replaceMeta(html, 'property', 'og:title', title);
   html = replaceMeta(html, 'property', 'og:description', description);
-  html = replaceMeta(html, 'property', 'og:logo', `${origin}/assets/yoletech-icon.png`);
+  html = replaceMeta(html, 'property', 'og:logo', `${origin}/assets/yoletech-social-logo.png`);
   if (imageUrl) {
     html = html.replace(
       '</head>',
-      `<meta property="og:image" content="${escapeHtml(imageUrl)}" />\n<meta property="og:image:secure_url" content="${escapeHtml(imageUrl)}" />\n<meta name="twitter:image" content="${escapeHtml(imageUrl)}" />\n</head>`
+      `<meta name="image" property="og:image" content="${escapeHtml(imageUrl)}" />\n<meta property="og:image:secure_url" content="${escapeHtml(imageUrl)}" />\n<meta name="twitter:image" content="${escapeHtml(imageUrl)}" />\n</head>`
     );
   }
   html = replaceMeta(html, 'property', 'og:url', pageUrl);
@@ -262,7 +263,7 @@ function renderRouteSeoHtml(pathname, reqOrigin) {
   }
 
   const origin = resolveSiteOrigin(reqOrigin);
-  const logoUrl = `${origin}/assets/yoletech-icon.png`;
+  const logoUrl = `${origin}/assets/yoletech-social-logo.png`;
   const cfg = ROUTE_SEO_CONFIG[cleanPath] || ROUTE_SEO_CONFIG['/'];
   const pageUrl = new URL(cleanPath === '/' ? '/' : cleanPath, `${origin}/`).href;
 
@@ -324,9 +325,8 @@ function renderSitemapXml(reqOrigin) {
       const post = readFrontmatter(path.join(BLOG_DIR, file));
       const lastmod = stripQuotes(post.date);
       urls.push(`  <url>
-    <loc>${escapeHtml(`${origin}/blog/${encodeURIComponent(slug)}`)}</loc>${
-      /^\d{4}-\d{2}-\d{2}$/.test(lastmod) ? `\n    <lastmod>${lastmod}</lastmod>` : ''
-    }
+    <loc>${escapeHtml(`${origin}/blog/${encodeURIComponent(slug)}`)}</loc>${/^\d{4}-\d{2}-\d{2}$/.test(lastmod) ? `\n    <lastmod>${lastmod}</lastmod>` : ''
+        }
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>`);
