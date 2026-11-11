@@ -37,16 +37,14 @@ def get_user(user_id: int):
         "user_id": user_id,
         "status": "Active"
     }
-
 ```
 
-```
+```apex
 Install dependencies:
 pip install fastapi uvicorn
 Start your API:
 uvicorn main:app --reload
 Open http://127.0.0.1:8000/docs to test your endpoints.
-
 ```
 
 Important Technical Details
@@ -58,13 +56,12 @@ Important Technical Details
 
 JSON provides a structured format for exchanging data.
 
-```
+```asymptote
 KPIs for API Performance
 Availability = (Successful uptime / Total monitoring time) × 100
 Error Rate = (Failed requests / Total requests) × 100
 Average Response Time = Total response time / Number of requests
 Request Throughput = Successful requests / Second
-
 ```
 
 Practical Business Applications
@@ -85,9 +82,10 @@ What type of application would you like to build using Python APIs?
 
 
 
-```
-YOLETECH | Technology Solutions
+#### YOLETECH | Technology Solutions
+
 Website: https://yolestica.com
+
 Email: yoletech@yolestica.com
+
 WhatsApp: +2348025526389
-```
