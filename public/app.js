@@ -1329,6 +1329,8 @@ class YoletechApp {
   }
 
   renderFooterTabContent(tab, owner = window.YOLETECH_DATA.owner) {
+    const C = window.YOLETECH_COMPONENTS;
+    const icon = (name) => `<span class="footer-item-icon" aria-hidden="true">${C ? C.getIcon(name) : ''}</span>`;
     const content = {
       overview: `
         <div class="footer-overview">
@@ -1356,12 +1358,12 @@ class YoletechApp {
             <p>Practical expertise across modern web, data, and digital operations.</p>
           </div>
           <ul class="footer-link-grid">
-            <li><a href="/services" onclick="event.preventDefault(); window.app.navigate('services')"><span>Full-Stack Web Development</span><span aria-hidden="true">↗</span></a></li>
-            <li><a href="/services" onclick="event.preventDefault(); window.app.navigate('services')"><span>Data Analytics &amp; BI Dashboards</span><span aria-hidden="true">↗</span></a></li>
-            <li><a href="/services" onclick="event.preventDefault(); window.app.navigate('services')"><span>AI &amp; Python/VBA Automation</span><span aria-hidden="true">↗</span></a></li>
-            <li><a href="/services" onclick="event.preventDefault(); window.app.navigate('services')"><span>Tech Tutorials &amp; Staff Training</span><span aria-hidden="true">↗</span></a></li>
-            <li><a href="/services" onclick="event.preventDefault(); window.app.navigate('services')"><span>Graphic Design &amp; Video Editing</span><span aria-hidden="true">↗</span></a></li>
-            <li><a href="/services" onclick="event.preventDefault(); window.app.navigate('services')"><span>IT &amp; Database Support</span><span aria-hidden="true">↗</span></a></li>
+            <li><a href="/services" onclick="event.preventDefault(); window.app.navigate('services')"><span class="footer-link-main">${icon('code')}<span>Full-Stack Web Development</span></span><span aria-hidden="true">↗</span></a></li>
+            <li><a href="/services" onclick="event.preventDefault(); window.app.navigate('services')"><span class="footer-link-main">${icon('chart')}<span>Data Analytics &amp; BI Dashboards</span></span><span aria-hidden="true">↗</span></a></li>
+            <li><a href="/services" onclick="event.preventDefault(); window.app.navigate('services')"><span class="footer-link-main">${icon('cpu')}<span>AI &amp; Python/VBA Automation</span></span><span aria-hidden="true">↗</span></a></li>
+            <li><a href="/services" onclick="event.preventDefault(); window.app.navigate('services')"><span class="footer-link-main">${icon('graduation')}<span>Tech Tutorials &amp; Staff Training</span></span><span aria-hidden="true">↗</span></a></li>
+            <li><a href="/services" onclick="event.preventDefault(); window.app.navigate('services')"><span class="footer-link-main">${icon('brush')}<span>Graphic Design &amp; Video Editing</span></span><span aria-hidden="true">↗</span></a></li>
+            <li><a href="/services" onclick="event.preventDefault(); window.app.navigate('services')"><span class="footer-link-main">${icon('database')}<span>IT &amp; Database Support</span></span><span aria-hidden="true">↗</span></a></li>
           </ul>
         </div>
       `,
@@ -1373,12 +1375,12 @@ class YoletechApp {
             <p>See how thoughtful engineering turns complex challenges into clear outcomes.</p>
           </div>
           <ul class="footer-link-grid">
-            <li><a href="/about" onclick="event.preventDefault(); window.app.navigate('about')"><span>About YOLETECH</span><span aria-hidden="true">↗</span></a></li>
-            <li><a href="/portfolio" onclick="event.preventDefault(); window.app.navigate('portfolio')"><span>Portfolio &amp; Case Studies</span><span aria-hidden="true">↗</span></a></li>
-            <li><a href="/testimonials" onclick="event.preventDefault(); window.app.navigate('testimonials')"><span>Client Testimonials</span><span aria-hidden="true">↗</span></a></li>
-            <li><a href="/blog" onclick="event.preventDefault(); window.app.navigate('blog')"><span>Blog &amp; Tutorials</span><span aria-hidden="true">↗</span></a></li>
-            <li><a href="/login" onclick="event.preventDefault(); window.app.navigate('login')"><span>Client Portal</span><span aria-hidden="true">↗</span></a></li>
-            <li><a href="/cv.html" target="_blank" rel="noopener"><span>Curriculum Vitae</span><span aria-hidden="true">↗</span></a></li>
+            <li><a href="/about" onclick="event.preventDefault(); window.app.navigate('about')"><span class="footer-link-main">${icon('users')}<span>About YOLETECH</span></span><span aria-hidden="true">↗</span></a></li>
+            <li><a href="/portfolio" onclick="event.preventDefault(); window.app.navigate('portfolio')"><span class="footer-link-main">${icon('briefcase')}<span>Portfolio &amp; Case Studies</span></span><span aria-hidden="true">↗</span></a></li>
+            <li><a href="/testimonials" onclick="event.preventDefault(); window.app.navigate('testimonials')"><span class="footer-link-main">${icon('quote')}<span>Client Testimonials</span></span><span aria-hidden="true">↗</span></a></li>
+            <li><a href="/blog" onclick="event.preventDefault(); window.app.navigate('blog')"><span class="footer-link-main">${icon('document')}<span>Blog &amp; Tutorials</span></span><span aria-hidden="true">↗</span></a></li>
+            <li><a href="/login" onclick="event.preventDefault(); window.app.navigate('login')"><span class="footer-link-main">${icon('portal')}<span>Client Portal</span></span><span aria-hidden="true">↗</span></a></li>
+            <li><a href="/cv.html" target="_blank" rel="noopener"><span class="footer-link-main">${icon('graduation')}<span>Curriculum Vitae</span></span><span aria-hidden="true">↗</span></a></li>
           </ul>
         </div>
       `,
@@ -1391,22 +1393,34 @@ class YoletechApp {
           </div>
           <div class="footer-contact-grid">
             <a class="footer-contact-item" href="mailto:${owner.email}">
-              <span class="footer-contact-label">EMAIL</span>
-              <strong>${owner.email}</strong>
+              ${icon('mail')}
+              <span class="footer-contact-copy">
+                <span class="footer-contact-label">EMAIL</span>
+                <strong>${owner.email}</strong>
+              </span>
               <span class="footer-contact-arrow" aria-hidden="true">↗</span>
             </a>
             <a class="footer-contact-item" href="${owner.whatsappUrl}" target="_blank" rel="noopener">
-              <span class="footer-contact-label">WHATSAPP / PHONE</span>
-              <strong>${owner.phone}</strong>
+              ${icon('phone')}
+              <span class="footer-contact-copy">
+                <span class="footer-contact-label">WHATSAPP / PHONE</span>
+                <strong>${owner.phone}</strong>
+              </span>
               <span class="footer-contact-arrow" aria-hidden="true">↗</span>
             </a>
             <div class="footer-contact-item">
-              <span class="footer-contact-label">WORKING HOURS</span>
-              <strong>${owner.workingHours}</strong>
+              ${icon('clock')}
+              <span class="footer-contact-copy">
+                <span class="footer-contact-label">WORKING HOURS</span>
+                <strong>${owner.workingHours}</strong>
+              </span>
             </div>
             <div class="footer-contact-item">
-              <span class="footer-contact-label">LOCATION</span>
-              <strong>${owner.location}</strong>
+              ${icon('mapPin')}
+              <span class="footer-contact-copy">
+                <span class="footer-contact-label">LOCATION</span>
+                <strong>${owner.location}</strong>
+              </span>
             </div>
           </div>
         </div>
