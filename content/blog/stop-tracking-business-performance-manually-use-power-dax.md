@@ -52,8 +52,12 @@ Which business KPI would you prioritise on your dashboard?
 
 
 
-**YOLETECH | Technology Solutions**
+**YOLETECH | Solutions**
 
 Website: <https://yolestica.com>
+
+
 Email: [yoletech@yolestica.com](mailto:yoletech@yolestica.com)
+
+
 WhatsApp: +2348025526389
