@@ -4,18 +4,9 @@ title: "Margaret Hamilton: The Software Engineer Whose Code Helped Take Humans
 date: 2026-11-12
 category: Tech Tutorials & Mentorship
 coverImage: /assets/blog/the-software-engineer-whose-code-helped-take-humans-to-the-moon.png
-summary: >-
-  Margaret Heafield Hamilton (1936–2026) was an American computer scientist who
-  led the development of the onboard flight software for NASA's Apollo missions.
-  Working at MIT's Instrumentation Laboratory in Cambridge, Massachusetts, she
-  and her engineering team developed software for the Apollo Guidance Computer
-  during the 1960s.
-
-
-  Her work focused on guidance, navigation, spacecraft control, error detection, and recovery. One of the software's most important capabilities was its ability to prioritize critical tasks when the computer became overloaded. This capability proved essential during the Apollo 11 lunar landing in 1969, when computer alarms occurred as the lunar module approached the Moon's surface.
-
-
-  Hamilton helped establish software engineering as a recognized engineering discipline. Her contribution demonstrated the importance of reliable software in safety-critical systems.
+summary: Hamilton helped establish software engineering as a recognized
+  engineering discipline. Her contribution demonstrated the importance of
+  reliable software in safety-critical systems.
 featured: false
 ---
 ### Who Created It?
