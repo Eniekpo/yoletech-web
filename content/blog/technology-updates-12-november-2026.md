@@ -2,7 +2,7 @@
 title: "TECHNOLOGY UPDATES: 12 NOVEMBER 2026"
 date: 2026-11-12
 category: Data Analytics & BI
-coverImage: /assets/blog/tech-updates-12th-nov.png
+coverImage: /assets/blog/86757.png
 summary: >-
   Six technology developments worth paying attention to today.
 
