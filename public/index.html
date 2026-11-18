@@ -20,6 +20,7 @@
   <meta name="author" content="John Oruebi Eniekpo, B.Sc." />
   <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
   <meta name="googlebot" content="index, follow" />
+  <meta name="theme-color" content="#1e1b54" />
 
   <!-- OpenGraph Social Sharing Card -->
   <meta property="og:type" content="website" />
@@ -44,7 +45,7 @@
   <meta name="twitter:image" content="https://yolestica.com/assets/yoletech-social-logo.png" />
   <meta name="twitter:image:alt" content="YOLETECH Logo" />
 
-  <title>YOLETECH Practical Solutions</title>
+  <title>YOLETECH | Executive Business Intelligence, Analytics &amp; Full-Stack Solutions</title>
   <link rel="icon" type="image/png" sizes="512x512" href="/assets/yoletech-icon.png" />
   <link rel="shortcut icon" type="image/png" href="/assets/yoletech-icon.png" />
   <link rel="apple-touch-icon" sizes="512x512" href="/assets/yoletech-icon.png" />
@@ -135,16 +136,6 @@
       }
     </script>
   <script id="dynamic-seo-jsonld" type="application/ld+json"></script>
-  <script>
-    (function () {
-      try {
-        var saved = localStorage.getItem('yoletech_theme');
-        var prefersLight = window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches;
-        var theme = saved || (prefersLight ? 'light' : 'dark');
-        document.documentElement.setAttribute('data-theme', theme);
-      } catch (e) { }
-    })();
-  </script>
 
   <link rel="stylesheet" href="/styles.css" />
 </head>
@@ -354,6 +345,13 @@
       var clipRect = preloader ? preloader.querySelector('.yole-preloader-clip-rect') : null;
       if (!preloader) return;
 
+      var isCrawler = navigator.webdriver || /bot|crawler|spider|googlebot|bingbot|lighthouse|pagespeed/i.test(navigator.userAgent || '');
+      if (isCrawler) {
+        document.body.classList.remove('preloader-active');
+        if (preloader.parentNode) preloader.parentNode.removeChild(preloader);
+        return;
+      }
+
       var DURATION_MS = 4000;
       var startTime = performance.now();
 
@@ -447,7 +445,8 @@
             <div class="hero-visual-box">
               <div class="portrait-orbit-card">
                 <img src="/assets/hero-slide-1-data-science-portrait.png"
-                  alt="John Oruebi Eniekpo — Founder &amp; Lead Data / Full-Stack Engineer at YOLETECH" />
+                  alt="John Oruebi Eniekpo — Founder &amp; Lead Data / Full-Stack Engineer at YOLETECH"
+                  fetchpriority="high" decoding="async" />
                 <div class="portrait-floating-badge">
                   <div>
                     <div style="font-weight:800;font-size:14px;color:#FFFFFF;">John Oruebi Eniekpo, B.Sc.</div>

@@ -875,8 +875,8 @@ async function sendEmailToYoletech({ subject, replyTo, fields }) {
       headers: {
         'Content-Type': 'application/json',
         Accept: 'application/json',
-        Origin: 'https://yoletech.yoletica.com',
-        Referer: 'https://yoletech.yoletica.com/contact'
+        Origin: 'https://yolestica.com',
+        Referer: 'https://yolestica.com/contact'
       },
       body: JSON.stringify(formPayload)
     });
@@ -1235,7 +1235,10 @@ const requestHandler = async (req, res) => {
 
   // Direct Sitemap, RSS Feed & Robots routes
   if (pathname === '/sitemap.xml') {
-    const xml = renderSitemapXml();
+    const hostHeader = String(req.headers['x-forwarded-host'] || req.headers.host || '').split(',')[0].trim();
+    const protoHeader = String(req.headers['x-forwarded-proto'] || 'https').split(',')[0].trim();
+    const reqOrigin = hostHeader ? `${protoHeader}://${hostHeader}` : undefined;
+    const xml = renderSitemapXml(reqOrigin);
     res.writeHead(200, {
       'Content-Type': 'application/xml; charset=utf-8',
       'Cache-Control': 'public, max-age=3600'

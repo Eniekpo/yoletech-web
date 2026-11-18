@@ -3033,16 +3033,16 @@ ${C.renderRoiCalculatorWidget ? C.renderRoiCalculatorWidget() : ""}
         flushParagraph();
         flushList();
         const level = headingMatch[1].length;
+        const semanticLevel = level === 1 ? 2 : level;
         const headingText = formatInline(headingMatch[2]);
         const headingStyles = {
-          1: 'font-size:27px;font-weight:900;color:#FFFFFF;margin:30px 0 12px;',
           2: 'font-size:25px;font-weight:900;color:#FFFFFF;margin:30px 0 12px;border-bottom:1px solid rgba(255,255,255,0.12);padding-bottom:8px;',
           3: 'font-size:20px;font-weight:800;color:#C8E61E;margin:24px 0 10px;',
           4: 'font-size:18px;font-weight:800;color:#C8E61E;margin:22px 0 10px;',
           5: 'font-size:16px;font-weight:800;color:#FFFFFF;margin:20px 0 8px;',
           6: 'font-size:15px;font-weight:800;color:#FFFFFF;margin:18px 0 8px;'
         };
-        htmlParts.push(`<h${level} style="${headingStyles[level]}">${headingText}</h${level}>`);
+        htmlParts.push(`<h${semanticLevel} style="${headingStyles[semanticLevel]}">${headingText}</h${semanticLevel}>`);
         continue;
       }
 
@@ -4941,7 +4941,7 @@ ${C.renderRoiCalculatorWidget ? C.renderRoiCalculatorWidget() : ""}
             </div>
             <div class="form-group">
               <label class="form-label">Live Demo Project URL (Optional)</label>
-              <input type="url" name="demo_url" class="form-control" value="${editing ? (editing.demo_url || editing.live_url || '').replace(/"/g, '&quot;') : ''}" placeholder="https://yoletech.yoletica.com or Kaggle/Dashboard link" />
+              <input type="url" name="demo_url" class="form-control" value="${editing ? (editing.demo_url || editing.live_url || '').replace(/"/g, '&quot;') : ''}" placeholder="https://yolestica.com or Kaggle/Dashboard link" />
             </div>
             <div class="form-group portfolio-featured-field">
               <label class="portfolio-featured-label">
@@ -5439,7 +5439,35 @@ ${C.renderRoiCalculatorWidget ? C.renderRoiCalculatorWidget() : ""}
         path: '/login',
         type: 'website',
         image: siteLogoUrl,
-        schemaType: 'WebPage'
+        schemaType: 'WebPage',
+        noindex: true
+      },
+      register: {
+        title: 'Register for the YOLETECH Client Portal | YOLETECH',
+        description: 'Create a YOLETECH Client Portal account to track project deliverables, data pipelines, and support inquiries.',
+        path: '/register',
+        type: 'website',
+        image: siteLogoUrl,
+        schemaType: 'WebPage',
+        noindex: true
+      },
+      portal: {
+        title: 'Client Portal | YOLETECH',
+        description: 'Manage your YOLETECH projects, inquiries, and account profile.',
+        path: '/portal',
+        type: 'website',
+        image: siteLogoUrl,
+        schemaType: 'WebPage',
+        noindex: true
+      },
+      'admin-dashboard': {
+        title: 'Admin Dashboard | YOLETECH',
+        description: 'YOLETECH administrative CRM and content management console.',
+        path: '/admin-dashboard',
+        type: 'website',
+        image: siteLogoUrl,
+        schemaType: 'WebPage',
+        noindex: true
       }
     };
 
@@ -5460,6 +5488,7 @@ ${C.renderRoiCalculatorWidget ? C.renderRoiCalculatorWidget() : ""}
           path: `/blog/${post.slug}`,
           type: 'article',
           image: postImage,
+          imageAlt: post.title,
           schemaType: 'BlogPosting'
         };
         schemaPayload = {
@@ -5506,16 +5535,23 @@ ${C.renderRoiCalculatorWidget ? C.renderRoiCalculatorWidget() : ""}
     };
 
     setMetaTag('name', 'description', meta.description);
+    setMetaTag(
+      'name',
+      'robots',
+      meta.noindex ? 'noindex, nofollow' : 'index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1'
+    );
     setMetaTag('property', 'og:type', meta.type);
     setMetaTag('property', 'og:title', meta.title);
     setMetaTag('property', 'og:description', meta.description);
     setMetaTag('property', 'og:url', canonicalUrl);
     setMetaTag('property', 'og:image', meta.image);
     setMetaTag('property', 'og:image:secure_url', meta.image);
+    setMetaTag('property', 'og:image:alt', meta.imageAlt || 'YOLETECH Logo');
     setMetaTag('property', 'og:logo', siteLogoUrl);
     setMetaTag('name', 'twitter:title', meta.title);
     setMetaTag('name', 'twitter:description', meta.description);
     setMetaTag('name', 'twitter:image', meta.image);
+    setMetaTag('name', 'twitter:image:alt', meta.imageAlt || 'YOLETECH Logo');
 
     let canonicalEl = document.querySelector('link[rel="canonical"]');
     if (!canonicalEl) {

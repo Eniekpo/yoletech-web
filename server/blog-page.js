@@ -108,7 +108,11 @@ function renderBlogPage(slug, reqOrigin) {
   let html = fs.readFileSync(INDEX_PATH, 'utf8');
   html = removeMeta(html, 'property', 'og:image');
   html = removeMeta(html, 'property', 'og:image:secure_url');
+  html = removeMeta(html, 'property', 'og:image:width');
+  html = removeMeta(html, 'property', 'og:image:height');
+  html = removeMeta(html, 'property', 'og:image:alt');
   html = removeMeta(html, 'name', 'twitter:image');
+  html = removeMeta(html, 'name', 'twitter:image:alt');
   html = replaceMeta(html, 'name', 'description', description);
   html = replaceMeta(html, 'property', 'og:type', 'article');
   html = replaceMeta(html, 'property', 'og:title', title);
@@ -117,7 +121,7 @@ function renderBlogPage(slug, reqOrigin) {
   if (imageUrl) {
     html = html.replace(
       '</head>',
-      `<meta name="image" property="og:image" content="${escapeHtml(imageUrl)}" />\n<meta property="og:image:secure_url" content="${escapeHtml(imageUrl)}" />\n<meta name="twitter:image" content="${escapeHtml(imageUrl)}" />\n</head>`
+      `<meta name="image" property="og:image" content="${escapeHtml(imageUrl)}" />\n<meta property="og:image:secure_url" content="${escapeHtml(imageUrl)}" />\n<meta property="og:image:alt" content="${escapeHtml(title)}" />\n<meta property="article:published_time" content="${escapeHtml(date)}" />\n<meta property="article:section" content="${escapeHtml(category)}" />\n<meta name="twitter:image" content="${escapeHtml(imageUrl)}" />\n<meta name="twitter:image:alt" content="${escapeHtml(title)}" />\n</head>`
     );
   }
   html = replaceMeta(html, 'property', 'og:url', pageUrl);
@@ -129,15 +133,21 @@ function renderBlogPage(slug, reqOrigin) {
     `<link rel="canonical" href="${escapeHtml(pageUrl)}" />`
   );
 
+  const plainBodyText = String(post.body || '').replace(/```[\s\S]*?```/g, ' ').trim();
+  const wordCount = plainBodyText ? plainBodyText.split(/\s+/).length : 0;
+
   html = injectDynamicJsonLd(html, {
     '@context': 'https://schema.org',
     '@type': 'BlogPosting',
     headline: title,
     description,
     image: imageUrl,
+    url: pageUrl,
     datePublished: date,
     dateModified: date,
     articleSection: category,
+    wordCount,
+    inLanguage: 'en',
     author: {
       '@type': 'Person',
       name: author,
@@ -162,7 +172,7 @@ function renderBlogPage(slug, reqOrigin) {
     .split(/\r?\n\r?\n/)
     .map((p) => p.replace(/^#+\s+/gm, '').trim())
     .filter(Boolean)
-    .slice(0, 6)
+    .slice(0, 12)
     .map((p) => `<p>${escapeHtml(p)}</p>`)
     .join('\n');
 
@@ -176,6 +186,7 @@ function renderBlogPage(slug, reqOrigin) {
               <li><a class="nav-link" href="/dashboard">Dashboard</a></li>
               <li><a class="nav-link" href="/about">About</a></li>
               <li><a class="nav-link" href="/services">Services</a></li>
+              <li><a class="nav-link" href="/blog">Blog</a></li>
               <li><a class="nav-link" href="/contact">Contact</a></li>
             </ul>
           </nav>
@@ -186,6 +197,7 @@ function renderBlogPage(slug, reqOrigin) {
           <p><a href="/blog">← Back to All Articles</a></p>
           <h1>${escapeHtml(title)}</h1>
           <p>Published <time datetime="${escapeHtml(date)}">${escapeHtml(date)}</time> by <strong>${escapeHtml(author)}</strong> in <span>${escapeHtml(category)}</span></p>
+          ${imageUrl ? `<img src="${escapeHtml(imageUrl)}" alt="${escapeHtml(title)}" />` : ''}
           <p><strong>${escapeHtml(description)}</strong></p>
           ${plainParagraphs}
         </article>
@@ -293,17 +305,75 @@ function renderRouteSeoHtml(pathname, reqOrigin) {
     isPartOf: { '@id': `${origin}/#website` }
   });
 
+  if (cleanPath !== '/') {
+    html = html.replace(
+      /<h1 class="hero-title">[\s\S]*?<\/h1>/,
+      `<h1 class="hero-title">${escapeHtml(cfg.h1)}</h1>`
+    );
+    html = html.replace(
+      /<p class="hero-subtitle">[\s\S]*?<\/p>/,
+      `<p class="hero-subtitle">${escapeHtml(cfg.description)}</p>`
+    );
+
+    if (cleanPath === '/blog' && fs.existsSync(BLOG_DIR)) {
+      const blogLinks = fs
+        .readdirSync(BLOG_DIR)
+        .filter((f) => f.endsWith('.md'))
+        .map((file) => {
+          const slug = path.basename(file, '.md');
+          const post = readFrontmatter(path.join(BLOG_DIR, file));
+          const postTitle = stripQuotes(post.title) || slug;
+          const postDate = stripQuotes(post.date) || '';
+          return {
+            slug,
+            title: postTitle,
+            date: postDate,
+            summary: stripQuotes(post.summary) || ''
+          };
+        })
+        .sort((a, b) => (a.date < b.date ? 1 : -1))
+        .map(
+          (p) =>
+            `<li><a href="/blog/${encodeURIComponent(p.slug)}">${escapeHtml(p.title)}</a>${p.summary ? ` — ${escapeHtml(p.summary)}` : ''}</li>`
+        )
+        .join('\n');
+
+      if (blogLinks) {
+        html = html.replace(
+          '</main>',
+          `<section class="container section" aria-label="Published Blog Articles"><h2>Latest Articles</h2><ul>\n${blogLinks}\n</ul></section>\n</main>`
+        );
+      }
+    }
+  }
+
   return html;
 }
 
 function renderSitemapXml(reqOrigin) {
   const origin = resolveSiteOrigin(reqOrigin);
+  const blogEntries = [];
+  if (fs.existsSync(BLOG_DIR)) {
+    const files = fs.readdirSync(BLOG_DIR).filter((f) => f.endsWith('.md'));
+    for (const file of files) {
+      const slug = path.basename(file, '.md');
+      const post = readFrontmatter(path.join(BLOG_DIR, file));
+      const lastmod = stripQuotes(post.date);
+      blogEntries.push({
+        slug,
+        lastmod: /^\d{4}-\d{2}-\d{2}$/.test(lastmod) ? lastmod : ''
+      });
+    }
+    blogEntries.sort((a, b) => (a.lastmod < b.lastmod ? 1 : -1));
+  }
+  const latestBlogDate = blogEntries.find((b) => b.lastmod)?.lastmod || '';
+
   const staticRoutes = [
     { path: '/', changefreq: 'weekly', priority: '1.0' },
     { path: '/services', changefreq: 'weekly', priority: '0.9' },
     { path: '/portfolio', changefreq: 'weekly', priority: '0.9' },
     { path: '/about', changefreq: 'monthly', priority: '0.85' },
-    { path: '/blog', changefreq: 'weekly', priority: '0.85' },
+    { path: '/blog', changefreq: 'weekly', priority: '0.85', lastmod: latestBlogDate },
     { path: '/testimonials', changefreq: 'weekly', priority: '0.8' },
     { path: '/dashboard', changefreq: 'weekly', priority: '0.8' },
     { path: '/contact', changefreq: 'monthly', priority: '0.8' },
@@ -312,25 +382,18 @@ function renderSitemapXml(reqOrigin) {
 
   const urls = staticRoutes.map(
     (r) => `  <url>
-    <loc>${escapeHtml(`${origin}${r.path}`)}</loc>
+    <loc>${escapeHtml(`${origin}${r.path}`)}</loc>${r.lastmod ? `\n    <lastmod>${r.lastmod}</lastmod>` : ''}
     <changefreq>${r.changefreq}</changefreq>
     <priority>${r.priority}</priority>
   </url>`
   );
 
-  if (fs.existsSync(BLOG_DIR)) {
-    const files = fs.readdirSync(BLOG_DIR).filter((f) => f.endsWith('.md'));
-    for (const file of files) {
-      const slug = path.basename(file, '.md');
-      const post = readFrontmatter(path.join(BLOG_DIR, file));
-      const lastmod = stripQuotes(post.date);
-      urls.push(`  <url>
-    <loc>${escapeHtml(`${origin}/blog/${encodeURIComponent(slug)}`)}</loc>${/^\d{4}-\d{2}-\d{2}$/.test(lastmod) ? `\n    <lastmod>${lastmod}</lastmod>` : ''
-        }
+  for (const entry of blogEntries) {
+    urls.push(`  <url>
+    <loc>${escapeHtml(`${origin}/blog/${encodeURIComponent(entry.slug)}`)}</loc>${entry.lastmod ? `\n    <lastmod>${entry.lastmod}</lastmod>` : ''}
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>`);
-    }
   }
 
   return `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls.join('\n')}\n</urlset>\n`;
