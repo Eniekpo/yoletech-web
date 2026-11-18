@@ -336,4 +336,132 @@ function renderSitemapXml(reqOrigin) {
   return `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls.join('\n')}\n</urlset>\n`;
 }
 
-module.exports = { renderBlogPage, renderRouteSeoHtml, renderSitemapXml };
+const RSS_MIME_BY_EXT = {
+  '.png': 'image/png',
+  '.jpg': 'image/jpeg',
+  '.jpeg': 'image/jpeg',
+  '.webp': 'image/webp',
+  '.gif': 'image/gif',
+  '.svg': 'image/svg+xml'
+};
+
+function escapeCdata(value) {
+  return String(value || '').replace(/\]\]>/g, ']]]]><![CDATA[>');
+}
+
+function toRfc822Date(dateStr, fallbackTimeMs) {
+  const clean = stripQuotes(dateStr);
+  if (/^\d{4}-\d{2}-\d{2}$/.test(clean)) {
+    const parsed = new Date(`${clean}T09:00:00.000Z`);
+    if (!Number.isNaN(parsed.getTime())) return parsed.toUTCString();
+  }
+  const parsed = new Date(clean || fallbackTimeMs || Date.now());
+  return Number.isNaN(parsed.getTime()) ? new Date().toUTCString() : parsed.toUTCString();
+}
+
+function renderRssFeedXml(reqOrigin, feedPath = '/rss.xml') {
+  const origin = resolveSiteOrigin(reqOrigin);
+  const feedUrl = new URL(feedPath, `${origin}/`).href;
+  const blogUrl = `${origin}/blog`;
+  const logoUrl = `${origin}/assets/yoletech-social-logo.png`;
+
+  const posts = [];
+  if (fs.existsSync(BLOG_DIR)) {
+    const files = fs.readdirSync(BLOG_DIR).filter((f) => f.endsWith('.md'));
+    for (const file of files) {
+      const fullPath = path.join(BLOG_DIR, file);
+      const slug = path.basename(file, '.md');
+      const post = readFrontmatter(fullPath);
+      const stat = fs.statSync(fullPath);
+      const dateStr = stripQuotes(post.date) || stat.mtime.toISOString().slice(0, 10);
+      const title = stripQuotes(post.title) || slug;
+      const summary = stripQuotes(post.summary) || `${title} — Technical article by John Oruebi Eniekpo on YOLETECH.`;
+      const author = stripQuotes(post.author) || 'John Oruebi Eniekpo';
+      const category = stripQuotes(post.category) || 'Data Analytics & BI';
+      const postUrl = new URL(`/blog/${encodeURIComponent(slug)}`, `${origin}/`).href;
+
+      let imageUrl = logoUrl;
+      const imagePath = stripQuotes(post.coverImage || '');
+      if (imagePath) {
+        try {
+          const parsedImg = new URL(imagePath, `${origin}/`);
+          if (parsedImg.protocol === 'http:' || parsedImg.protocol === 'https:') {
+            imageUrl = parsedImg.href;
+          }
+        } catch {
+          // fallback to site logo
+        }
+      }
+
+      const imgExt = path.extname(imageUrl.split('?')[0]).toLowerCase();
+      const imgMime = RSS_MIME_BY_EXT[imgExt] || 'image/png';
+      let imgBytes = 0;
+      if (imagePath && imagePath.startsWith('/')) {
+        const localImg = path.join(ROOT_DIR, 'public', imagePath.replace(/^\/+/, ''));
+        try {
+          if (fs.existsSync(localImg)) imgBytes = fs.statSync(localImg).size;
+        } catch {
+          imgBytes = 0;
+        }
+      }
+
+      const pubDate = toRfc822Date(dateStr, stat.mtimeMs);
+      const sortKey = `${dateStr}-${slug}`;
+
+      posts.push({
+        sortKey,
+        slug,
+        title,
+        summary,
+        author,
+        category,
+        postUrl,
+        imageUrl,
+        imgMime,
+        imgBytes,
+        pubDate
+      });
+    }
+  }
+
+  posts.sort((a, b) => (a.sortKey < b.sortKey ? 1 : -1));
+  const lastBuildDate = posts.length ? posts[0].pubDate : new Date().toUTCString();
+
+  const itemsXml = posts
+    .map((p) => {
+      const enclosureTag = p.imageUrl
+        ? `\n      <enclosure url="${escapeHtml(p.imageUrl)}" length="${p.imgBytes}" type="${escapeHtml(p.imgMime)}" />\n      <media:content url="${escapeHtml(p.imageUrl)}" medium="image" type="${escapeHtml(p.imgMime)}" />`
+        : '';
+      return `    <item>
+      <title><![CDATA[${escapeCdata(p.title)}]]></title>
+      <link>${escapeHtml(p.postUrl)}</link>
+      <guid isPermaLink="true">${escapeHtml(p.postUrl)}</guid>
+      <pubDate>${escapeHtml(p.pubDate)}</pubDate>
+      <dc:creator><![CDATA[${escapeCdata(p.author)}]]></dc:creator>
+      <category><![CDATA[${escapeCdata(p.category)}]]></category>
+      <description><![CDATA[${escapeCdata(p.summary)}]]></description>${enclosureTag}
+    </item>`;
+    })
+    .join('\n');
+
+  return `<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:media="http://search.yahoo.com/mrss/">
+  <channel>
+    <title>YOLETECH Blog &amp; Tutorials</title>
+    <link>${escapeHtml(blogUrl)}</link>
+    <description>Practical guides, SQL and Python tutorials, Power BI and Tableau dashboard architecture, and full-stack engineering articles by John Oruebi Eniekpo.</description>
+    <language>en-us</language>
+    <lastBuildDate>${escapeHtml(lastBuildDate)}</lastBuildDate>
+    <atom:link href="${escapeHtml(feedUrl)}" rel="self" type="application/rss+xml" />
+    <image>
+      <url>${escapeHtml(logoUrl)}</url>
+      <title>YOLETECH Blog &amp; Tutorials</title>
+      <link>${escapeHtml(blogUrl)}</link>
+    </image>
+${itemsXml}
+  </channel>
+</rss>
+`;
+}
+
+module.exports = { renderBlogPage, renderRouteSeoHtml, renderSitemapXml, renderRssFeedXml };

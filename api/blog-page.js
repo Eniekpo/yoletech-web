@@ -1,4 +1,4 @@
-const { renderBlogPage, renderRouteSeoHtml, renderSitemapXml } = require('../server/blog-page.js');
+const { renderBlogPage, renderRouteSeoHtml, renderSitemapXml, renderRssFeedXml } = require('../server/blog-page.js');
 
 module.exports = (req, res) => {
   if (req.method !== 'GET' && req.method !== 'HEAD') {
@@ -13,6 +13,23 @@ module.exports = (req, res) => {
   const reqOrigin = hostHeader ? `${protoHeader}://${hostHeader}` : undefined;
 
   const { searchParams, pathname } = new URL(req.url, 'https://localhost');
+  if (
+    searchParams.get('rss') === '1' ||
+    pathname === '/rss.xml' ||
+    pathname === '/feed.xml' ||
+    pathname === '/feed' ||
+    pathname === '/blog/rss.xml' ||
+    pathname === '/blog/feed'
+  ) {
+    const feedPath = pathname.startsWith('/api/') ? '/rss.xml' : pathname;
+    const rssXml = renderRssFeedXml(reqOrigin, feedPath);
+    res.setHeader('Content-Type', 'application/rss+xml; charset=utf-8');
+    res.setHeader('Cache-Control', 'public, max-age=0, s-maxage=300, stale-while-revalidate=3600');
+    res.statusCode = 200;
+    res.end(req.method === 'HEAD' ? undefined : rssXml);
+    return;
+  }
+
   if (searchParams.get('sitemap') === '1' || pathname === '/sitemap.xml') {
     const xml = renderSitemapXml(reqOrigin);
     res.setHeader('Content-Type', 'application/xml; charset=utf-8');

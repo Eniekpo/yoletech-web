@@ -3,7 +3,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const crypto = require('node:crypto');
 const os = require('node:os');
-const { renderBlogPage, renderRouteSeoHtml, renderSitemapXml } = require('./blog-page.js');
+const { renderBlogPage, renderRouteSeoHtml, renderSitemapXml, renderRssFeedXml } = require('./blog-page.js');
 let DatabaseSync = null;
 try {
   ({ DatabaseSync } = require('node:sqlite'));
@@ -1233,7 +1233,7 @@ const requestHandler = async (req, res) => {
   const pathname = parsedUrl.pathname;
   const clientIp = (req.headers['x-forwarded-for'] || '').split(',')[0].trim() || req.socket?.remoteAddress || '127.0.0.1';
 
-  // Direct Sitemap & Robots routes
+  // Direct Sitemap, RSS Feed & Robots routes
   if (pathname === '/sitemap.xml') {
     const xml = renderSitemapXml();
     res.writeHead(200, {
@@ -1241,6 +1241,23 @@ const requestHandler = async (req, res) => {
       'Cache-Control': 'public, max-age=3600'
     });
     return res.end(req.method === 'HEAD' ? undefined : xml);
+  }
+  if (
+    pathname === '/rss.xml' ||
+    pathname === '/feed.xml' ||
+    pathname === '/feed' ||
+    pathname === '/blog/rss.xml' ||
+    pathname === '/blog/feed'
+  ) {
+    const hostHeader = String(req.headers['x-forwarded-host'] || req.headers.host || '').split(',')[0].trim();
+    const protoHeader = String(req.headers['x-forwarded-proto'] || 'https').split(',')[0].trim();
+    const reqOrigin = hostHeader ? `${protoHeader}://${hostHeader}` : undefined;
+    const rssXml = renderRssFeedXml(reqOrigin, pathname);
+    res.writeHead(200, {
+      'Content-Type': 'application/rss+xml; charset=utf-8',
+      'Cache-Control': 'public, max-age=0, s-maxage=300, stale-while-revalidate=3600'
+    });
+    return res.end(req.method === 'HEAD' ? undefined : rssXml);
   }
   if (pathname === '/robots.txt') {
     const robotsPath = path.join(PUBLIC_DIR, 'robots.txt');

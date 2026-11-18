@@ -11,6 +11,11 @@
   "rewrites": [
     { "source": "/api/(.*)", "destination": "/api/index.js" },
     { "source": "/sitemap.xml", "destination": "/api/blog-page?sitemap=1" },
+    { "source": "/rss.xml", "destination": "/api/blog-page?rss=1" },
+    { "source": "/feed.xml", "destination": "/api/blog-page?rss=1" },
+    { "source": "/feed", "destination": "/api/blog-page?rss=1" },
+    { "source": "/blog/rss.xml", "destination": "/api/blog-page?rss=1" },
+    { "source": "/blog/feed", "destination": "/api/blog-page?rss=1" },
     { "source": "/admin", "destination": "/admin/index.html" },
     { "source": "/admin/", "destination": "/admin/index.html" },
     { "source": "/portfolio", "destination": "/api/blog-page?route=/portfolio" },
