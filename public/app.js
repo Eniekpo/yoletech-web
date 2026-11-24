@@ -47,7 +47,7 @@ class YoletechApp {
     this.clients = [];
     this.inquiries = [];
     this.toastMessage = null;
-    this.notifyEmail = 'yoletech@yoletica.com';
+    this.notifyEmail = 'yoletech@yolestica.com';
     this.showPassword = false;
     this.lastContactSubmission = null;
     this.formConfirmations = {};
@@ -257,7 +257,7 @@ class YoletechApp {
   }
 
   async sendEmailToYoletech({ subject, replyTo, fields }) {
-    const recipient = this.notifyEmail || 'yoletech@yoletica.com';
+    const recipient = this.notifyEmail || 'yoletech@yolestica.com';
     try {
       const res = await fetch(`https://formsubmit.co/ajax/${encodeURIComponent(recipient)}`, {
         method: 'POST',
@@ -3306,7 +3306,7 @@ ${C.renderRoiCalculatorWidget ? C.renderRoiCalculatorWidget() : ""}
                 </div>
 
                 <button type="submit" id="contact-submit-btn" class="btn btn-lime" style="width:100%;font-size:15px;padding:14px;">
-                  Send Message to yoletech@yoletica.com →
+                  Send Message to yoletech@yolestica.com →
                 </button>
                 ${this.renderFormConfirmation('contact')}
               </form>
@@ -3314,11 +3314,11 @@ ${C.renderRoiCalculatorWidget ? C.renderRoiCalculatorWidget() : ""}
 
             <!-- RIGHT COLUMN: DISCOVERY CALL, DIRECT CONTACT & QUICK FAQ -->
             <div style="display:flex;flex-direction:column;gap:22px;">
-              <div class="glass-card" style="background:linear-gradient(135deg,#2F2B73 0%,#1B184A 100%);border-color:#C8E61E;">
+              <div class="glass-card contact-discovery-card">
                 <div style="display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap;">
                   <div>
                     <h3 style="font-size:21px;font-weight:900;">Book a 15-Minute Discovery Call</h3>
-                    <p style="font-size:13.5px;color:var(--yole-text-muted);margin-top:4px;">
+                    <p style="font-size:13.5px;margin-top:8px;">
                       Connect directly on WhatsApp to scope your project requirements.
                     </p>
                   </div>
@@ -5427,7 +5427,7 @@ ${C.renderRoiCalculatorWidget ? C.renderRoiCalculatorWidget() : ""}
       contact: {
         title: 'Contact YOLETECH | Book a Discovery Call or Request a Project Proposal',
         description:
-          'Contact John Oruebi Eniekpo at YOLETECH (yoletech@yoletica.com | +234 802 552 6389) for Full-Stack Web Development, Power BI Dashboards, SQL Pipelines, and Automation.',
+          'Contact John Oruebi Eniekpo at YOLETECH (yoletech@yolestica.com | +234 802 552 6389) for Full-Stack Web Development, Power BI Dashboards, SQL Pipelines, and Automation.',
         path: '/contact',
         type: 'website',
         image: siteLogoUrl,

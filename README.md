@@ -3,7 +3,7 @@
 **Owner:** John Oruebi Eniekpo, B.Sc. (M.Sc. IT In-View)  
 **Roles:** Data Analyst | Business Intelligence Specialist | Full-Stack Web Developer  
 **Location:** Yenagoa, Bayelsa State, Nigeria (Available for Global Remote)  
-**Contact:** `+234 802 552 6389` | `yoletech@yoletica.com`
+**Contact:** `+234 802 552 6389` | `yoletech@yolestica.com`
 
 ---
 

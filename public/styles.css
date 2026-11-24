@@ -4928,6 +4928,41 @@ h1, h2, h3, h4, h5, h6, .hero-title, .section-title, .brand-wordmark {
   box-shadow: 0 16px 36px rgba(15, 23, 42, 0.08), 0 0 20px rgba(47, 43, 115, 0.04);
 }
 
+/* Contact Page Discovery Call Card (Dark & Light Mode) */
+.glass-card.contact-discovery-card,
+[data-theme="light"] .glass-card.contact-discovery-card {
+  background: linear-gradient(135deg, #2F2B73 0%, #1B184A 100%);
+  border: 1.5px solid #C8E61E;
+  color: #FFFFFF;
+}
+
+.glass-card.contact-discovery-card:hover,
+[data-theme="light"] .glass-card.contact-discovery-card:hover {
+  border-color: #C8E61E;
+  box-shadow: 0 18px 40px rgba(27, 24, 74, 0.28), 0 0 22px rgba(200, 230, 30, 0.16);
+}
+
+.glass-card.contact-discovery-card .site-card-heading {
+  align-items: center;
+}
+
+.glass-card.contact-discovery-card h3,
+[data-theme="light"] .glass-card.contact-discovery-card h3 {
+  color: #FFFFFF;
+}
+
+.glass-card.contact-discovery-card p,
+[data-theme="light"] .glass-card.contact-discovery-card p {
+  color: rgba(255, 255, 255, 0.86);
+}
+
+[data-theme="light"] .glass-card.contact-discovery-card .site-card-icon {
+  color: #E8F7A3;
+  background: linear-gradient(145deg, rgba(200, 230, 30, 0.22), rgba(200, 230, 30, 0.08));
+  border-color: rgba(200, 230, 30, 0.55);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.2);
+}
+
 
 /* ============================================================================
    FLOATING CONTACT WIDGET LAUNCHER & 4-OPTION MODAL

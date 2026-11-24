@@ -254,7 +254,7 @@ const ROUTE_SEO_CONFIG = {
   '/contact': {
     title: 'Contact YOLETECH | Book a Discovery Call or Request a Project Proposal',
     description:
-      'Contact John Oruebi Eniekpo at YOLETECH (yoletech@yoletica.com | +234 802 552 6389) for Full-Stack Web Development, Power BI Dashboards, SQL Pipelines, and Automation.',
+      'Contact John Oruebi Eniekpo at YOLETECH (yoletech@yolestica.com | +234 802 552 6389) for Full-Stack Web Development, Power BI Dashboards, SQL Pipelines, and Automation.',
     h1: "Let's Build Something Great Together — Contact YOLETECH",
     schemaType: 'ContactPage'
   },
