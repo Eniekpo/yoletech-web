@@ -29,6 +29,8 @@ export function createInitialAdminLearnState(): AdminLearnState {
     courseSubmitting: false,
     courseError: '',
     courseFieldErrors: {},
+    courseImageDraft: '',
+    courseImageUploading: false,
 
     registrations: [],
     countries: [],
@@ -146,10 +148,13 @@ export function attachAdminLearnMethods(proto: Record<string, unknown>): void {
 
   proto.openAdminCourseEditor = function (this: YoletechAppHost, courseId: number | null): void {
     const st = this.ensureAdminLearnState();
+    const editing = courseId ? st.courses.find((c) => c.id === courseId) || null : null;
     st.editingCourseId = courseId;
     st.courseFormOpen = true;
     st.courseError = '';
     st.courseFieldErrors = {};
+    st.courseImageDraft = editing?.image_url || '';
+    st.courseImageUploading = false;
     this.render();
   };
 
@@ -159,7 +164,75 @@ export function attachAdminLearnMethods(proto: Record<string, unknown>): void {
     st.courseFormOpen = false;
     st.courseError = '';
     st.courseFieldErrors = {};
+    st.courseImageDraft = '';
+    st.courseImageUploading = false;
     this.render();
+  };
+
+  proto.handleAdminCourseImageUrlChange = function (this: YoletechAppHost, value: string): void {
+    const st = this.ensureAdminLearnState();
+    const trimmed = String(value || '').trim();
+    st.courseImageDraft = trimmed;
+    const hiddenEl = document.getElementById('admin-course-image-value') as HTMLInputElement | null;
+    if (hiddenEl) hiddenEl.value = trimmed;
+    updateAdminCourseImagePreviewDom(trimmed);
+  };
+
+  proto.clearAdminCourseImage = function (this: YoletechAppHost): void {
+    const st = this.ensureAdminLearnState();
+    st.courseImageDraft = '';
+    const hiddenEl = document.getElementById('admin-course-image-value') as HTMLInputElement | null;
+    if (hiddenEl) hiddenEl.value = '';
+    const urlEl = document.getElementById('admin-course-image-url') as HTMLInputElement | null;
+    if (urlEl) urlEl.value = '';
+    const fileEl = document.getElementById('admin-course-image-file') as HTMLInputElement | null;
+    if (fileEl) fileEl.value = '';
+    delete st.courseFieldErrors.image_url;
+    updateAdminCourseImagePreviewDom('');
+  };
+
+  proto.handleAdminCourseImageFile = async function (
+    this: YoletechAppHost,
+    inputEl: HTMLInputElement
+  ): Promise<void> {
+    const st = this.ensureAdminLearnState();
+    const file = inputEl.files && inputEl.files[0];
+    if (!file) return;
+
+    const allowedTypes = ['image/png', 'image/jpeg', 'image/webp', 'image/gif'];
+    if (!allowedTypes.includes(file.type)) {
+      this.showToast('Please upload a PNG, JPG, WebP, or GIF image.', 'error');
+      inputEl.value = '';
+      return;
+    }
+    if (file.size > 10 * 1024 * 1024) {
+      this.showToast('Image file is too large. Choose an image under 10 MB.', 'error');
+      inputEl.value = '';
+      return;
+    }
+
+    st.courseImageUploading = true;
+    const statusEl = document.getElementById('admin-course-image-status');
+    if (statusEl) statusEl.textContent = 'Processing image...';
+
+    try {
+      const dataUrl = await compressImageFileToDataUrl(file);
+      st.courseImageDraft = dataUrl;
+      delete st.courseFieldErrors.image_url;
+      const hiddenEl = document.getElementById('admin-course-image-value') as HTMLInputElement | null;
+      if (hiddenEl) hiddenEl.value = dataUrl;
+      const urlEl = document.getElementById('admin-course-image-url') as HTMLInputElement | null;
+      if (urlEl) urlEl.value = '';
+      updateAdminCourseImagePreviewDom(dataUrl);
+      this.showToast('Course image ready. Save the course to apply.');
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'Could not read image file.';
+      this.showToast(msg, 'error');
+      inputEl.value = '';
+    } finally {
+      st.courseImageUploading = false;
+      if (statusEl) statusEl.textContent = '';
+    }
   };
 
   proto.handleAdminCourseSave = async function (this: YoletechAppHost, e: Event): Promise<void> {
@@ -175,9 +248,13 @@ export function attachAdminLearnMethods(proto: Record<string, unknown>): void {
       .map((line) => line.replace(/^[-*•]\s*/, '').trim())
       .filter(Boolean);
 
+    const imageValue = getVal('image_url').trim() || st.courseImageDraft.trim();
+    st.courseImageDraft = imageValue;
+
     const rawPayload = {
       title: getVal('title'),
       slug: getVal('slug'),
+      image_url: imageValue,
       short_description: getVal('short_description'),
       outcomes: outcomesRaw,
       level: getVal('level'),
@@ -218,6 +295,7 @@ export function attachAdminLearnMethods(proto: Record<string, unknown>): void {
       }
       st.courseFormOpen = false;
       st.editingCourseId = null;
+      st.courseImageDraft = '';
       await this.loadAdminLearnData(true);
       await this.loadLearnPublicData(true);
     } catch (err) {
@@ -648,10 +726,96 @@ export function attachAdminLearnMethods(proto: Record<string, unknown>): void {
   };
 }
 
+function readFileAsDataUrl(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result || ''));
+    reader.onerror = () => reject(new Error('Could not read the selected image file.'));
+    reader.readAsDataURL(file);
+  });
+}
+
+async function compressImageFileToDataUrl(file: File): Promise<string> {
+  const rawDataUrl = await readFileAsDataUrl(file);
+  if (file.type === 'image/gif') {
+    if (rawDataUrl.length > 1_400_000) {
+      throw new Error('GIF image is too large. Please choose a GIF under 1 MB.');
+    }
+    return rawDataUrl;
+  }
+
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => {
+      const maxWidth = 960;
+      const maxHeight = 640;
+      let width = img.naturalWidth || img.width;
+      let height = img.naturalHeight || img.height;
+      if (width > maxWidth || height > maxHeight) {
+        const ratio = Math.min(maxWidth / width, maxHeight / height);
+        width = Math.max(1, Math.round(width * ratio));
+        height = Math.max(1, Math.round(height * ratio));
+      }
+
+      const canvas = document.createElement('canvas');
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) {
+        resolve(rawDataUrl);
+        return;
+      }
+      ctx.drawImage(img, 0, 0, width, height);
+
+      const preferredType = file.type === 'image/png' ? 'image/png' : 'image/jpeg';
+      let encoded = canvas.toDataURL(preferredType, 0.84);
+      if (encoded.length > 900_000 && preferredType === 'image/png') {
+        encoded = canvas.toDataURL('image/jpeg', 0.82);
+      }
+      if (encoded.length > 1_400_000) {
+        encoded = canvas.toDataURL('image/jpeg', 0.68);
+      }
+      if (encoded.length > 1_450_000) {
+        reject(new Error('Image is still too large after compression. Please choose a smaller image.'));
+        return;
+      }
+      resolve(encoded);
+    };
+    img.onerror = () => reject(new Error('Invalid image file. Please choose a PNG, JPG, WebP, or GIF image.'));
+    img.src = rawDataUrl;
+  });
+}
+
+function buildAdminCourseImagePreviewHtml(imageUrl: string): string {
+  const clean = String(imageUrl || '').trim();
+  if (!clean) {
+    return `<div class="learn-admin-image-empty">No course image selected yet. Upload an image file or paste an image URL above.</div>`;
+  }
+  const isUploaded = clean.startsWith('data:image/');
+  return `
+    <div class="learn-admin-image-preview-inner">
+      <img src="${escHtml(clean)}" alt="Course preview" class="learn-admin-image-preview-img" />
+      <div class="learn-admin-image-preview-meta">
+        <span class="tech-pill lime">${isUploaded ? 'Uploaded image ready' : 'Image URL linked'}</span>
+        <button type="button" class="btn btn-outline btn-sm" onclick="window.app.clearAdminCourseImage()">Remove Image</button>
+      </div>
+    </div>
+  `;
+}
+
+function updateAdminCourseImagePreviewDom(imageUrl: string): void {
+  const previewEl = document.getElementById('admin-course-image-preview');
+  if (previewEl) {
+    previewEl.innerHTML = buildAdminCourseImagePreviewHtml(imageUrl);
+  }
+}
+
 function renderAdminCoursesSection(st: AdminLearnState): string {
   const editing = st.editingCourseId
     ? st.courses.find((c) => c.id === st.editingCourseId) || null
     : null;
+  const activeImage = st.courseImageDraft || '';
+  const urlInputVal = activeImage.startsWith('data:image/') ? '' : activeImage;
 
   const editorHtml = st.courseFormOpen
     ? `
@@ -672,6 +836,39 @@ function renderAdminCoursesSection(st: AdminLearnState): string {
               <label class="form-label" for="admin-course-slug">Slug (optional — auto-generated if empty)</label>
               <input id="admin-course-slug" name="slug" type="text" class="form-control ${st.courseFieldErrors.slug ? 'is-invalid' : ''}" value="${escHtml(editing?.slug || '')}" placeholder="full-stack-web-development" />
               ${st.courseFieldErrors.slug ? `<div class="field-error-msg">${escHtml(st.courseFieldErrors.slug)}</div>` : ''}
+            </div>
+          </div>
+
+          <div class="form-group learn-admin-image-card">
+            <label class="form-label" for="admin-course-image-file">Course Image (upload file or enter URL)</label>
+            <input id="admin-course-image-value" name="image_url" type="hidden" value="${escHtml(activeImage)}" />
+            <div class="grid-2" style="gap:12px;align-items:start;">
+              <div>
+                <input
+                  id="admin-course-image-file"
+                  type="file"
+                  accept="image/png,image/jpeg,image/webp,image/gif"
+                  class="form-control"
+                  onchange="window.app.handleAdminCourseImageFile(this)"
+                />
+                <div class="learn-field-hint">Upload PNG, JPG, WebP, or GIF from your device (auto-optimized for fast loading).</div>
+              </div>
+              <div>
+                <input
+                  id="admin-course-image-url"
+                  type="text"
+                  class="form-control ${st.courseFieldErrors.image_url ? 'is-invalid' : ''}"
+                  value="${escHtml(urlInputVal)}"
+                  placeholder="Or paste image URL (https://... or /assets/...)"
+                  oninput="window.app.handleAdminCourseImageUrlChange(this.value)"
+                />
+                <div class="learn-field-hint">Or link an existing asset path like <code>/assets/dashboard-preview.jpg</code>.</div>
+              </div>
+            </div>
+            <div id="admin-course-image-status" class="learn-field-hint" role="status" aria-live="polite"></div>
+            ${st.courseFieldErrors.image_url ? `<div class="field-error-msg">${escHtml(st.courseFieldErrors.image_url)}</div>` : ''}
+            <div id="admin-course-image-preview" class="learn-admin-image-preview">
+              ${buildAdminCourseImagePreviewHtml(activeImage)}
             </div>
           </div>
 
@@ -773,8 +970,17 @@ function renderAdminCoursesSection(st: AdminLearnState): string {
                   </div>
                 </td>
                 <td>
-                  <div style="font-weight:800;font-size:14.5px;">${escHtml(c.title)}</div>
-                  <div style="font-size:12px;color:var(--yole-text-muted);">/${escHtml(c.slug)} • ${c.outcomes.length} outcomes</div>
+                  <div class="learn-admin-course-cell">
+                    ${
+                      c.image_url
+                        ? `<img src="${escHtml(c.image_url)}" alt="${escHtml(c.title)}" class="learn-admin-course-thumb" loading="lazy" />`
+                        : `<div class="learn-admin-course-thumb learn-admin-course-thumb-empty" aria-hidden="true">IMG</div>`
+                    }
+                    <div>
+                      <div style="font-weight:800;font-size:14.5px;">${escHtml(c.title)}</div>
+                      <div style="font-size:12px;color:var(--yole-text-muted);">/${escHtml(c.slug)} • ${c.outcomes.length} outcomes</div>
+                    </div>
+                  </div>
                 </td>
                 <td>
                   <span class="tech-pill">${escHtml(c.level)}</span>

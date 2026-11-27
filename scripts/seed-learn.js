@@ -11,6 +11,7 @@ const DEFAULT_COURSES = [
   {
     title: 'Full-Stack Web Development',
     slug: 'full-stack-web-development',
+    image_url: '/assets/code-sync-preview.jpg',
     short_description:
       'Build responsive web applications from user interfaces to backend APIs and relational databases through guided, hands-on projects.',
     outcomes: [
@@ -29,6 +30,7 @@ const DEFAULT_COURSES = [
   {
     title: 'Data Analysis and Business Intelligence',
     slug: 'data-analysis-and-business-intelligence',
+    image_url: '/assets/dashboard-preview.jpg',
     short_description:
       'Learn how to clean, analyze, and turn raw spreadsheets and database tables into clear dashboards and decision-ready reports.',
     outcomes: [
@@ -47,6 +49,7 @@ const DEFAULT_COURSES = [
   {
     title: 'AI Automation',
     slug: 'ai-automation',
+    image_url: '/assets/workflow-diagram.jpg',
     short_description:
       'Streamline repetitive business tasks by connecting APIs, scripts, and AI-assisted workflows to save manual effort and reduce errors.',
     outcomes: [
@@ -65,6 +68,7 @@ const DEFAULT_COURSES = [
   {
     title: 'Customer Support Solutions (AI assistants and chatbots)',
     slug: 'customer-support-solutions-ai-assistants-and-chatbots',
+    image_url: '/assets/about-analytics-workspace.jpg',
     short_description:
       'Design helpful customer support workflows, knowledge bases, and AI-assisted chat experiences with clear human handoff.',
     outcomes: [
@@ -83,6 +87,7 @@ const DEFAULT_COURSES = [
   {
     title: 'IT Support',
     slug: 'it-support',
+    image_url: '/assets/home-hero-analyst.jpg',
     short_description:
       'Develop practical skills in workstation setup, networking basics, system troubleshooting, backups, and everyday technical support.',
     outcomes: [
@@ -101,6 +106,7 @@ const DEFAULT_COURSES = [
   {
     title: 'AI-Powered Content Creation and Graphic Design',
     slug: 'ai-powered-content-creation-and-graphic-design',
+    image_url: '/assets/yoletech-hero-banner.png',
     short_description:
       'Combine core visual design principles with modern AI-assisted tools to produce consistent brand graphics, layouts, and digital media.',
     outcomes: [
@@ -119,6 +125,7 @@ const DEFAULT_COURSES = [
   {
     title: 'Tech Tutorials (general tech skills)',
     slug: 'tech-tutorials-general-tech-skills',
+    image_url: '/assets/about-analytics-workspace.jpg',
     short_description:
       'Strengthen everyday digital fluency—from productivity suites and cloud collaboration to basic troubleshooting and safe online habits.',
     outcomes: [
@@ -172,8 +179,12 @@ function seedLearnDatabase(dbPath = DB_PATH) {
 
   const insertCourse = db.prepare(`
     INSERT OR IGNORE INTO courses
-      (title, slug, short_description, outcomes_json, level, mode, duration, price, status, display_order)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      (title, slug, image_url, short_description, outcomes_json, level, mode, duration, price, status, display_order)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+  `);
+
+  const backfillCourseImage = db.prepare(`
+    UPDATE courses SET image_url = ? WHERE slug = ? AND (image_url IS NULL OR TRIM(image_url) = '')
   `);
 
   let insertedCourses = 0;
@@ -181,6 +192,7 @@ function seedLearnDatabase(dbPath = DB_PATH) {
     const res = insertCourse.run(
       c.title,
       c.slug,
+      c.image_url,
       c.short_description,
       JSON.stringify(c.outcomes),
       c.level,
@@ -190,7 +202,11 @@ function seedLearnDatabase(dbPath = DB_PATH) {
       c.status,
       c.display_order
     );
-    if (res.changes > 0) insertedCourses += 1;
+    if (res.changes > 0) {
+      insertedCourses += 1;
+    } else if (c.image_url) {
+      backfillCourseImage.run(c.image_url, c.slug);
+    }
   }
 
   const existingContent = db.prepare('SELECT id FROM learn_page_content WHERE id = 1').get();

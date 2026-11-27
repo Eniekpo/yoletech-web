@@ -95,6 +95,7 @@ export interface CourseRecord {
   id: number;
   title: string;
   slug: string;
+  image_url: string;
   short_description: string;
   outcomes: string[];
   level: string;
@@ -218,6 +219,7 @@ interface RawCourseRow {
   id: number;
   title: string;
   slug: string;
+  image_url?: string;
   short_description: string;
   outcomes_json: string;
   level: string;
@@ -283,6 +285,7 @@ function hydrateCourse(row: RawCourseRow): CourseRecord {
     id: Number(row.id),
     title: String(row.title),
     slug: String(row.slug),
+    image_url: String(row.image_url || ''),
     short_description: String(row.short_description),
     outcomes: parseJsonStringArray(row.outcomes_json),
     level: String(row.level || 'Beginner'),
@@ -309,6 +312,7 @@ export function ensureLearnSchemaAndSeed(db: DbLike): void {
           id,
           title: c.title,
           slug: c.slug,
+          image_url: c.image_url,
           short_description: c.short_description,
           outcomes: [...c.outcomes],
           level: c.level,
@@ -322,6 +326,13 @@ export function ensureLearnSchemaAndSeed(db: DbLike): void {
         });
       }
       dirty = true;
+    } else {
+      for (const c of s.courses) {
+        if (typeof c.image_url !== 'string') {
+          c.image_url = '';
+          dirty = true;
+        }
+      }
     }
     if (!s.learn_page_content) {
       s.learn_page_content = {
@@ -347,6 +358,7 @@ export function ensureLearnSchemaAndSeed(db: DbLike): void {
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       title TEXT NOT NULL,
       slug TEXT UNIQUE NOT NULL,
+      image_url TEXT DEFAULT '',
       short_description TEXT NOT NULL,
       outcomes_json TEXT NOT NULL DEFAULT '[]',
       level TEXT NOT NULL DEFAULT 'Beginner',
@@ -404,17 +416,31 @@ export function ensureLearnSchemaAndSeed(db: DbLike): void {
     CREATE INDEX IF NOT EXISTS idx_learner_profiles_country ON learner_profiles(country_name);
   `);
 
+  const courseColumns = db.prepare('PRAGMA table_info(courses)').all() as Array<{ name?: string }>;
+  if (!courseColumns.some((col) => col.name === 'image_url')) {
+    db.exec(`ALTER TABLE courses ADD COLUMN image_url TEXT DEFAULT ''`);
+    const backfillImage = db.prepare(
+      `UPDATE courses SET image_url = ? WHERE slug = ? AND (image_url IS NULL OR TRIM(image_url) = '')`
+    );
+    for (const c of DEFAULT_SEED_COURSES) {
+      if (c.image_url) {
+        backfillImage.run(c.image_url, c.slug);
+      }
+    }
+  }
+
   const countRow = db.prepare('SELECT COUNT(*) as count FROM courses').get() as { count?: number } | undefined;
   if (!countRow || Number(countRow.count || 0) === 0) {
     const insertCourse = db.prepare(`
       INSERT OR IGNORE INTO courses
-        (title, slug, short_description, outcomes_json, level, mode, duration, price, status, display_order)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        (title, slug, image_url, short_description, outcomes_json, level, mode, duration, price, status, display_order)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `);
     for (const c of DEFAULT_SEED_COURSES) {
       insertCourse.run(
         c.title,
         c.slug,
+        c.image_url,
         c.short_description,
         JSON.stringify(c.outcomes),
         c.level,
@@ -446,12 +472,13 @@ export function listPublishedCourses(db: DbLike): CourseRecord[] {
     const s = getFallbackState(db);
     return s.courses
       .filter((c) => c.status === 'published')
+      .map((c) => ({ ...c, image_url: String(c.image_url || '') }))
       .sort((a, b) => a.display_order - b.display_order || a.id - b.id);
   }
 
   const rows = db
     .prepare(
-      `SELECT id, title, slug, short_description, outcomes_json, level, mode, duration, price, status, display_order, created_at, updated_at
+      `SELECT id, title, slug, image_url, short_description, outcomes_json, level, mode, duration, price, status, display_order, created_at, updated_at
        FROM courses
        WHERE status = 'published'
        ORDER BY display_order ASC, id ASC`
@@ -466,6 +493,7 @@ export function listAllCourses(db: DbLike): CourseRecord[] {
     return [...s.courses]
       .map((c) => ({
         ...c,
+        image_url: String(c.image_url || ''),
         enrollment_count: s.enrollments.filter((e) => e.course_id === c.id).length
       }))
       .sort((a, b) => a.display_order - b.display_order || a.id - b.id);
@@ -473,7 +501,7 @@ export function listAllCourses(db: DbLike): CourseRecord[] {
 
   const rows = db
     .prepare(
-      `SELECT c.id, c.title, c.slug, c.short_description, c.outcomes_json, c.level, c.mode, c.duration, c.price, c.status, c.display_order, c.created_at, c.updated_at,
+      `SELECT c.id, c.title, c.slug, c.image_url, c.short_description, c.outcomes_json, c.level, c.mode, c.duration, c.price, c.status, c.display_order, c.created_at, c.updated_at,
               COUNT(e.id) AS enrollment_count
        FROM courses c
        LEFT JOIN enrollments e ON e.course_id = c.id
@@ -487,12 +515,13 @@ export function listAllCourses(db: DbLike): CourseRecord[] {
 export function getCourseById(db: DbLike, id: number): CourseRecord | null {
   if (isJsonFallback(db)) {
     const s = getFallbackState(db);
-    return s.courses.find((c) => c.id === id) || null;
+    const found = s.courses.find((c) => c.id === id);
+    return found ? { ...found, image_url: String(found.image_url || '') } : null;
   }
 
   const row = db
     .prepare(
-      `SELECT id, title, slug, short_description, outcomes_json, level, mode, duration, price, status, display_order, created_at, updated_at
+      `SELECT id, title, slug, image_url, short_description, outcomes_json, level, mode, duration, price, status, display_order, created_at, updated_at
        FROM courses WHERE id = ?`
     )
     .get(id) as RawCourseRow | undefined;
@@ -514,6 +543,7 @@ export function createCourse(db: DbLike, input: CourseInput): CourseRecord {
       id: s.seq.courses++,
       title: input.title,
       slug,
+      image_url: input.image_url || '',
       short_description: input.short_description,
       outcomes: [...input.outcomes],
       level: input.level,
@@ -545,12 +575,13 @@ export function createCourse(db: DbLike, input: CourseInput): CourseRecord {
 
   const res = db
     .prepare(
-      `INSERT INTO courses (title, slug, short_description, outcomes_json, level, mode, duration, price, status, display_order, created_at, updated_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+      `INSERT INTO courses (title, slug, image_url, short_description, outcomes_json, level, mode, duration, price, status, display_order, created_at, updated_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
     )
     .run(
       input.title,
       slug,
+      input.image_url || '',
       input.short_description,
       JSON.stringify(input.outcomes),
       input.level,
@@ -581,6 +612,7 @@ export function updateCourse(db: DbLike, id: number, input: Partial<CourseInput>
     }
     target.title = input.title ?? target.title;
     target.slug = input.slug && input.slug.length > 0 ? input.slug : target.slug;
+    target.image_url = input.image_url !== undefined ? input.image_url : String(target.image_url || '');
     target.short_description = input.short_description ?? target.short_description;
     target.outcomes = input.outcomes ?? target.outcomes;
     target.level = input.level ?? target.level;
@@ -599,6 +631,7 @@ export function updateCourse(db: DbLike, id: number, input: Partial<CourseInput>
 
   const nextTitle = input.title ?? existing.title;
   const nextSlug = input.slug && input.slug.length > 0 ? input.slug : existing.slug;
+  const nextImageUrl = input.image_url !== undefined ? input.image_url : existing.image_url;
   const nextDesc = input.short_description ?? existing.short_description;
   const nextOutcomes = input.outcomes ?? existing.outcomes;
   const nextLevel = input.level ?? existing.level;
@@ -610,11 +643,12 @@ export function updateCourse(db: DbLike, id: number, input: Partial<CourseInput>
 
   db.prepare(
     `UPDATE courses
-     SET title = ?, slug = ?, short_description = ?, outcomes_json = ?, level = ?, mode = ?, duration = ?, price = ?, status = ?, display_order = ?, updated_at = ?
+     SET title = ?, slug = ?, image_url = ?, short_description = ?, outcomes_json = ?, level = ?, mode = ?, duration = ?, price = ?, status = ?, display_order = ?, updated_at = ?
      WHERE id = ?`
   ).run(
     nextTitle,
     nextSlug,
+    nextImageUrl,
     nextDesc,
     JSON.stringify(nextOutcomes),
     nextLevel,
@@ -850,7 +884,7 @@ export function registerLearnerTransaction(
 
   const course = db
     .prepare(
-      `SELECT id, title, slug, short_description, outcomes_json, level, mode, duration, price, status, display_order, created_at, updated_at
+      `SELECT id, title, slug, image_url, short_description, outcomes_json, level, mode, duration, price, status, display_order, created_at, updated_at
        FROM courses WHERE id = ? AND status = 'published'`
     )
     .get(params.courseId) as RawCourseRow | undefined;

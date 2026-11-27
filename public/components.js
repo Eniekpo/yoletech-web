@@ -79,6 +79,7 @@ window.YOLETECH_COMPONENTS = {
     if (!root || !root.querySelectorAll) return;
     const cardSelector = '.metric-cell, .mini-kpi-card, .glass-card, .dash-card, .dash-insights, .scope-subcard, .about-info-card, .portfolio-project-card, .testimonial-card, .blog-card, .service-card';
     root.querySelectorAll(cardSelector).forEach((card) => {
+      if (card.hasAttribute('data-no-card-icon')) return;
       if (card.querySelector('.site-card-icon, .dash-kpi-icon')) return;
       const label = [...card.querySelectorAll('.metric-label, .mini-kpi-title, .dash-card-title, .scope-subcard-title, h1, h2, h3, h4, h5')]
         .find((candidate) => candidate.closest(cardSelector) === card);

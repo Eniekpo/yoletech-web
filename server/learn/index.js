@@ -42,6 +42,7 @@ __export(server_entry_exports, {
   getLearnPageContent: () => getLearnPageContent,
   getLearnerDashboardData: () => getLearnerDashboardData,
   handleLearnApiRequest: () => handleLearnApiRequest,
+  isValidCourseImageUrl: () => isValidCourseImageUrl,
   learnFaqItemSchema: () => learnFaqItemSchema,
   learnPageContentSchema: () => learnPageContentSchema,
   learnerRegistrationSchema: () => learnerRegistrationSchema,
@@ -64,6 +65,7 @@ var DEFAULT_SEED_COURSES = [
   {
     title: "Full-Stack Web Development",
     slug: "full-stack-web-development",
+    image_url: "/assets/code-sync-preview.jpg",
     short_description: "Build responsive web applications from user interfaces to backend APIs and relational databases through guided, hands-on projects.",
     outcomes: [
       "Structure accessible HTML, modern CSS, and interactive JavaScript interfaces",
@@ -81,6 +83,7 @@ var DEFAULT_SEED_COURSES = [
   {
     title: "Data Analysis and Business Intelligence",
     slug: "data-analysis-and-business-intelligence",
+    image_url: "/assets/dashboard-preview.jpg",
     short_description: "Learn how to clean, analyze, and turn raw spreadsheets and database tables into clear dashboards and decision-ready reports.",
     outcomes: [
       "Clean, transform, and validate structured datasets with spreadsheets, SQL, and Python",
@@ -98,6 +101,7 @@ var DEFAULT_SEED_COURSES = [
   {
     title: "AI Automation",
     slug: "ai-automation",
+    image_url: "/assets/workflow-diagram.jpg",
     short_description: "Streamline repetitive business tasks by connecting APIs, scripts, and AI-assisted workflows to save manual effort and reduce errors.",
     outcomes: [
       "Map manual operational processes and identify practical automation opportunities",
@@ -115,6 +119,7 @@ var DEFAULT_SEED_COURSES = [
   {
     title: "Customer Support Solutions (AI assistants and chatbots)",
     slug: "customer-support-solutions-ai-assistants-and-chatbots",
+    image_url: "/assets/about-analytics-workspace.jpg",
     short_description: "Design helpful customer support workflows, knowledge bases, and AI-assisted chat experiences with clear human handoff.",
     outcomes: [
       "Organize FAQs and help documentation into structured support knowledge bases",
@@ -132,6 +137,7 @@ var DEFAULT_SEED_COURSES = [
   {
     title: "IT Support",
     slug: "it-support",
+    image_url: "/assets/home-hero-analyst.jpg",
     short_description: "Develop practical skills in workstation setup, networking basics, system troubleshooting, backups, and everyday technical support.",
     outcomes: [
       "Diagnose and resolve common hardware, operating system, and software issues",
@@ -149,6 +155,7 @@ var DEFAULT_SEED_COURSES = [
   {
     title: "AI-Powered Content Creation and Graphic Design",
     slug: "ai-powered-content-creation-and-graphic-design",
+    image_url: "/assets/yoletech-hero-banner.png",
     short_description: "Combine core visual design principles with modern AI-assisted tools to produce consistent brand graphics, layouts, and digital media.",
     outcomes: [
       "Apply typography, color contrast, and layout hierarchy across digital assets",
@@ -166,6 +173,7 @@ var DEFAULT_SEED_COURSES = [
   {
     title: "Tech Tutorials (general tech skills)",
     slug: "tech-tutorials-general-tech-skills",
+    image_url: "/assets/about-analytics-workspace.jpg",
     short_description: "Strengthen everyday digital fluency\u2014from productivity suites and cloud collaboration to basic troubleshooting and safe online habits.",
     outcomes: [
       "Work confidently with spreadsheets, documents, email, and cloud storage",
@@ -300,9 +308,27 @@ var learnerRegistrationSchema = import_zod.z.object({
 function slugifyCourseTitle(input) {
   return String(input || "").trim().toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/-+/g, "-").replace(/^-|-$/g, "").slice(0, 120);
 }
+var RASTER_DATA_URI_RE = /^data:image\/(png|jpeg|jpg|webp|gif);base64,[A-Za-z0-9+/=]+$/i;
+function isValidCourseImageUrl(raw) {
+  const value = String(raw || "").trim();
+  if (!value) return true;
+  if (RASTER_DATA_URI_RE.test(value)) return true;
+  if (value.startsWith("/") && !value.startsWith("//") && !/\s/.test(value)) {
+    return true;
+  }
+  try {
+    const parsed = new URL(value);
+    return parsed.protocol === "https:" || parsed.protocol === "http:";
+  } catch {
+    return false;
+  }
+}
 var courseInputSchema = import_zod.z.object({
   title: import_zod.z.string().trim().min(3, "Course title must be at least 3 characters.").max(140),
   slug: import_zod.z.string().trim().toLowerCase().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, "Slug may only contain lowercase letters, numbers, and hyphens.").max(140).optional().or(import_zod.z.literal("")),
+  image_url: import_zod.z.string().trim().max(15e5, "Course image is too large. Please upload a smaller image (under 1 MB).").refine(isValidCourseImageUrl, {
+    message: "Provide a valid image URL (https://... or /assets/...) or upload a PNG, JPG, WebP, or GIF image."
+  }).optional().default(""),
   short_description: import_zod.z.string().trim().min(10, "Short description must be at least 10 characters.").max(600),
   outcomes: import_zod.z.array(import_zod.z.string().trim().min(2, "Each outcome must be at least 2 characters.").max(220)).min(1, "Provide at least one learning outcome.").max(12, "Provide at most 12 learning outcomes."),
   level: import_zod.z.string().trim().min(2, "Level is required.").max(60),
@@ -397,6 +423,7 @@ function hydrateCourse(row) {
     id: Number(row.id),
     title: String(row.title),
     slug: String(row.slug),
+    image_url: String(row.image_url || ""),
     short_description: String(row.short_description),
     outcomes: parseJsonStringArray(row.outcomes_json),
     level: String(row.level || "Beginner"),
@@ -422,6 +449,7 @@ function ensureLearnSchemaAndSeed(db) {
           id,
           title: c.title,
           slug: c.slug,
+          image_url: c.image_url,
           short_description: c.short_description,
           outcomes: [...c.outcomes],
           level: c.level,
@@ -435,6 +463,13 @@ function ensureLearnSchemaAndSeed(db) {
         });
       }
       dirty = true;
+    } else {
+      for (const c of s.courses) {
+        if (typeof c.image_url !== "string") {
+          c.image_url = "";
+          dirty = true;
+        }
+      }
     }
     if (!s.learn_page_content) {
       s.learn_page_content = {
@@ -459,6 +494,7 @@ function ensureLearnSchemaAndSeed(db) {
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       title TEXT NOT NULL,
       slug TEXT UNIQUE NOT NULL,
+      image_url TEXT DEFAULT '',
       short_description TEXT NOT NULL,
       outcomes_json TEXT NOT NULL DEFAULT '[]',
       level TEXT NOT NULL DEFAULT 'Beginner',
@@ -515,17 +551,30 @@ function ensureLearnSchemaAndSeed(db) {
     CREATE INDEX IF NOT EXISTS idx_enrollments_status_created ON enrollments(status, created_at);
     CREATE INDEX IF NOT EXISTS idx_learner_profiles_country ON learner_profiles(country_name);
   `);
+  const courseColumns = db.prepare("PRAGMA table_info(courses)").all();
+  if (!courseColumns.some((col) => col.name === "image_url")) {
+    db.exec(`ALTER TABLE courses ADD COLUMN image_url TEXT DEFAULT ''`);
+    const backfillImage = db.prepare(
+      `UPDATE courses SET image_url = ? WHERE slug = ? AND (image_url IS NULL OR TRIM(image_url) = '')`
+    );
+    for (const c of DEFAULT_SEED_COURSES) {
+      if (c.image_url) {
+        backfillImage.run(c.image_url, c.slug);
+      }
+    }
+  }
   const countRow = db.prepare("SELECT COUNT(*) as count FROM courses").get();
   if (!countRow || Number(countRow.count || 0) === 0) {
     const insertCourse = db.prepare(`
       INSERT OR IGNORE INTO courses
-        (title, slug, short_description, outcomes_json, level, mode, duration, price, status, display_order)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        (title, slug, image_url, short_description, outcomes_json, level, mode, duration, price, status, display_order)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `);
     for (const c of DEFAULT_SEED_COURSES) {
       insertCourse.run(
         c.title,
         c.slug,
+        c.image_url,
         c.short_description,
         JSON.stringify(c.outcomes),
         c.level,
@@ -553,10 +602,10 @@ function ensureLearnSchemaAndSeed(db) {
 function listPublishedCourses(db) {
   if (isJsonFallback(db)) {
     const s = getFallbackState(db);
-    return s.courses.filter((c) => c.status === "published").sort((a, b) => a.display_order - b.display_order || a.id - b.id);
+    return s.courses.filter((c) => c.status === "published").map((c) => ({ ...c, image_url: String(c.image_url || "") })).sort((a, b) => a.display_order - b.display_order || a.id - b.id);
   }
   const rows = db.prepare(
-    `SELECT id, title, slug, short_description, outcomes_json, level, mode, duration, price, status, display_order, created_at, updated_at
+    `SELECT id, title, slug, image_url, short_description, outcomes_json, level, mode, duration, price, status, display_order, created_at, updated_at
        FROM courses
        WHERE status = 'published'
        ORDER BY display_order ASC, id ASC`
@@ -568,11 +617,12 @@ function listAllCourses(db) {
     const s = getFallbackState(db);
     return [...s.courses].map((c) => ({
       ...c,
+      image_url: String(c.image_url || ""),
       enrollment_count: s.enrollments.filter((e) => e.course_id === c.id).length
     })).sort((a, b) => a.display_order - b.display_order || a.id - b.id);
   }
   const rows = db.prepare(
-    `SELECT c.id, c.title, c.slug, c.short_description, c.outcomes_json, c.level, c.mode, c.duration, c.price, c.status, c.display_order, c.created_at, c.updated_at,
+    `SELECT c.id, c.title, c.slug, c.image_url, c.short_description, c.outcomes_json, c.level, c.mode, c.duration, c.price, c.status, c.display_order, c.created_at, c.updated_at,
               COUNT(e.id) AS enrollment_count
        FROM courses c
        LEFT JOIN enrollments e ON e.course_id = c.id
@@ -584,10 +634,11 @@ function listAllCourses(db) {
 function getCourseById(db, id) {
   if (isJsonFallback(db)) {
     const s = getFallbackState(db);
-    return s.courses.find((c) => c.id === id) || null;
+    const found = s.courses.find((c) => c.id === id);
+    return found ? { ...found, image_url: String(found.image_url || "") } : null;
   }
   const row = db.prepare(
-    `SELECT id, title, slug, short_description, outcomes_json, level, mode, duration, price, status, display_order, created_at, updated_at
+    `SELECT id, title, slug, image_url, short_description, outcomes_json, level, mode, duration, price, status, display_order, created_at, updated_at
        FROM courses WHERE id = ?`
   ).get(id);
   return row ? hydrateCourse(row) : null;
@@ -606,6 +657,7 @@ function createCourse(db, input) {
       id: s.seq.courses++,
       title: input.title,
       slug,
+      image_url: input.image_url || "",
       short_description: input.short_description,
       outcomes: [...input.outcomes],
       level: input.level,
@@ -631,11 +683,12 @@ function createCourse(db, input) {
     displayOrder = Number(maxRow?.max_order || 0) + 1;
   }
   const res = db.prepare(
-    `INSERT INTO courses (title, slug, short_description, outcomes_json, level, mode, duration, price, status, display_order, created_at, updated_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+    `INSERT INTO courses (title, slug, image_url, short_description, outcomes_json, level, mode, duration, price, status, display_order, created_at, updated_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
   ).run(
     input.title,
     slug,
+    input.image_url || "",
     input.short_description,
     JSON.stringify(input.outcomes),
     input.level,
@@ -664,6 +717,7 @@ function updateCourse(db, id, input) {
     }
     target.title = input.title ?? target.title;
     target.slug = input.slug && input.slug.length > 0 ? input.slug : target.slug;
+    target.image_url = input.image_url !== void 0 ? input.image_url : String(target.image_url || "");
     target.short_description = input.short_description ?? target.short_description;
     target.outcomes = input.outcomes ?? target.outcomes;
     target.level = input.level ?? target.level;
@@ -680,6 +734,7 @@ function updateCourse(db, id, input) {
   if (!existing) return null;
   const nextTitle = input.title ?? existing.title;
   const nextSlug = input.slug && input.slug.length > 0 ? input.slug : existing.slug;
+  const nextImageUrl = input.image_url !== void 0 ? input.image_url : existing.image_url;
   const nextDesc = input.short_description ?? existing.short_description;
   const nextOutcomes = input.outcomes ?? existing.outcomes;
   const nextLevel = input.level ?? existing.level;
@@ -690,11 +745,12 @@ function updateCourse(db, id, input) {
   const nextOrder = input.display_order !== void 0 ? input.display_order : existing.display_order;
   db.prepare(
     `UPDATE courses
-     SET title = ?, slug = ?, short_description = ?, outcomes_json = ?, level = ?, mode = ?, duration = ?, price = ?, status = ?, display_order = ?, updated_at = ?
+     SET title = ?, slug = ?, image_url = ?, short_description = ?, outcomes_json = ?, level = ?, mode = ?, duration = ?, price = ?, status = ?, display_order = ?, updated_at = ?
      WHERE id = ?`
   ).run(
     nextTitle,
     nextSlug,
+    nextImageUrl,
     nextDesc,
     JSON.stringify(nextOutcomes),
     nextLevel,
@@ -887,7 +943,7 @@ function registerLearnerTransaction(db, params) {
     return { ok: true, user, profile, enrollment };
   }
   const course = db.prepare(
-    `SELECT id, title, slug, short_description, outcomes_json, level, mode, duration, price, status, display_order, created_at, updated_at
+    `SELECT id, title, slug, image_url, short_description, outcomes_json, level, mode, duration, price, status, display_order, created_at, updated_at
        FROM courses WHERE id = ? AND status = 'published'`
   ).get(params.courseId);
   if (!course) {
@@ -1829,6 +1885,7 @@ async function handleLearnApiRequest(ctx) {
   getLearnPageContent,
   getLearnerDashboardData,
   handleLearnApiRequest,
+  isValidCourseImageUrl,
   learnFaqItemSchema,
   learnPageContentSchema,
   learnerRegistrationSchema,

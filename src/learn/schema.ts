@@ -170,6 +170,23 @@ export function slugifyCourseTitle(input: string): string {
     .slice(0, 120);
 }
 
+const RASTER_DATA_URI_RE = /^data:image\/(png|jpeg|jpg|webp|gif);base64,[A-Za-z0-9+/=]+$/i;
+
+export function isValidCourseImageUrl(raw: string): boolean {
+  const value = String(raw || '').trim();
+  if (!value) return true;
+  if (RASTER_DATA_URI_RE.test(value)) return true;
+  if (value.startsWith('/') && !value.startsWith('//') && !/\s/.test(value)) {
+    return true;
+  }
+  try {
+    const parsed = new URL(value);
+    return parsed.protocol === 'https:' || parsed.protocol === 'http:';
+  } catch {
+    return false;
+  }
+}
+
 export const courseInputSchema = z.object({
   title: z.string().trim().min(3, 'Course title must be at least 3 characters.').max(140),
   slug: z
@@ -180,6 +197,15 @@ export const courseInputSchema = z.object({
     .max(140)
     .optional()
     .or(z.literal('')),
+  image_url: z
+    .string()
+    .trim()
+    .max(1_500_000, 'Course image is too large. Please upload a smaller image (under 1 MB).')
+    .refine(isValidCourseImageUrl, {
+      message: 'Provide a valid image URL (https://... or /assets/...) or upload a PNG, JPG, WebP, or GIF image.'
+    })
+    .optional()
+    .default(''),
   short_description: z
     .string()
     .trim()

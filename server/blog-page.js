@@ -287,9 +287,11 @@ function loadPublishedLearnDataForSeo() {
     const dbPath = process.env.YOLETECH_DB_PATH || path.join(__dirname, 'yoletech.db');
     if (fs.existsSync(dbPath)) {
       const db = new DatabaseSync(dbPath, { readOnly: true });
+      const cols = db.prepare('PRAGMA table_info(courses)').all();
+      const hasImageCol = Array.isArray(cols) && cols.some((c) => c.name === 'image_url');
       const courses = db
         .prepare(
-          `SELECT id, title, slug, short_description, level, mode, duration, price
+          `SELECT id, title, slug, ${hasImageCol ? 'image_url,' : "'' AS image_url,"} short_description, level, mode, duration, price
            FROM courses WHERE status = 'published' ORDER BY display_order ASC, id ASC`
         )
         .all();
@@ -373,6 +375,19 @@ function renderRouteSeoHtml(pathname, reqOrigin) {
           courseMode: String(course.mode || 'online')
         }
       };
+      if (course.image_url && typeof course.image_url === 'string') {
+        const rawImg = course.image_url.trim();
+        if (rawImg && !rawImg.startsWith('data:')) {
+          try {
+            const parsedImg = new URL(rawImg, `${origin}/`);
+            if (parsedImg.protocol === 'http:' || parsedImg.protocol === 'https:') {
+              courseNode.image = parsedImg.href;
+            }
+          } catch {
+            // ignore invalid image URL in JSON-LD
+          }
+        }
+      }
       if (course.duration && String(course.duration).trim()) {
         courseNode.timeRequired = String(course.duration).trim();
       }

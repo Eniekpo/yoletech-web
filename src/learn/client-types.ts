@@ -68,6 +68,7 @@ export interface LearnClientState {
   submitting: boolean;
   showPassword: boolean;
   legalModal: '' | 'terms' | 'privacy';
+  courseModalId: number | null;
 
   dashboardLoading: boolean;
   dashboardLoaded: boolean;
@@ -88,6 +89,8 @@ export interface AdminLearnState {
   courseSubmitting: boolean;
   courseError: string;
   courseFieldErrors: Record<string, string>;
+  courseImageDraft: string;
+  courseImageUploading: boolean;
 
   registrations: AdminRegistrationRow[];
   countries: string[];
@@ -159,6 +162,10 @@ export interface YoletechAppHost {
   updateCountryListboxDom(): void;
   updatePasswordStrengthDom(): void;
   selectLearnCountry(isoCode: string): Promise<void>;
+  scrollToLearnRegistration(courseId?: number): void;
+  openCourseDetailsModal(courseId: number): void;
+  closeCourseDetailsModal(): void;
+  registerFromCourseModal(courseId: number): void;
   renderLearnPage(): string;
   renderLearnerDashboardPage(): string;
   renderAdminLearnWorkspace(): string;

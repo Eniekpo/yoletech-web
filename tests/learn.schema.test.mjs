@@ -106,10 +106,11 @@ test('evaluatePasswordStrength scores short, weak, and strong passwords', () => 
   assert.equal(evaluatePasswordStrength('Abcd1234!@#').score, 4);
 });
 
-test('courseInputSchema validates optional duration and price fields cleanly', () => {
-  const parsed = courseInputSchema.safeParse({
+test('courseInputSchema validates optional duration, price, and image_url fields cleanly', () => {
+  const baseCourse = {
     title: 'Cloud Operations Fundamentals',
     slug: '',
+    image_url: '/assets/dashboard-preview.jpg',
     short_description: 'Hands-on introduction to managing cloud resources and deployment workflows.',
     outcomes: ['Configure cloud storage', 'Deploy web applications'],
     level: 'Beginner',
@@ -118,8 +119,26 @@ test('courseInputSchema validates optional duration and price fields cleanly', (
     price: '',
     status: 'draft',
     display_order: 8
-  });
-  assert.equal(parsed.success, true);
+  };
+  assert.equal(courseInputSchema.safeParse(baseCourse).success, true);
+  assert.equal(courseInputSchema.safeParse({ ...baseCourse, image_url: '' }).success, true);
+  assert.equal(
+    courseInputSchema.safeParse({ ...baseCourse, image_url: 'https://cdn.example.com/course.webp' }).success,
+    true
+  );
+  assert.equal(
+    courseInputSchema.safeParse({
+      ...baseCourse,
+      image_url: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg=='
+    }).success,
+    true
+  );
+  // Reject unsafe protocols or SVG data URIs
+  assert.equal(courseInputSchema.safeParse({ ...baseCourse, image_url: 'javascript:alert(1)' }).success, false);
+  assert.equal(
+    courseInputSchema.safeParse({ ...baseCourse, image_url: 'data:image/svg+xml;base64,PHN2Zz48L3N2Zz4=' }).success,
+    false
+  );
 });
 
 test('learnPageContentSchema validates editable banner and FAQ items', () => {

@@ -11,6 +11,7 @@ export interface LearnFaqItem {
 export interface SeedCourseInput {
   title: string;
   slug: string;
+  image_url: string;
   short_description: string;
   outcomes: string[];
   level: string;
@@ -33,6 +34,7 @@ export const DEFAULT_SEED_COURSES: SeedCourseInput[] = [
   {
     title: 'Full-Stack Web Development',
     slug: 'full-stack-web-development',
+    image_url: '/assets/code-sync-preview.jpg',
     short_description:
       'Build responsive web applications from user interfaces to backend APIs and relational databases through guided, hands-on projects.',
     outcomes: [
@@ -51,6 +53,7 @@ export const DEFAULT_SEED_COURSES: SeedCourseInput[] = [
   {
     title: 'Data Analysis and Business Intelligence',
     slug: 'data-analysis-and-business-intelligence',
+    image_url: '/assets/dashboard-preview.jpg',
     short_description:
       'Learn how to clean, analyze, and turn raw spreadsheets and database tables into clear dashboards and decision-ready reports.',
     outcomes: [
@@ -69,6 +72,7 @@ export const DEFAULT_SEED_COURSES: SeedCourseInput[] = [
   {
     title: 'AI Automation',
     slug: 'ai-automation',
+    image_url: '/assets/workflow-diagram.jpg',
     short_description:
       'Streamline repetitive business tasks by connecting APIs, scripts, and AI-assisted workflows to save manual effort and reduce errors.',
     outcomes: [
@@ -87,6 +91,7 @@ export const DEFAULT_SEED_COURSES: SeedCourseInput[] = [
   {
     title: 'Customer Support Solutions (AI assistants and chatbots)',
     slug: 'customer-support-solutions-ai-assistants-and-chatbots',
+    image_url: '/assets/about-analytics-workspace.jpg',
     short_description:
       'Design helpful customer support workflows, knowledge bases, and AI-assisted chat experiences with clear human handoff.',
     outcomes: [
@@ -105,6 +110,7 @@ export const DEFAULT_SEED_COURSES: SeedCourseInput[] = [
   {
     title: 'IT Support',
     slug: 'it-support',
+    image_url: '/assets/home-hero-analyst.jpg',
     short_description:
       'Develop practical skills in workstation setup, networking basics, system troubleshooting, backups, and everyday technical support.',
     outcomes: [
@@ -123,6 +129,7 @@ export const DEFAULT_SEED_COURSES: SeedCourseInput[] = [
   {
     title: 'AI-Powered Content Creation and Graphic Design',
     slug: 'ai-powered-content-creation-and-graphic-design',
+    image_url: '/assets/yoletech-hero-banner.png',
     short_description:
       'Combine core visual design principles with modern AI-assisted tools to produce consistent brand graphics, layouts, and digital media.',
     outcomes: [
@@ -141,6 +148,7 @@ export const DEFAULT_SEED_COURSES: SeedCourseInput[] = [
   {
     title: 'Tech Tutorials (general tech skills)',
     slug: 'tech-tutorials-general-tech-skills',
+    image_url: '/assets/about-analytics-workspace.jpg',
     short_description:
       'Strengthen everyday digital fluency—from productivity suites and cloud collaboration to basic troubleshooting and safe online habits.',
     outcomes: [

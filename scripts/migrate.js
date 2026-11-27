@@ -26,12 +26,20 @@ function runMigrations(dbPath = DB_PATH) {
   const applied = [];
   for (const file of files) {
     const exists = db.prepare('SELECT id FROM schema_migrations WHERE id = ?').get(file);
-    const sql = fs.readFileSync(path.join(MIGRATIONS_DIR, file), 'utf8');
-    db.exec(sql);
-    if (!exists) {
-      db.prepare('INSERT INTO schema_migrations (id) VALUES (?)').run(file);
-      applied.push(file);
+    if (exists) {
+      continue;
     }
+    const sql = fs.readFileSync(path.join(MIGRATIONS_DIR, file), 'utf8');
+    try {
+      db.exec(sql);
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      if (!/duplicate column name/i.test(msg)) {
+        throw err;
+      }
+    }
+    db.prepare('INSERT INTO schema_migrations (id) VALUES (?)').run(file);
+    applied.push(file);
   }
   db.close();
   return { dbPath, files, applied };

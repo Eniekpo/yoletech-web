@@ -73,6 +73,7 @@ function createInitialLearnState(): LearnClientState {
     submitting: false,
     showPassword: false,
     legalModal: '',
+    courseModalId: null,
 
     dashboardLoading: false,
     dashboardLoaded: false,
@@ -291,6 +292,32 @@ function attachLearnClientMethods(proto: Record<string, unknown>): void {
         this.render();
       }
     }
+  };
+
+  proto.openCourseDetailsModal = function (this: YoletechAppHost, courseId: number): void {
+    const st = this.ensureLearnState();
+    st.courseModalId = courseId;
+    this.render();
+    window.setTimeout(() => {
+      const dialog = document.getElementById('learn-course-details-modal');
+      if (dialog && typeof dialog.focus === 'function') {
+        dialog.focus();
+      }
+    }, 20);
+  };
+
+  proto.closeCourseDetailsModal = function (this: YoletechAppHost): void {
+    const st = this.ensureLearnState();
+    if (st.courseModalId === null) return;
+    st.courseModalId = null;
+    this.render();
+  };
+
+  proto.registerFromCourseModal = function (this: YoletechAppHost, courseId: number): void {
+    const st = this.ensureLearnState();
+    st.courseModalId = null;
+    this.render();
+    this.scrollToLearnRegistration(courseId);
   };
 
   proto.scrollToLearnRegistration = function (this: YoletechAppHost, courseId?: number): void {
@@ -831,34 +858,21 @@ function attachLearnClientMethods(proto: Record<string, unknown>): void {
                 ${courses
                   .map(
                     (course) => `
-                  <article class="glass-card learn-course-card">
-                    <div class="learn-course-card-top">
-                      <div class="learn-course-badges">
-                        <span class="tech-pill lime">${escHtml(course.level)}</span>
-                        <span class="tech-pill orange">${formatModeLabel(course.mode)}</span>
-                        ${course.duration ? `<span class="tech-pill">${escHtml(course.duration)}</span>` : ''}
-                        ${course.price ? `<span class="tech-pill">${escHtml(course.price)}</span>` : ''}
-                      </div>
-                      <h3 class="learn-course-title">${escHtml(course.title)}</h3>
-                      <p class="learn-course-desc">${escHtml(course.short_description)}</p>
+                  <article class="glass-card learn-course-card" data-no-card-icon="true">
+                    <h3 class="learn-course-title">${escHtml(course.title)}</h3>
+                    <div class="learn-course-media">
                       ${
-                        course.outcomes.length > 0
-                          ? `
-                        <div class="learn-outcomes-block">
-                          <div class="learn-outcomes-label">What you will learn</div>
-                          <ul class="learn-outcomes-list">
-                            ${course.outcomes
-                              .map((outcome) => `<li><span class="learn-check" aria-hidden="true">✓</span><span>${escHtml(outcome)}</span></li>`)
-                              .join('')}
-                          </ul>
-                        </div>
-                      `
-                          : ''
+                        course.image_url
+                          ? `<img class="learn-course-image" src="${escHtml(course.image_url)}" alt="${escHtml(course.title)}" loading="lazy" decoding="async" onerror="this.style.display='none';if(this.nextElementSibling){this.nextElementSibling.classList.remove('is-hidden');}" /><div class="learn-course-image-fallback is-hidden" aria-hidden="true"><span>YOLETECH</span></div>`
+                          : `<div class="learn-course-image-fallback" role="img" aria-label="${escHtml(course.title)} course image"><span>YOLETECH</span></div>`
                       }
                     </div>
-                    <div class="learn-course-card-footer">
-                      <button type="button" class="btn btn-lime btn-sm" style="width:100%;" onclick="window.app.scrollToLearnRegistration(${course.id})">
-                        Register for this course →
+                    <div class="learn-course-card-actions">
+                      <button type="button" class="btn btn-lime btn-sm" onclick="window.app.scrollToLearnRegistration(${course.id})">
+                        Register for this Course
+                      </button>
+                      <button type="button" class="btn btn-outline btn-sm" onclick="window.app.openCourseDetailsModal(${course.id})">
+                        Course Details
                       </button>
                     </div>
                   </article>
@@ -1293,6 +1307,11 @@ function attachLearnClientMethods(proto: Record<string, unknown>): void {
         }
 
         ${st.legalModal ? renderLegalModal(st.legalModal) : ''}
+        ${
+          st.courseModalId !== null
+            ? renderCourseDetailsModal(courses.find((c) => c.id === st.courseModalId) || null)
+            : ''
+        }
       </div>
     `;
   };
@@ -1465,6 +1484,62 @@ function attachLearnClientMethods(proto: Record<string, unknown>): void {
   };
 }
 
+function renderCourseDetailsModal(course: CourseRecord | null): string {
+  if (!course) return '';
+  return `
+    <div class="learn-drawer-backdrop" onclick="window.app.closeCourseDetailsModal()" aria-hidden="true"></div>
+    <div id="learn-course-details-modal" class="learn-modal-dialog learn-course-modal" role="dialog" aria-modal="true" aria-labelledby="learn-course-modal-title" tabindex="-1">
+      <div class="learn-drawer-header">
+        <div>
+          <div class="eyebrow" style="margin-bottom:6px;"><span class="eyebrow-dot"></span> COURSE DETAILS</div>
+          <h3 id="learn-course-modal-title" style="font-size:22px;font-weight:900;line-height:1.25;">${escHtml(course.title)}</h3>
+        </div>
+        <button type="button" class="form-confirmation-dismiss" aria-label="Close course details" onclick="window.app.closeCourseDetailsModal()">×</button>
+      </div>
+      <div class="learn-modal-body">
+        ${
+          course.image_url
+            ? `
+          <div class="learn-course-modal-media">
+            <img src="${escHtml(course.image_url)}" alt="${escHtml(course.title)}" class="learn-course-modal-img" />
+          </div>
+        `
+            : ''
+        }
+        <div class="learn-course-badges" style="margin-bottom:4px;">
+          <span class="tech-pill lime">${escHtml(course.level)}</span>
+          <span class="tech-pill orange">${formatModeLabel(course.mode)}</span>
+          ${course.duration ? `<span class="tech-pill">${escHtml(course.duration)}</span>` : ''}
+          ${course.price ? `<span class="tech-pill">${escHtml(course.price)}</span>` : ''}
+        </div>
+        <p class="learn-course-modal-desc">${escHtml(course.short_description)}</p>
+        ${
+          course.outcomes.length > 0
+            ? `
+          <div class="learn-outcomes-block">
+            <div class="learn-outcomes-label">What you will learn</div>
+            <ul class="learn-outcomes-list">
+              ${course.outcomes
+                .map((outcome) => `<li><span class="learn-check" aria-hidden="true">✓</span><span>${escHtml(outcome)}</span></li>`)
+                .join('')}
+            </ul>
+          </div>
+        `
+            : ''
+        }
+      </div>
+      <div class="learn-course-modal-footer">
+        <button type="button" class="btn btn-lime btn-sm" onclick="window.app.registerFromCourseModal(${course.id})">
+          Register for this Course →
+        </button>
+        <button type="button" class="btn btn-outline btn-sm" onclick="window.app.closeCourseDetailsModal()">
+          Close
+        </button>
+      </div>
+    </div>
+  `;
+}
+
 function renderLegalModal(kind: 'terms' | 'privacy'): string {
   const isTerms = kind === 'terms';
   return `
@@ -1513,6 +1588,11 @@ if (typeof window !== 'undefined') {
   window.addEventListener('keydown', (event: KeyboardEvent) => {
     if (event.key !== 'Escape' || !window.app) return;
     const learnSt = window.app._learnState;
+    if (learnSt && learnSt.courseModalId !== null) {
+      learnSt.courseModalId = null;
+      window.app.render();
+      return;
+    }
     if (learnSt && learnSt.legalModal) {
       learnSt.legalModal = '';
       window.app.render();

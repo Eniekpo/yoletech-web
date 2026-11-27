@@ -8,10 +8,6 @@ import { createRequire } from 'node:module';
 
 const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'yoletech-learn-test-'));
 const tmpDbPath = path.join(tmpDir, 'test.db');
-const sourceDbPath = path.join(process.cwd(), 'server', 'yoletech.db');
-if (fs.existsSync(sourceDbPath)) {
-  fs.copyFileSync(sourceDbPath, tmpDbPath);
-}
 process.env.YOLETECH_DB_PATH = tmpDbPath;
 delete process.env.RESEND_API_KEY;
 
@@ -265,13 +261,14 @@ test('Admin Learn endpoints manage courses, registrations, bulk updates, CSV exp
   assert.match(csvRes.text, /Chidi Okafor/);
   assert.match(csvRes.text, /COMPLETED/);
 
-  // Create, toggle, reorder, and delete a course
+  // Create, toggle, reorder, and delete a course (including image_url)
   const createCourseRes = await invokeApp('/api/admin/learn/courses', {
     method: 'POST',
     headers: adminHeaders,
     body: JSON.stringify({
       title: 'SQL Database Foundations',
       slug: '',
+      image_url: '/assets/dashboard-preview.jpg',
       short_description: 'Learn relational database modeling, queries, and reporting basics.',
       outcomes: ['Write SELECT and JOIN queries', 'Design normalized tables'],
       level: 'Beginner',
@@ -283,6 +280,7 @@ test('Admin Learn endpoints manage courses, registrations, bulk updates, CSV exp
     })
   });
   assert.equal(createCourseRes.status, 201);
+  assert.equal(createCourseRes.json.course.image_url, '/assets/dashboard-preview.jpg');
   const newCourseId = createCourseRes.json.course.id;
 
   const publishRes = await invokeApp(`/api/admin/learn/courses/${newCourseId}`, {
@@ -292,6 +290,14 @@ test('Admin Learn endpoints manage courses, registrations, bulk updates, CSV exp
   });
   assert.equal(publishRes.status, 200);
   assert.equal(publishRes.json.course.status, 'published');
+  assert.equal(publishRes.json.course.image_url, '/assets/dashboard-preview.jpg');
+
+  // Public /api/learn/content exposes image_url on published courses
+  const publicAfterCreate = await invokeApp('/api/learn/content');
+  assert.equal(publicAfterCreate.status, 200);
+  const createdPublicCourse = publicAfterCreate.json.courses.find((c) => c.id === newCourseId);
+  assert.ok(createdPublicCourse);
+  assert.equal(createdPublicCourse.image_url, '/assets/dashboard-preview.jpg');
 
   const deleteRes = await invokeApp(`/api/admin/learn/courses/${newCourseId}`, {
     method: 'DELETE',
@@ -419,7 +425,16 @@ test('Unified login differentiates CLIENT, LEARNER, and ADMIN roles and Learn he
   assert.match(learnBundle, /href="\/login"[^>]*navigate\('login'\)[^>]*>\s*Sign In\s*<\/a>/);
   assert.equal(learnBundle.includes('href="#learn-courses-section"'), false);
 
-  // 5. Frontend controller routes CLIENT -> portal, LEARNER -> learn-dashboard, ADMIN -> admin-dashboard
+  // 5. Course cards show title, image, "Register for this Course", "Course Details" modal trigger, and admin image field
+  assert.match(learnBundle, /learn-course-media/);
+  assert.match(learnBundle, /Register for this Course/);
+  assert.match(learnBundle, /Course Details/);
+  assert.match(learnBundle, /openCourseDetailsModal/);
+  assert.match(learnBundle, /learn-course-details-modal/);
+  assert.match(learnBundle, /admin-course-image-file/);
+  assert.match(learnBundle, /admin-course-image-url/);
+
+  // 6. Frontend controller routes CLIENT -> portal, LEARNER -> learn-dashboard, ADMIN -> admin-dashboard
   const appJs = fs.readFileSync(path.join(process.cwd(), 'public', 'app.js'), 'utf8');
   assert.match(appJs, /userRole === 'LEARNER'[\s\S]*?navigate\('learn-dashboard'\)/);
   assert.match(appJs, /targetPage === 'portal' && role === 'LEARNER'[\s\S]*?targetPage = 'learn-dashboard'/);
