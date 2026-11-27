@@ -1,6 +1,8 @@
 import {
   DEFAULT_LEARN_PAGE_CONTENT,
   DEFAULT_SEED_COURSES,
+  LEGACY_DEFAULT_LEARN_HEADLINE,
+  LEGACY_DEFAULT_LEARN_SUBHEADLINE,
   type CourseMode,
   type CourseStatus,
   type EnrollmentStatus,
@@ -343,6 +345,14 @@ export function ensureLearnSchemaAndSeed(db: DbLike): void {
         updated_at: now
       };
       dirty = true;
+    } else if (
+      s.learn_page_content.headline === LEGACY_DEFAULT_LEARN_HEADLINE &&
+      s.learn_page_content.subheadline === LEGACY_DEFAULT_LEARN_SUBHEADLINE
+    ) {
+      s.learn_page_content.headline = DEFAULT_LEARN_PAGE_CONTENT.headline;
+      s.learn_page_content.subheadline = DEFAULT_LEARN_PAGE_CONTENT.subheadline;
+      s.learn_page_content.updated_at = now;
+      dirty = true;
     }
     if (dirty) db.__saveState();
     return;
@@ -453,7 +463,9 @@ export function ensureLearnSchemaAndSeed(db: DbLike): void {
     }
   }
 
-  const contentRow = db.prepare('SELECT id FROM learn_page_content WHERE id = 1').get() as { id?: number } | undefined;
+  const contentRow = db
+    .prepare('SELECT id, headline, subheadline FROM learn_page_content WHERE id = 1')
+    .get() as { id?: number; headline?: string; subheadline?: string } | undefined;
   if (!contentRow) {
     db.prepare(`
       INSERT INTO learn_page_content (id, headline, subheadline, cta_label, faq_json)
@@ -464,6 +476,15 @@ export function ensureLearnSchemaAndSeed(db: DbLike): void {
       DEFAULT_LEARN_PAGE_CONTENT.cta_label,
       JSON.stringify(DEFAULT_LEARN_PAGE_CONTENT.faq)
     );
+  } else if (
+    contentRow.headline === LEGACY_DEFAULT_LEARN_HEADLINE &&
+    contentRow.subheadline === LEGACY_DEFAULT_LEARN_SUBHEADLINE
+  ) {
+    db.prepare(`
+      UPDATE learn_page_content
+      SET headline = ?, subheadline = ?, updated_at = ?
+      WHERE id = 1
+    `).run(DEFAULT_LEARN_PAGE_CONTENT.headline, DEFAULT_LEARN_PAGE_CONTENT.subheadline, nowTimestamp());
   }
 }
 

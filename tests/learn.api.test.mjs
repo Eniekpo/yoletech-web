@@ -420,10 +420,12 @@ test('Unified login differentiates CLIENT, LEARNER, and ADMIN roles and Learn he
   assert.equal(learnerLogin.status, 200);
   assert.equal(learnerLogin.json.user.role, 'LEARNER');
 
-  // 4. Built Learn client bundle shows "Sign In" linked to /login in hero instead of "Browse Courses"
+  // 4. Built Learn client bundle shows split hero image on right + "Sign In" linked to /login
   const learnBundle = fs.readFileSync(path.join(process.cwd(), 'public', 'learn.js'), 'utf8');
   assert.match(learnBundle, /href="\/login"[^>]*navigate\('login'\)[^>]*>\s*Sign In\s*<\/a>/);
   assert.equal(learnBundle.includes('href="#learn-courses-section"'), false);
+  assert.match(learnBundle, /learn-hero-grid/);
+  assert.match(learnBundle, /\/assets\/learn-hero-learner\.jpg/);
 
   // 5. Course cards show title, image, "Register for this Course", "Course Details" modal trigger, and admin image field
   assert.match(learnBundle, /learn-course-media/);

@@ -166,10 +166,14 @@ export const DEFAULT_SEED_COURSES: SeedCourseInput[] = [
   }
 ];
 
+export const LEGACY_DEFAULT_LEARN_HEADLINE = 'Practical Tech Training Built Around Real-World Skills';
+export const LEGACY_DEFAULT_LEARN_SUBHEADLINE =
+  'Explore structured training programs across every Yoletech discipline—from full-stack web development and data analytics to AI automation, IT support, and digital skills. Register below to reserve your place.';
+
 export const DEFAULT_LEARN_PAGE_CONTENT: LearnPageContentData = {
-  headline: 'Practical Tech Training Built Around Real-World Skills',
+  headline: 'Build In-Demand Tech Skills. Learn by Doing.',
   subheadline:
-    'Explore structured training programs across every Yoletech discipline—from full-stack web development and data analytics to AI automation, IT support, and digital skills. Register below to reserve your place.',
+    'Hands-on training in web development, data analytics, AI automation, and IT—guided step by step from day one.',
   cta_label: 'Register Now',
   faq: [
     {

@@ -758,10 +758,10 @@ function attachLearnClientMethods(proto: Record<string, unknown>): void {
 
     const content = st.content;
     const courses = st.courses;
-    const headline = content?.headline || 'Practical Tech Training Built Around Real-World Skills';
+    const headline = content?.headline || 'Build In-Demand Tech Skills. Learn by Doing.';
     const subheadline =
       content?.subheadline ||
-      'Explore structured training programs across Yoletech disciplines and register below to reserve your place.';
+      'Hands-on training in web development, data analytics, AI automation, and IT—guided step by step from day one.';
     const ctaLabel = content?.cta_label || 'Register Now';
     const faqs = content?.faq || [];
 
@@ -780,42 +780,40 @@ function attachLearnClientMethods(proto: Record<string, unknown>): void {
         <section class="learn-hero-section">
           <div class="container">
             <div class="learn-hero-card">
-              <div class="eyebrow"><span class="eyebrow-dot"></span> YOLETECH TRAINING PROGRAMS</div>
-              <h1 class="learn-hero-title">${escHtml(headline)}</h1>
-              <p class="learn-hero-subtitle">${escHtml(subheadline)}</p>
+              <div class="learn-hero-grid">
+                <div class="learn-hero-copy">
+                  <div class="eyebrow"><span class="eyebrow-dot"></span> YOLETECH TRAINING PROGRAMS</div>
+                  <h1 class="learn-hero-title">${escHtml(headline)}</h1>
+                  <p class="learn-hero-subtitle">${escHtml(subheadline)}</p>
 
-              ${
-                courses.length > 0
-                  ? `
-                <div class="learn-hero-chips" aria-label="Available training tracks">
-                  ${courses
-                    .map(
-                      (c) => `
-                    <button type="button" class="tech-pill lime learn-hero-chip" onclick="window.app.scrollToLearnRegistration(${c.id})">
-                      ${escHtml(c.title)}
+                  <div class="learn-hero-actions">
+                    <button type="button" class="btn btn-lime" onclick="window.app.scrollToLearnRegistration()">
+                      ${escHtml(ctaLabel)} →
                     </button>
-                  `
-                    )
-                    .join('')}
+                    <a href="/login" class="btn btn-outline" onclick="event.preventDefault(); window.app.navigate('login');">
+                      Sign In
+                    </a>
+                    ${
+                      this.user && normalizeUserRole(this.user.role) === 'LEARNER'
+                        ? `<a href="/learn/dashboard" class="btn btn-outline" onclick="event.preventDefault(); window.app.navigate('learn-dashboard');">My Learner Portal →</a>`
+                        : this.user && normalizeUserRole(this.user.role) === 'CLIENT'
+                        ? `<a href="/portal" class="btn btn-outline" onclick="event.preventDefault(); window.app.navigate('portal');">Client Portal →</a>`
+                        : ''
+                    }
+                  </div>
                 </div>
-              `
-                  : ''
-              }
 
-              <div class="learn-hero-actions">
-                <button type="button" class="btn btn-lime" onclick="window.app.scrollToLearnRegistration()">
-                  ${escHtml(ctaLabel)} →
-                </button>
-                <a href="/login" class="btn btn-outline" onclick="event.preventDefault(); window.app.navigate('login');">
-                  Sign In
-                </a>
-                ${
-                  this.user && normalizeUserRole(this.user.role) === 'LEARNER'
-                    ? `<a href="/learn/dashboard" class="btn btn-outline" onclick="event.preventDefault(); window.app.navigate('learn-dashboard');">My Learner Portal →</a>`
-                    : this.user && normalizeUserRole(this.user.role) === 'CLIENT'
-                    ? `<a href="/portal" class="btn btn-outline" onclick="event.preventDefault(); window.app.navigate('portal');">Client Portal →</a>`
-                    : ''
-                }
+                <div class="learn-hero-media">
+                  <img
+                    src="/assets/learn-hero-learner.jpg"
+                    alt="Learner studying practical technology skills on a laptop in a sunlit workspace"
+                    class="learn-hero-img"
+                    width="1024"
+                    height="576"
+                    decoding="async"
+                    fetchpriority="high"
+                  />
+                </div>
               </div>
             </div>
           </div>

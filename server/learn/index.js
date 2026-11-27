@@ -26,6 +26,8 @@ __export(server_entry_exports, {
   DEFAULT_SEED_COURSES: () => DEFAULT_SEED_COURSES,
   ENROLLMENT_STATUSES: () => ENROLLMENT_STATUSES,
   GENDER_OPTIONS: () => GENDER_OPTIONS,
+  LEGACY_DEFAULT_LEARN_HEADLINE: () => LEGACY_DEFAULT_LEARN_HEADLINE,
+  LEGACY_DEFAULT_LEARN_SUBHEADLINE: () => LEGACY_DEFAULT_LEARN_SUBHEADLINE,
   bulkEnrollmentUpdateSchema: () => bulkEnrollmentUpdateSchema,
   bulkUpdateEnrollments: () => bulkUpdateEnrollments,
   checkCompositeRateLimit: () => checkCompositeRateLimit,
@@ -189,9 +191,11 @@ var DEFAULT_SEED_COURSES = [
     display_order: 7
   }
 ];
+var LEGACY_DEFAULT_LEARN_HEADLINE = "Practical Tech Training Built Around Real-World Skills";
+var LEGACY_DEFAULT_LEARN_SUBHEADLINE = "Explore structured training programs across every Yoletech discipline\u2014from full-stack web development and data analytics to AI automation, IT support, and digital skills. Register below to reserve your place.";
 var DEFAULT_LEARN_PAGE_CONTENT = {
-  headline: "Practical Tech Training Built Around Real-World Skills",
-  subheadline: "Explore structured training programs across every Yoletech discipline\u2014from full-stack web development and data analytics to AI automation, IT support, and digital skills. Register below to reserve your place.",
+  headline: "Build In-Demand Tech Skills. Learn by Doing.",
+  subheadline: "Hands-on training in web development, data analytics, AI automation, and IT\u2014guided step by step from day one.",
   cta_label: "Register Now",
   faq: [
     {
@@ -480,6 +484,11 @@ function ensureLearnSchemaAndSeed(db) {
         updated_at: now
       };
       dirty = true;
+    } else if (s.learn_page_content.headline === LEGACY_DEFAULT_LEARN_HEADLINE && s.learn_page_content.subheadline === LEGACY_DEFAULT_LEARN_SUBHEADLINE) {
+      s.learn_page_content.headline = DEFAULT_LEARN_PAGE_CONTENT.headline;
+      s.learn_page_content.subheadline = DEFAULT_LEARN_PAGE_CONTENT.subheadline;
+      s.learn_page_content.updated_at = now;
+      dirty = true;
     }
     if (dirty) db.__saveState();
     return;
@@ -586,7 +595,7 @@ function ensureLearnSchemaAndSeed(db) {
       );
     }
   }
-  const contentRow = db.prepare("SELECT id FROM learn_page_content WHERE id = 1").get();
+  const contentRow = db.prepare("SELECT id, headline, subheadline FROM learn_page_content WHERE id = 1").get();
   if (!contentRow) {
     db.prepare(`
       INSERT INTO learn_page_content (id, headline, subheadline, cta_label, faq_json)
@@ -597,6 +606,12 @@ function ensureLearnSchemaAndSeed(db) {
       DEFAULT_LEARN_PAGE_CONTENT.cta_label,
       JSON.stringify(DEFAULT_LEARN_PAGE_CONTENT.faq)
     );
+  } else if (contentRow.headline === LEGACY_DEFAULT_LEARN_HEADLINE && contentRow.subheadline === LEGACY_DEFAULT_LEARN_SUBHEADLINE) {
+    db.prepare(`
+      UPDATE learn_page_content
+      SET headline = ?, subheadline = ?, updated_at = ?
+      WHERE id = 1
+    `).run(DEFAULT_LEARN_PAGE_CONTENT.headline, DEFAULT_LEARN_PAGE_CONTENT.subheadline, nowTimestamp());
   }
 }
 function listPublishedCourses(db) {
@@ -1869,6 +1884,8 @@ async function handleLearnApiRequest(ctx) {
   DEFAULT_SEED_COURSES,
   ENROLLMENT_STATUSES,
   GENDER_OPTIONS,
+  LEGACY_DEFAULT_LEARN_HEADLINE,
+  LEGACY_DEFAULT_LEARN_SUBHEADLINE,
   bulkEnrollmentUpdateSchema,
   bulkUpdateEnrollments,
   checkCompositeRateLimit,

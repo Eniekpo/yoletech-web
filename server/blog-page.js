@@ -269,8 +269,8 @@ const ROUTE_SEO_CONFIG = {
   '/learn': {
     title: 'Learn with YOLETECH | Practical Tech Training Programs & Registration',
     description:
-      'Explore YOLETECH training programs across Full-Stack Web Development, Data Analysis and Business Intelligence, AI Automation, Customer Support Solutions, IT Support, Graphic Design, and Tech Tutorials.',
-    h1: 'Practical Tech Training Built Around Real-World Skills',
+      'Hands-on training in web development, data analytics, AI automation, and IT—guided step by step from day one.',
+    h1: 'Build In-Demand Tech Skills. Learn by Doing.',
     schemaType: 'CollectionPage'
   },
   '/learn/dashboard': {

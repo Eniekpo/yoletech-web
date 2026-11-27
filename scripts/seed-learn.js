@@ -143,10 +143,14 @@ const DEFAULT_COURSES = [
   }
 ];
 
+const LEGACY_HEADLINE = 'Practical Tech Training Built Around Real-World Skills';
+const LEGACY_SUBHEADLINE =
+  'Explore structured training programs across every Yoletech discipline—from full-stack web development and data analytics to AI automation, IT support, and digital skills. Register below to reserve your place.';
+
 const DEFAULT_PAGE_CONTENT = {
-  headline: 'Practical Tech Training Built Around Real-World Skills',
+  headline: 'Build In-Demand Tech Skills. Learn by Doing.',
   subheadline:
-    'Explore structured training programs across every Yoletech discipline—from full-stack web development and data analytics to AI automation, IT support, and digital skills. Register below to reserve your place.',
+    'Hands-on training in web development, data analytics, AI automation, and IT—guided step by step from day one.',
   cta_label: 'Register Now',
   faq: [
     {
@@ -209,7 +213,7 @@ function seedLearnDatabase(dbPath = DB_PATH) {
     }
   }
 
-  const existingContent = db.prepare('SELECT id FROM learn_page_content WHERE id = 1').get();
+  const existingContent = db.prepare('SELECT id, headline, subheadline FROM learn_page_content WHERE id = 1').get();
   let insertedContent = false;
   if (!existingContent) {
     db.prepare(`
@@ -222,6 +226,10 @@ function seedLearnDatabase(dbPath = DB_PATH) {
       JSON.stringify(DEFAULT_PAGE_CONTENT.faq)
     );
     insertedContent = true;
+  } else if (existingContent.headline === LEGACY_HEADLINE && existingContent.subheadline === LEGACY_SUBHEADLINE) {
+    db.prepare(`
+      UPDATE learn_page_content SET headline = ?, subheadline = ? WHERE id = 1
+    `).run(DEFAULT_PAGE_CONTENT.headline, DEFAULT_PAGE_CONTENT.subheadline);
   }
 
   const totalCourses = db.prepare('SELECT COUNT(*) as count FROM courses').get().count;
