@@ -398,16 +398,26 @@ test('Unified login differentiates CLIENT, LEARNER, and ADMIN roles and Learn he
   assert.equal(clientLogin.status, 200);
   assert.equal(clientLogin.json.user.role, 'CLIENT');
 
-  // 2. Seeded demo client also logs in with role CLIENT
-  const seededClientLogin = await invokeApp('/api/auth/login', {
+  // 2. No synthetic/demo client, inquiry, or testimonial records are seeded automatically
+  const demoLogin = await invokeApp('/api/auth/login', {
     method: 'POST',
     body: JSON.stringify({
       email: 'client@example.com',
       password: 'Client@2026'
     })
   });
-  assert.equal(seededClientLogin.status, 200);
-  assert.equal(seededClientLogin.json.user.role, 'CLIENT');
+  assert.equal(demoLogin.status, 401);
+
+  const analyticsRes = await invokeApp('/api/analytics');
+  assert.equal(analyticsRes.status, 200);
+  // Only the single real client created in this test above should exist (0 synthetic records)
+  assert.equal(analyticsRes.json.clients.length, 1);
+  assert.equal(analyticsRes.json.clients[0].name, 'Ngozi Client');
+  assert.equal(analyticsRes.json.inquiries.length, 0);
+  assert.equal(analyticsRes.json.testimonials.length, 0);
+
+  const dashboardJs = fs.readFileSync(path.join(process.cwd(), 'public', 'dashboard.js'), 'utf8');
+  assert.equal(dashboardJs.includes('generateSyntheticFallbackDataset'), false);
 
   // 3. Learner registered on /learn logs in via /api/auth/login with role LEARNER
   const learnerLogin = await invokeApp('/api/auth/login', {

@@ -223,7 +223,15 @@ class YoletechApp {
 
   getLocalRegisteredUsers() {
     try {
-      return JSON.parse(localStorage.getItem('yoletech_registered_clients') || '[]');
+      const rows = JSON.parse(localStorage.getItem('yoletech_registered_clients') || '[]');
+      return Array.isArray(rows)
+        ? rows.filter(
+            (u) =>
+              u &&
+              String(u.email || '').toLowerCase() !== 'client@example.com' &&
+              !String(u.admin_notes || '').startsWith('Synthetic client partner record')
+          )
+        : [];
     } catch {
       return [];
     }
@@ -285,7 +293,15 @@ class YoletechApp {
 
   getLocalInquiries() {
     try {
-      return JSON.parse(localStorage.getItem('yoletech_local_inquiries') || '[]');
+      const rows = JSON.parse(localStorage.getItem('yoletech_local_inquiries') || '[]');
+      return Array.isArray(rows)
+        ? rows.filter(
+            (i) =>
+              i &&
+              String(i.email || '').toLowerCase() !== 'client@example.com' &&
+              !/^Inquiry #\d+: Project scope for /.test(String(i.message || ''))
+          )
+        : [];
     } catch {
       return [];
     }
@@ -2832,7 +2848,11 @@ ${C.renderRoiCalculatorWidget ? C.renderRoiCalculatorWidget() : ""}
             `
                 : `
               <div class="glass-card is-revealed" style="text-align:center;padding:36px 24px;">
-                <p style="font-size:15px;color:var(--yole-text-muted);margin:0;">No matching testimonials found for this filter.</p>
+                <p style="font-size:15px;color:var(--yole-text-muted);margin:0;">${
+                  (this.testimonials || []).length === 0
+                    ? 'No testimonials have been published yet. Be the first to share your experience below!'
+                    : 'No matching testimonials found for this filter.'
+                }</p>
               </div>
             `
             }
@@ -2849,7 +2869,7 @@ ${C.renderRoiCalculatorWidget ? C.renderRoiCalculatorWidget() : ""}
               <div class="grid-2" style="gap:24px;margin-bottom:24px;">
                 <div class="form-group" style="margin-bottom:0;">
                   <label class="form-label" style="font-size:14px;font-weight:700;margin-bottom:8px;display:block;">Your Full Name *</label>
-                  <input type="text" name="author_name" required class="form-control" style="min-height:52px;font-size:15px;padding:14px 18px;border-radius:12px;" placeholder="e.g. Marcus Vance" value="${
+                  <input type="text" name="author_name" required class="form-control" style="min-height:52px;font-size:15px;padding:14px 18px;border-radius:12px;" placeholder="Enter your full name" value="${
                     this.user ? this.user.name : ''
                   }" />
                 </div>
@@ -2861,7 +2881,7 @@ ${C.renderRoiCalculatorWidget ? C.renderRoiCalculatorWidget() : ""}
               <div class="grid-2" style="gap:24px;margin-bottom:24px;">
                 <div class="form-group" style="margin-bottom:0;">
                   <label class="form-label" style="font-size:14px;font-weight:700;margin-bottom:8px;display:block;">Organization / Cohort</label>
-                  <input type="text" name="company" class="form-control" style="min-height:52px;font-size:15px;padding:14px 18px;border-radius:12px;" placeholder="e.g. Global EduMetrix, Prime Logistics, Bayelsa Tech" value="${
+                  <input type="text" name="company" class="form-control" style="min-height:52px;font-size:15px;padding:14px 18px;border-radius:12px;" placeholder="Your company or organization" value="${
                     this.user ? this.user.company : ''
                   }" />
                 </div>
@@ -3839,26 +3859,10 @@ ${C.renderRoiCalculatorWidget ? C.renderRoiCalculatorWidget() : ""}
       };
     }
 
-    // 2. Check Demo Client account
-    if (normEmail === 'client@example.com' && password === 'Client@2026') {
-      return {
-        token: 'local-client-jwt-' + Date.now(),
-        user: {
-          id: 2,
-          name: 'Demo Client Partner',
-          email: 'client@example.com',
-          phone: '+234 802 552 6389',
-          company: 'Demo Client Organization',
-          service_interest: 'Data Analysis & Analytics',
-          role: 'CLIENT',
-          status: 'ACTIVE',
-          created_at: '2026-09-01 10:00:00'
-        }
-      };
-    }
-
-    // 3. Check locally registered clients & learners in browser storage
-    const localUsers = this.getLocalRegisteredUsers();
+    // 2. Check locally registered clients & learners in browser storage
+    const localUsers = this.getLocalRegisteredUsers().filter(
+      (u) => u && String(u.email || '').toLowerCase() !== 'client@example.com'
+    );
     const matched = localUsers.find(
       (u) => String(u.email || '').toLowerCase() === normEmail && u._pwd === password
     );
