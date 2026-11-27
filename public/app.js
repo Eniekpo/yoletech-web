@@ -3194,7 +3194,7 @@ ${C.renderRoiCalculatorWidget ? C.renderRoiCalculatorWidget() : ""}
                 🔗 Share Article
               </button>
               <button class="btn btn-lime btn-sm" onclick="window.app.navigate('contact')">
-                Discuss This Topic With John →
+                Discuss This Topic With Yoletech →
               </button>
             </div>
           </div>
@@ -3942,7 +3942,7 @@ ${C.renderRoiCalculatorWidget ? C.renderRoiCalculatorWidget() : ""}
                           ${
                             inq.admin_response
                               ? `<div style="margin-top:10px;padding:10px;background:rgba(200,230,30,0.08);border-left:3px solid #C8E61E;font-size:12.5px;">
-                                  <strong style="color:#C8E61E;">Update from John Eniekpo:</strong> ${inq.admin_response}
+                                  <strong style="color:#C8E61E;">Update from Yoletech:</strong> ${inq.admin_response}
                                 </div>`
                               : ''
                           }
@@ -3976,7 +3976,7 @@ ${C.renderRoiCalculatorWidget ? C.renderRoiCalculatorWidget() : ""}
                     <label class="form-label">Project Scope &amp; Deliverables *</label>
                     <textarea name="message" rows="4" required class="form-control" placeholder="Describe the dataset, dashboard, web platform, or workflow automation you need..."></textarea>
                   </div>
-                  <button type="submit" id="portal-inquiry-submit-btn" class="btn btn-lime" style="width:100%;">Submit Request to John →</button>
+                  <button type="submit" id="portal-inquiry-submit-btn" class="btn btn-lime" style="width:100%;">Submit Request to Yoletech →</button>
                   ${this.renderFormConfirmation('portal-inquiry')}
                 </form>
               </div>
@@ -4092,7 +4092,7 @@ ${C.renderRoiCalculatorWidget ? C.renderRoiCalculatorWidget() : ""}
     const submitBtn = document.getElementById('portal-inquiry-submit-btn');
     if (submitBtn) {
       submitBtn.disabled = true;
-      submitBtn.textContent = 'Submitting Request to John...';
+      submitBtn.textContent = 'Submitting Request to Yoletech...';
     }
 
     const payload = {
@@ -4157,7 +4157,7 @@ ${C.renderRoiCalculatorWidget ? C.renderRoiCalculatorWidget() : ""}
       form.reset();
       this.setFormConfirmation('portal-inquiry', {
         title: 'Service / Project Request Confirmed!',
-        message: `Thank you, <strong>${payload.name}</strong>! Your <strong>${payload.service_category}</strong> request ("<em>${payload.message.slice(0, 80)}${payload.message.length > 80 ? '...' : ''}</em>") has been submitted to John Eniekpo (<strong>${this.notifyEmail}</strong>) and added to <strong>Your Projects &amp; Service Requests</strong>.`,
+        message: `Thank you, <strong>${payload.name}</strong>! Your <strong>${payload.service_category}</strong> request ("<em>${payload.message.slice(0, 80)}${payload.message.length > 80 ? '...' : ''}</em>") has been submitted to Yoletech (<strong>${this.notifyEmail}</strong>) and added to <strong>Your Projects &amp; Service Requests</strong>.`,
         actionsHtml: `
           <div style="display:flex;gap:10px;flex-wrap:wrap;">
             <a href="${whatsappUrl}" target="_blank" rel="noopener" class="btn btn-lime btn-sm">
@@ -4180,7 +4180,7 @@ ${C.renderRoiCalculatorWidget ? C.renderRoiCalculatorWidget() : ""}
       this.showToast(err.message, 'error');
       if (submitBtn) {
         submitBtn.disabled = false;
-        submitBtn.textContent = 'Submit Request to John →';
+        submitBtn.textContent = 'Submit Request to Yoletech →';
       }
     }
   }
@@ -4405,7 +4405,7 @@ ${C.renderRoiCalculatorWidget ? C.renderRoiCalculatorWidget() : ""}
     const netSavings = Math.round(totalHoursPerYear * rate * 0.75).toLocaleString();
 
     this.contactServiceSelected = 'Data Analysis & Analytics';
-    this.pendingInquiryMessage = `Hi John, based on your interactive ROI calculator, our team spends approximately ${hours} hrs/week across ${staff} staff on manual reporting (approx. $${annualCost}/year). We would like to discuss implementing an automated Power BI & SQL pipeline to reclaim operational time and achieve an estimated $${netSavings}/year in savings.`;
+    this.pendingInquiryMessage = `Hi Yoletech, based on your interactive ROI calculator, our team spends approximately ${hours} hrs/week across ${staff} staff on manual reporting (approx. $${annualCost}/year). We would like to discuss implementing an automated Power BI & SQL pipeline to reclaim operational time and achieve an estimated $${netSavings}/year in savings.`;
 
     this.navigate('contact');
     setTimeout(() => {
