@@ -15,6 +15,9 @@ class YoletechApp {
     this.aboutTab = 'skills';
     this.serviceScopeTab = 0;
     this.authMode = 'login';
+    this.portalTab = 'overview';
+    this.portalProjectFilter = 'ALL';
+    this.showPortalPassword = false;
     this.adminTab = 'clients';
     this.footerTab = 'overview';
     this.clientSearch = '';
@@ -3925,141 +3928,707 @@ ${C.renderRoiCalculatorWidget ? C.renderRoiCalculatorWidget() : ""}
     }
   }
 
+  getPortalServiceTracks(currentTrack = '') {
+    const baseTracks = [
+      'Web Development',
+      'Data Analysis & Analytics',
+      'AI Automation',
+      'Tech Tutorials',
+      'Graphic Design',
+      'Video Editing',
+      'Customer Support',
+      'IT Support'
+    ];
+    const clean = String(currentTrack || '').trim();
+    if (clean && !baseTracks.includes(clean)) {
+      return [clean, ...baseTracks];
+    }
+    return baseTracks;
+  }
+
+  getPortalMilestoneStage(inq) {
+    const status = String(inq?.status || 'NEW').toUpperCase();
+    const progress = Number.isFinite(Number(inq?.project_progress)) ? Number(inq.project_progress) : 15;
+    if (status === 'COMPLETED' || status === 'RESOLVED' || progress >= 100) return 5;
+    if (status === 'REVIEW' || progress >= 80) return 4;
+    if (status === 'IN_PROGRESS' || progress >= 40) return 3;
+    if (status === 'SCOPING' || progress >= 20) return 2;
+    return 1;
+  }
+
+  parsePortalInquiryDetails(rawMessage = '') {
+    const lines = String(rawMessage || '').split(/\r?\n/);
+    const meta = { timeline: '', tier: '', referenceUrl: '' };
+    const bodyLines = [];
+    for (const line of lines) {
+      const tl = line.match(/^\[Timeline:\s*(.+?)\]$/i);
+      const tr = line.match(/^\[Engagement Tier:\s*(.+?)\]$/i);
+      const rf = line.match(/^\[Reference Link:\s*(https?:\/\/[^\s\]]+)\]$/i);
+      if (tl) meta.timeline = tl[1].trim();
+      else if (tr) meta.tier = tr[1].trim();
+      else if (rf) meta.referenceUrl = rf[1].trim();
+      else bodyLines.push(line);
+    }
+    return {
+      ...meta,
+      cleanBody: bodyLines.join('\n').trim() || String(rawMessage || '').trim()
+    };
+  }
+
+  extractDeliverableLinks(text = '') {
+    const matches = String(text || '').match(/https?:\/\/[^\s<>"')\]]+/gi) || [];
+    return [...new Set(matches.map((u) => u.replace(/[.,;:!?]+$/, '')))];
+  }
+
+  setPortalTab(tab) {
+    this.portalTab = tab;
+    this.render();
+  }
+
+  setPortalProjectFilter(filter) {
+    this.portalProjectFilter = filter;
+    this.render();
+  }
+
+  openPortalTestimonialCta(serviceTrack = '') {
+    this.navigate('testimonials');
+    setTimeout(() => {
+      const formCard = document.querySelector('.testimonial-form-card');
+      if (formCard) {
+        const nameInput = formCard.querySelector('input[name="author_name"]');
+        const companyInput = formCard.querySelector('input[name="company"]');
+        const trackSelect = formCard.querySelector('select[name="service_track"]');
+        if (nameInput && !nameInput.value && this.user?.name) nameInput.value = this.user.name;
+        if (companyInput && !companyInput.value && this.user?.company) companyInput.value = this.user.company;
+        if (trackSelect && serviceTrack) {
+          const matchOpt = [...trackSelect.options].find(
+            (o) => o.value.toLowerCase() === serviceTrack.toLowerCase()
+          );
+          if (matchOpt) trackSelect.value = matchOpt.value;
+        }
+        formCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }, 140);
+  }
+
   renderClientPortalPage() {
     if (!this.user) {
       return this.renderAuthPage();
     }
 
-    return `
-      <section class="section">
-        <div class="container">
-          ${this.renderFormConfirmation('auth-welcome')}
-          <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px;margin-bottom:36px;">
-            <div>
-              <div class="eyebrow"><span class="eyebrow-dot"></span> REGISTERED CLIENT WORKSPACE</div>
-              <h1 style="font-size:32px;font-weight:900;">Welcome, ${this.user.name}</h1>
-              <p style="color:var(--yole-text-muted);font-size:14.5px;">
-                ${this.user.company || 'Client Partner'} • Primary Track: <strong style="color:#C8E61E;">${this.user.service_interest}</strong>
-              </p>
+    const escHtml = (v) =>
+      String(v ?? '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+
+    const userTrack = this.user.service_interest || 'Data Analysis & Analytics';
+    const serviceTracks = this.getPortalServiceTracks(userTrack);
+    const initials =
+      String(this.user.name || 'YT')
+        .trim()
+        .split(/\s+/)
+        .slice(0, 2)
+        .map((part) => part.charAt(0).toUpperCase())
+        .join('') || 'YT';
+
+    const joinedRaw = String(this.user.created_at || '').slice(0, 10);
+    const joinedFormatted = /^\d{4}-\d{2}-\d{2}$/.test(joinedRaw)
+      ? new Date(`${joinedRaw}T00:00:00Z`).toLocaleDateString('en-GB', {
+          day: '2-digit',
+          month: 'short',
+          year: 'numeric',
+          timeZone: 'UTC'
+        })
+      : '';
+
+    const allInquiries = Array.isArray(this.inquiries) ? this.inquiries : [];
+    const isInqCompleted = (inq) => {
+      const st = String(inq?.status || 'NEW').toUpperCase();
+      const prog = Number(inq?.project_progress ?? 15);
+      return st === 'COMPLETED' || st === 'RESOLVED' || prog >= 100;
+    };
+
+    const totalCount = allInquiries.length;
+    const completedList = allInquiries.filter(isInqCompleted);
+    const activeList = allInquiries.filter((inq) => !isInqCompleted(inq));
+    const completedCount = completedList.length;
+    const activeCount = activeList.length;
+    const avgProgress = totalCount
+      ? Math.round(
+          allInquiries.reduce((sum, inq) => {
+            const p = isInqCompleted(inq)
+              ? 100
+              : Number.isFinite(Number(inq.project_progress))
+              ? Number(inq.project_progress)
+              : 15;
+            return sum + p;
+          }, 0) / totalCount
+        )
+      : 0;
+
+    const deliverables = [];
+    allInquiries.forEach((inq, idx) => {
+      const ticketId = `YT-${String(1000 + (Number(inq.id) % 9000 || idx + 1)).padStart(4, '0')}`;
+      const urls = this.extractDeliverableLinks(inq.admin_response);
+      urls.forEach((url) => {
+        deliverables.push({
+          ticketId,
+          category: inq.service_category || userTrack,
+          status: String(inq.status || 'IN_PROGRESS').toUpperCase(),
+          url,
+          note: String(inq.admin_response || '').replace(url, '').trim(),
+          date: String(inq.created_at || '').slice(0, 10)
+        });
+      });
+    });
+
+    const activeTab = ['overview', 'new-request', 'deliverables', 'settings'].includes(this.portalTab)
+      ? this.portalTab
+      : 'overview';
+
+    const discoveryCallText = encodeURIComponent(
+      `Hello Yoletech, I am ${this.user.name}${this.user.company ? ` (${this.user.company})` : ''} from the Client Portal. I'd like to schedule a 15-minute discovery / review call regarding ${userTrack}.`
+    );
+
+    const statusMeta = {
+      NEW: { label: 'Submitted', pillClass: 'orange', sla: '24h Scoping SLA' },
+      SCOPING: { label: 'Scoping & Audit', pillClass: 'orange', sla: 'Architecture Review' },
+      IN_PROGRESS: { label: 'In Development', pillClass: 'lime', sla: 'Active Build' },
+      REVIEW: { label: 'Client Review', pillClass: 'lime', sla: 'Ready for Feedback' },
+      COMPLETED: { label: 'Completed', pillClass: 'lime', sla: 'Delivered & Signed Off' },
+      RESOLVED: { label: 'Completed', pillClass: 'lime', sla: 'Delivered & Signed Off' }
+    };
+
+    const milestoneLabels = ['Submitted', 'Scoping', 'In Progress', 'Review', 'Completed'];
+
+    const filteredInquiries =
+      this.portalProjectFilter === 'ACTIVE'
+        ? activeList
+        : this.portalProjectFilter === 'COMPLETED'
+        ? completedList
+        : allInquiries;
+
+    const renderProjectCard = (inq, idx) => {
+      const rawStatus = String(inq.status || 'NEW').toUpperCase();
+      const completed = isInqCompleted(inq);
+      const progress = completed
+        ? 100
+        : Number.isFinite(Number(inq.project_progress))
+        ? Math.min(99, Math.max(5, Number(inq.project_progress)))
+        : 15;
+      const stage = this.getPortalMilestoneStage(inq);
+      const meta = statusMeta[rawStatus] || statusMeta.NEW;
+      const ticketId = `YT-${String(1000 + (Number(inq.id) % 9000 || idx + 1)).padStart(4, '0')}`;
+      const createdDate = String(inq.created_at || '').slice(0, 10);
+      const createdFmt = /^\d{4}-\d{2}-\d{2}$/.test(createdDate)
+        ? new Date(`${createdDate}T00:00:00Z`).toLocaleDateString('en-GB', {
+            day: '2-digit',
+            month: 'short',
+            year: 'numeric',
+            timeZone: 'UTC'
+          })
+        : 'Recent';
+      const parsed = this.parsePortalInquiryDetails(inq.message);
+      const links = this.extractDeliverableLinks(inq.admin_response);
+      const followUpWa = `https://wa.me/2348025526389?text=${encodeURIComponent(
+        `Hi Yoletech, following up on Portal Request #${ticketId} (${inq.service_category || userTrack}) for ${this.user.name}.`
+      )}`;
+      const followUpMail = `mailto:${this.notifyEmail}?subject=${encodeURIComponent(
+        `[Follow-Up #${ticketId}] ${inq.service_category || userTrack} — ${this.user.name}`
+      )}`;
+
+      return `
+        <article class="portal-project-card">
+          <div class="portal-project-top">
+            <div class="portal-project-badges">
+              <span class="portal-ticket-id">#${escHtml(ticketId)}</span>
+              <span class="tech-pill lime">${escHtml(inq.service_category || userTrack)}</span>
+              <span class="portal-sla-chip">${escHtml(meta.sla)}</span>
             </div>
-            <div style="display:flex;gap:12px;flex-wrap:wrap;">
-              ${
-                this.user.role === 'ADMIN'
-                  ? `<button class="btn btn-outline btn-sm" onclick="window.app.navigate('admin-dashboard')">Open Admin CRM →</button>`
-                  : ''
-              }
-              <a href="https://wa.me/2348025526389" target="_blank" class="btn btn-lime btn-sm">
-                Direct WhatsApp Support →
-              </a>
-              <button class="btn btn-outline btn-sm" onclick="window.app.logout()">Sign Out</button>
+            <div class="portal-project-meta-right">
+              <span class="portal-date-label">Submitted ${escHtml(createdFmt)}</span>
+              <span class="tech-pill ${meta.pillClass}">${escHtml(meta.label)}</span>
             </div>
           </div>
 
-          <div class="grid-2" style="align-items:start;">
-            <!-- MY PROJECTS & INQUIRIES -->
-            <div class="glass-card">
-              <h3 style="font-size:20px;font-weight:900;margin-bottom:16px;">Your Projects &amp; Service Requests</h3>
-              ${
-                this.inquiries.length === 0
-                  ? `<p style="color:var(--yole-text-muted);font-size:14px;">You haven't submitted a project request yet. Use the form on the right to start a new project!</p>`
-                  : `<div style="display:flex;flex-direction:column;gap:16px;">
-                      ${this.inquiries
-                        .map(
-                          (inq) => `
-                        <div style="background:rgba(15,13,44,0.75);border:1px solid rgba(200,230,30,0.3);border-radius:12px;padding:16px;">
-                          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
-                            <span class="tech-pill lime">${inq.service_category}</span>
-                            <span class="tech-pill orange">${inq.status}</span>
-                          </div>
-                          <p style="font-size:14px;color:#FFFFFF;margin-bottom:12px;">${inq.message}</p>
-                          <div style="margin-bottom:8px;">
-                            <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px;">
-                              <span>Project Completion Progress</span>
-                              <strong style="color:#C8E61E;" data-kpi-target="${inq.project_progress || 15}" data-kpi-suffix="%">${inq.project_progress || 15}%</strong>
-                            </div>
-                            <div style="height:8px;background:#2F2B73;border-radius:999px;overflow:hidden;">
-                              <div style="width:${inq.project_progress || 15}%;height:100%;background:#C8E61E;"></div>
-                            </div>
-                          </div>
-                          ${
-                            inq.admin_response
-                              ? `<div style="margin-top:10px;padding:10px;background:rgba(200,230,30,0.08);border-left:3px solid #C8E61E;font-size:12.5px;">
-                                  <strong style="color:#C8E61E;">Update from Yoletech:</strong> ${inq.admin_response}
-                                </div>`
-                              : ''
-                          }
-                        </div>
-                      `
-                        )
-                        .join('')}
-                    </div>`
-              }
+          <p class="portal-project-scope">${escHtml(parsed.cleanBody)}</p>
+
+          ${
+            parsed.timeline || parsed.tier || parsed.referenceUrl
+              ? `<div class="portal-brief-chips">
+                  ${parsed.timeline ? `<span class="portal-brief-chip">⏱ Timeline: <strong>${escHtml(parsed.timeline)}</strong></span>` : ''}
+                  ${parsed.tier ? `<span class="portal-brief-chip">📦 Tier: <strong>${escHtml(parsed.tier)}</strong></span>` : ''}
+                  ${
+                    parsed.referenceUrl
+                      ? `<a href="${escHtml(parsed.referenceUrl)}" target="_blank" rel="noopener noreferrer" class="portal-brief-chip portal-brief-link">🔗 Reference / Dataset Link ↗</a>`
+                      : ''
+                  }
+                </div>`
+              : ''
+          }
+
+          <div class="portal-Stepper-wrap">
+            <div class="portal-progress-header">
+              <span>Delivery Milestone Tracker</span>
+              <strong>${progress}% Complete</strong>
+            </div>
+            <div class="portal-progress-track" role="progressbar" aria-valuenow="${progress}" aria-valuemin="0" aria-valuemax="100">
+              <div class="portal-progress-fill" style="width:${progress}%;"></div>
+            </div>
+            <ol class="portal-stepper" aria-label="Project milestones">
+              ${milestoneLabels
+                .map((lbl, i) => {
+                  const stepNum = i + 1;
+                  const stateClass =
+                    stepNum < stage || completed ? 'is-done' : stepNum === stage ? 'is-current' : 'is-upcoming';
+                  return `<li class="portal-step ${stateClass}">
+                    <span class="portal-step-dot">${stepNum < stage || completed ? '✓' : stepNum}</span>
+                    <span class="portal-step-label">${lbl}</span>
+                  </li>`;
+                })
+                .join('')}
+            </ol>
+          </div>
+
+          ${
+            inq.admin_response
+              ? `<div class="portal-admin-update">
+                  <div class="portal-admin-update-head">
+                    <strong>Update from Yoletech</strong>
+                  </div>
+                  <p>${escHtml(inq.admin_response)}</p>
+                  ${
+                    links.length
+                      ? `<div class="portal-deliverable-btns">
+                          ${links
+                            .map(
+                              (url, lIdx) => `
+                            <a href="${escHtml(url)}" target="_blank" rel="noopener noreferrer" class="btn btn-lime btn-sm">
+                              🔗 Open Deliverable${links.length > 1 ? ` #${lIdx + 1}` : ''} ↗
+                            </a>
+                          `
+                            )
+                            .join('')}
+                        </div>`
+                      : ''
+                  }
+                </div>`
+              : ''
+          }
+
+          <div class="portal-project-actions">
+            <div class="portal-project-actions-left">
+              <a href="${followUpWa}" target="_blank" rel="noopener noreferrer" class="btn btn-outline btn-sm">
+                💬 Follow Up on WhatsApp ↗
+              </a>
+              <a href="${followUpMail}" class="btn btn-outline btn-sm">
+                ✉️ Email About #${escHtml(ticketId)}
+              </a>
+            </div>
+            ${
+              completed
+                ? `<button type="button" class="btn btn-lime btn-sm" onclick="window.app.openPortalTestimonialCta('${escHtml(
+                    inq.service_category || userTrack
+                  )}')">
+                    ★ Rate Delivery / Leave Review →
+                  </button>`
+                : ''
+            }
+          </div>
+        </article>
+      `;
+    };
+
+    const pwdType = this.showPortalPassword ? 'text' : 'password';
+
+    return `
+      <section class="section portal-section">
+        <div class="container">
+          ${this.renderFormConfirmation('auth-welcome')}
+
+          <!-- BRANDED EXECUTIVE CLIENT HEADER -->
+          <div class="glass-card portal-hero-banner">
+            <div class="portal-hero-identity">
+              <div class="portal-avatar" aria-hidden="true">${escHtml(initials)}</div>
+              <div class="portal-hero-copy">
+                <div class="eyebrow" style="margin-bottom:6px;"><span class="eyebrow-dot"></span> REGISTERED CLIENT WORKSPACE</div>
+                <h1 class="portal-welcome-title">Welcome, ${escHtml(this.user.name)}</h1>
+                <div class="portal-identity-chips">
+                  <span class="portal-meta-chip">🏢 ${escHtml(this.user.company || 'Client Partner')}</span>
+                  <span class="portal-meta-chip">✓ ${escHtml(this.user.email)}</span>
+                  <span class="portal-meta-chip portal-meta-track">Primary Track: <strong>${escHtml(userTrack)}</strong></span>
+                  <span class="portal-meta-chip portal-meta-status">● ${escHtml(
+                    String(this.user.status || 'ACTIVE').toUpperCase()
+                  )}${joinedFormatted ? ` • Since ${escHtml(joinedFormatted)}` : ''}</span>
+                </div>
+              </div>
             </div>
 
-            <!-- SUBMIT NEW PROJECT BRIEF & PROFILE SETTINGS -->
-            <div style="display:flex;flex-direction:column;gap:24px;">
+            <div class="portal-hero-actions">
+              ${
+                this.user.role === 'ADMIN'
+                  ? `<button type="button" class="btn btn-outline btn-sm" onclick="window.app.navigate('admin-dashboard')">Open Admin CRM →</button>`
+                  : ''
+              }
+              <a href="https://wa.me/2348025526389?text=${discoveryCallText}" target="_blank" rel="noopener noreferrer" class="btn btn-outline btn-sm">
+                📅 Book 15-Min Call ↗
+              </a>
+              <a href="https://wa.me/2348025526389" target="_blank" rel="noopener noreferrer" class="btn btn-lime btn-sm">
+                💬 Direct WhatsApp Support →
+              </a>
+              <button type="button" class="btn btn-outline btn-sm" onclick="window.app.logout()">Sign Out</button>
+            </div>
+          </div>
+
+          <!-- 4-CARD KPI SUMMARY STRIP -->
+          <div class="portal-kpi-grid" role="list" aria-label="Workspace summary metrics">
+            <div class="glass-card portal-kpi-card" role="listitem">
+              <span class="portal-kpi-label">Total Service Requests</span>
+              <strong class="portal-kpi-value">${totalCount}</strong>
+              <span class="portal-kpi-sub">${activeCount} active · ${completedCount} completed</span>
+            </div>
+            <div class="glass-card portal-kpi-card" role="listitem">
+              <span class="portal-kpi-label">Active / In Delivery</span>
+              <strong class="portal-kpi-value accent-lime">${activeCount}</strong>
+              <span class="portal-kpi-sub">${activeCount ? 'In scoping, build, or review' : 'Ready for your next brief'}</span>
+            </div>
+            <div class="glass-card portal-kpi-card" role="listitem">
+              <span class="portal-kpi-label">Completed Deliverables</span>
+              <strong class="portal-kpi-value">${completedCount}</strong>
+              <span class="portal-kpi-sub">${deliverables.length} shared deliverable link${deliverables.length === 1 ? '' : 's'}</span>
+            </div>
+            <div class="glass-card portal-kpi-card" role="listitem">
+              <span class="portal-kpi-label">Overall Completion</span>
+              <strong class="portal-kpi-value">${totalCount ? `${avgProgress}%` : '—'}</strong>
+              <span class="portal-kpi-sub">${totalCount ? 'Average milestone progress' : 'Submit a request to track'}</span>
+            </div>
+          </div>
+
+          <!-- BALANCED WORKSPACE TABS -->
+          <div class="portal-tabs-bar" role="tablist" aria-label="Client portal sections">
+            <button type="button" role="tab" aria-selected="${activeTab === 'overview'}" class="portal-tab-btn ${
+      activeTab === 'overview' ? 'active' : ''
+    }" onclick="window.app.setPortalTab('overview')">
+              <span>📋 Overview &amp; Projects</span>
+              <span class="portal-tab-count">${totalCount}</span>
+            </button>
+            <button type="button" role="tab" aria-selected="${activeTab === 'new-request'}" class="portal-tab-btn ${
+      activeTab === 'new-request' ? 'active' : ''
+    }" onclick="window.app.setPortalTab('new-request')">
+              <span>＋ New Service Request</span>
+            </button>
+            <button type="button" role="tab" aria-selected="${activeTab === 'deliverables'}" class="portal-tab-btn ${
+      activeTab === 'deliverables' ? 'active' : ''
+    }" onclick="window.app.setPortalTab('deliverables')">
+              <span>🚀 Deliverables &amp; Resources</span>
+              <span class="portal-tab-count">${deliverables.length}</span>
+            </button>
+            <button type="button" role="tab" aria-selected="${activeTab === 'settings'}" class="portal-tab-btn ${
+      activeTab === 'settings' ? 'active' : ''
+    }" onclick="window.app.setPortalTab('settings')">
+              <span>⚙️ Account &amp; Security</span>
+            </button>
+          </div>
+
+          <!-- TAB 1: OVERVIEW & PROJECTS -->
+          ${
+            activeTab === 'overview'
+              ? `
+            <div class="portal-overview-layout">
               <div class="glass-card">
-                <h3 style="font-size:20px;font-weight:900;margin-bottom:16px;">Request a New Service / Project</h3>
-                <form novalidate onsubmit="window.app.handleClientPortalInquiry(event)">
-                  <div class="form-group">
-                    <label class="form-label">Project Category *</label>
-                    <select name="service_category" class="form-control">
-                      <option value="Web Development">Web Development</option>
-                      <option value="Data Analysis & Analytics" selected>Data Analysis &amp; Analytics</option>
-                      <option value="AI Automation">AI Automation</option>
-                      <option value="Tech Tutorials">Tech Tutorials</option>
-                      <option value="Graphic Design">Graphic Design</option>
-                      <option value="Video Editing">Video Editing</option>
-                      <option value="Customer Support">Customer Support</option>
-                      <option value="IT Support">IT Support</option>
-                    </select>
+                <div class="portal-section-head">
+                  <div>
+                    <h2 style="font-size:21px;font-weight:900;margin:0;">Your Projects &amp; Service Requests</h2>
+                    <p style="font-size:13.5px;color:var(--yole-text-muted);margin:4px 0 0;">Live milestone tracking, SLA status, and direct team updates.</p>
                   </div>
+                  <div class="portal-filter-group">
+                    <button type="button" class="selector-pill ${this.portalProjectFilter === 'ALL' ? 'active' : ''}" onclick="window.app.setPortalProjectFilter('ALL')">All (${totalCount})</button>
+                    <button type="button" class="selector-pill ${this.portalProjectFilter === 'ACTIVE' ? 'active' : ''}" onclick="window.app.setPortalProjectFilter('ACTIVE')">Active (${activeCount})</button>
+                    <button type="button" class="selector-pill ${this.portalProjectFilter === 'COMPLETED' ? 'active' : ''}" onclick="window.app.setPortalProjectFilter('COMPLETED')">Completed (${completedCount})</button>
+                    <button type="button" class="btn btn-lime btn-sm" onclick="window.app.setPortalTab('new-request')">+ Request New Project</button>
+                  </div>
+                </div>
+
+                ${
+                  filteredInquiries.length === 0
+                    ? `<div class="portal-empty-state">
+                        <h3>${totalCount === 0 ? 'No Service Requests Submitted Yet' : 'No Matching Requests in This Filter'}</h3>
+                        <p>${
+                          totalCount === 0
+                            ? `Ready to launch your next ${escHtml(userTrack)} deliverable? Submit a structured project brief and receive a scoped technical roadmap within 24 hours.`
+                            : 'Switch the status filter above to view all your submitted requests.'
+                        }</p>
+                        <div style="display:flex;justify-content:center;gap:12px;flex-wrap:wrap;margin-top:16px;">
+                          ${
+                            totalCount === 0
+                              ? `<button type="button" class="btn btn-lime" onclick="window.app.setPortalTab('new-request')">Start a New Service Request →</button>`
+                              : `<button type="button" class="btn btn-outline btn-sm" onclick="window.app.setPortalProjectFilter('ALL')">Show All Requests</button>`
+                          }
+                        </div>
+                      </div>`
+                    : `<div class="portal-projects-stack">
+                        ${filteredInquiries.map((inq, idx) => renderProjectCard(inq, idx)).join('')}
+                      </div>`
+                }
+              </div>
+
+              <!-- SIDEBAR: QUICK ACTIONS & SLA GUARANTEES -->
+              <aside class="portal-side-stack">
+                <div class="glass-card contact-discovery-card">
+                  <h3 style="font-size:19px;font-weight:900;margin-bottom:6px;">Need a New Deliverable?</h3>
+                  <p style="font-size:13.5px;margin-bottom:16px;">
+                    Submit a project brief with your target timeline and dataset/reference links for priority scoping.
+                  </p>
+                  <button type="button" class="btn btn-lime" style="width:100%;" onclick="window.app.setPortalTab('new-request')">
+                    + Submit New Request →
+                  </button>
+                </div>
+
+                <div class="glass-card">
+                  <h3 style="font-size:17px;font-weight:900;margin-bottom:12px;">Client Delivery Standards</h3>
+                  <ul class="portal-sla-list">
+                    <li><strong>24-Hour Scoping SLA:</strong> Every new brief receives a technical review and response within 1 business day.</li>
+                    <li><strong>Live Milestone Tracking:</strong> Track progress from <em>Submitted</em> through <em>Client Review</em> and <em>Completed</em>.</li>
+                    <li><strong>Direct Deliverable Access:</strong> Staging links, dashboards, and repositories appear directly inside your ticket and the <em>Deliverables</em> tab.</li>
+                  </ul>
+                  <div style="margin-top:14px;padding-top:14px;border-top:1px solid rgba(255,255,255,0.1);display:flex;flex-direction:column;gap:8px;font-size:13px;">
+                    <div><strong>Priority Email:</strong> <a href="mailto:${escHtml(this.notifyEmail)}" style="color:#C8E61E;font-weight:700;">${escHtml(this.notifyEmail)}</a></div>
+                    <div><strong>Hours:</strong> Mon – Fri, 9 AM – 6 PM (GMT+1)</div>
+                  </div>
+                </div>
+              </aside>
+            </div>
+          `
+              : ''
+          }
+
+          <!-- TAB 2: NEW SERVICE REQUEST -->
+          ${
+            activeTab === 'new-request'
+              ? `
+            <div class="portal-overview-layout">
+              <div class="glass-card">
+                <div style="margin-bottom:20px;">
+                  <div class="eyebrow"><span class="eyebrow-dot"></span> PRIORITY PROJECT BRIEF</div>
+                  <h2 style="font-size:22px;font-weight:900;margin:4px 0 6px;">Request a New Service / Project</h2>
+                  <p style="font-size:14px;color:var(--yole-text-muted);margin:0;">Provide your scope, preferred timeline, and any reference links so Yoletech can prepare an accurate delivery plan.</p>
+                </div>
+
+                <form novalidate onsubmit="window.app.handleClientPortalInquiry(event)">
+                  <div class="grid-2" style="gap:14px;">
+                    <div class="form-group">
+                      <label class="form-label">Project Category *</label>
+                      <select name="service_category" class="form-control">
+                        ${serviceTracks
+                          .map(
+                            (track) =>
+                              `<option value="${escHtml(track)}" ${track === userTrack ? 'selected' : ''}>${escHtml(track)}</option>`
+                          )
+                          .join('')}
+                      </select>
+                    </div>
+                    <div class="form-group">
+                      <label class="form-label">Target Timeline / Urgency</label>
+                      <select name="timeline" class="form-control">
+                        <option value="Standard (2 - 4 Weeks)" selected>Standard (2 – 4 Weeks)</option>
+                        <option value="Priority / Urgent (Within 7 Days)">Priority / Urgent (Within 7 Days)</option>
+                        <option value="Flexible / Exploratory">Flexible / Exploratory</option>
+                        <option value="Ongoing Monthly Retainer">Ongoing Monthly Retainer</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div class="grid-2" style="gap:14px;">
+                    <div class="form-group">
+                      <label class="form-label">Engagement Tier</label>
+                      <select name="engagement_tier" class="form-control">
+                        <option value="Standard End-to-End Project" selected>Standard End-to-End Project</option>
+                        <option value="Single Deliverable / Quick Sprint">Single Deliverable / Quick Sprint</option>
+                        <option value="Enterprise / Multi-Departmental">Enterprise / Multi-Departmental</option>
+                        <option value="Need Custom Estimate">Need Custom Estimate</option>
+                      </select>
+                    </div>
+                    <div class="form-group">
+                      <label class="form-label">Dataset / Reference URL (Optional)</label>
+                      <input type="url" name="reference_url" class="form-control" placeholder="https://drive.google.com/... or Figma / repo link" />
+                    </div>
+                  </div>
+
                   <div class="form-group">
                     <label class="form-label">Project Scope &amp; Deliverables *</label>
-                    <textarea name="message" rows="4" required class="form-control" placeholder="Describe the dataset, dashboard, web platform, or workflow automation you need..."></textarea>
+                    <textarea name="message" rows="5" required class="form-control" placeholder="Describe your goals, data sources, key KPIs/features, and expected deliverables..."></textarea>
                   </div>
-                  <button type="submit" id="portal-inquiry-submit-btn" class="btn btn-lime" style="width:100%;">Submit Request to Yoletech →</button>
+
+                  <button type="submit" id="portal-inquiry-submit-btn" class="btn btn-lime" style="width:100%;padding:14px;font-size:15px;">
+                    Submit Request to Yoletech →
+                  </button>
                   ${this.renderFormConfirmation('portal-inquiry')}
                 </form>
               </div>
 
-              <!-- CLIENT PROFILE SETTINGS -->
+              <aside class="portal-side-stack">
+                <div class="glass-card">
+                  <h3 style="font-size:18px;font-weight:900;margin-bottom:14px;">How Your Request Progresses</h3>
+                  <ol class="portal-roadmap-list">
+                    <li><strong>1. Technical Scoping (Within 24h)</strong><span>We review your requirements, datasets, and timeline.</span></li>
+                    <li><strong>2. Architecture &amp; Milestone Lock</strong><span>Scope, deliverables, and schedule are confirmed with you.</span></li>
+                    <li><strong>3. Iterative Build &amp; Live Tracking</strong><span>Watch real-time progress and milestone notes in your portal.</span></li>
+                    <li><strong>4. Review &amp; Final Handoff</strong><span>Test staging links/dashboards, approve delivery, and receive documentation.</span></li>
+                  </ol>
+                </div>
+              </aside>
+            </div>
+          `
+              : ''
+          }
+
+          <!-- TAB 3: DELIVERABLES & RESOURCES -->
+          ${
+            activeTab === 'deliverables'
+              ? `
+            <div style="display:flex;flex-direction:column;gap:24px;">
               <div class="glass-card">
-                <h3 style="font-size:19px;font-weight:900;margin-bottom:14px;">Account &amp; Profile Settings</h3>
+                <h2 style="font-size:21px;font-weight:900;margin:0 0 6px;">Shared Project Deliverables &amp; Staging Links</h2>
+                <p style="font-size:13.5px;color:var(--yole-text-muted);margin:0 0 18px;">All live dashboards, staging previews, repositories, and handoff folders shared on your projects appear here automatically.</p>
+
+                ${
+                  deliverables.length === 0
+                    ? `<div class="portal-empty-state">
+                        <h3>No Deliverable Links Published Yet</h3>
+                        <p>As your active requests reach review and completion milestones, Yoletech will publish interactive dashboard links, staging URLs, and documentation right here.</p>
+                        <button type="button" class="btn btn-outline btn-sm" style="margin-top:12px;" onclick="window.app.setPortalTab('overview')">View Active Requests →</button>
+                      </div>`
+                    : `<div class="grid-2" style="gap:16px;">
+                        ${deliverables
+                          .map(
+                            (d) => `
+                          <div class="portal-deliverable-card">
+                            <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:10px;">
+                              <span class="portal-ticket-id">#${escHtml(d.ticketId)}</span>
+                              <span class="tech-pill lime">${escHtml(d.category)}</span>
+                            </div>
+                            ${d.note ? `<p style="font-size:13.5px;margin:0 0 12px;">${escHtml(d.note)}</p>` : ''}
+                            <a href="${escHtml(d.url)}" target="_blank" rel="noopener noreferrer" class="btn btn-lime btn-sm">
+                              🔗 Open Deliverable ↗
+                            </a>
+                          </div>
+                        `
+                          )
+                          .join('')}
+                      </div>`
+                }
+              </div>
+
+              <div class="glass-card">
+                <h3 style="font-size:19px;font-weight:900;margin:0 0 14px;">Client Resources &amp; Reference Guides</h3>
+                <div class="grid-2" style="gap:16px;">
+                  <div class="portal-resource-card">
+                    <strong>Interactive Executive BI Dashboard</strong>
+                    <p>Explore live KPI architectures, lifecycle funnels, and analytics benchmarks built by Yoletech.</p>
+                    <button type="button" class="btn btn-outline btn-sm" onclick="window.app.navigate('dashboard')">Open Live Dashboard →</button>
+                  </div>
+                  <div class="portal-resource-card">
+                    <strong>Verified Case Studies &amp; Architectures</strong>
+                    <p>Review production Power BI, Streamlit ML, Python automation, and full-stack deployments.</p>
+                    <button type="button" class="btn btn-outline btn-sm" onclick="window.app.navigate('portfolio')">Browse Case Studies →</button>
+                  </div>
+                  <div class="portal-resource-card">
+                    <strong>Technical Guides &amp; Tutorials</strong>
+                    <p>Read practical walkthroughs on SQL optimization, FastAPI, Next.js, and BI engineering.</p>
+                    <button type="button" class="btn btn-outline btn-sm" onclick="window.app.navigate('blog')">Read Articles →</button>
+                  </div>
+                  <div class="portal-resource-card">
+                    <strong>Share Feedback / Endorsement</strong>
+                    <p>Worked with Yoletech on a completed milestone? Share your experience on our client wall.</p>
+                    <button type="button" class="btn btn-outline btn-sm" onclick="window.app.openPortalTestimonialCta('${escHtml(userTrack)}')">Leave a Review ★</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          `
+              : ''
+          }
+
+          <!-- TAB 4: ACCOUNT & SECURITY SETTINGS -->
+          ${
+            activeTab === 'settings'
+              ? `
+            <div class="grid-2" style="align-items:start;gap:24px;">
+              <div class="glass-card">
+                <h2 style="font-size:20px;font-weight:900;margin:0 0 6px;">Account &amp; Profile Settings</h2>
+                <p style="font-size:13.5px;color:var(--yole-text-muted);margin:0 0 18px;">Keep your organization details and primary service track up to date.</p>
+
                 <form novalidate onsubmit="window.app.handleProfileUpdateSubmit(event)">
+                  <div class="form-group">
+                    <label class="form-label">Registered Email Address (Verified)</label>
+                    <input type="email" class="form-control" value="${escHtml(this.user.email || '')}" readonly disabled style="opacity:0.75;cursor:not-allowed;" />
+                  </div>
                   <div class="grid-2" style="gap:12px;">
                     <div class="form-group">
                       <label class="form-label">Full Name *</label>
-                      <input type="text" name="name" required class="form-control" value="${(this.user.name || '').replace(/"/g, '&quot;')}" />
+                      <input type="text" name="name" required class="form-control" value="${escHtml(this.user.name || '')}" />
                     </div>
                     <div class="form-group">
                       <label class="form-label">WhatsApp / Phone</label>
-                      <input type="text" name="phone" class="form-control" value="${(this.user.phone || '').replace(/"/g, '&quot;')}" />
+                      <input type="text" name="phone" class="form-control" value="${escHtml(this.user.phone || '')}" />
                     </div>
                   </div>
                   <div class="grid-2" style="gap:12px;">
                     <div class="form-group">
                       <label class="form-label">Organization / Company</label>
-                      <input type="text" name="company" class="form-control" value="${(this.user.company || '').replace(/"/g, '&quot;')}" />
+                      <input type="text" name="company" class="form-control" value="${escHtml(this.user.company || '')}" />
                     </div>
                     <div class="form-group">
                       <label class="form-label">Primary Service Track</label>
                       <select name="service_interest" class="form-control">
-                        <option value="Data Analytics & BI" ${this.user.service_interest === 'Data Analytics & BI' ? 'selected' : ''}>Data Analytics &amp; BI</option>
-                        <option value="Full-Stack Web Development" ${this.user.service_interest === 'Full-Stack Web Development' ? 'selected' : ''}>Full-Stack Web Development</option>
-                        <option value="AI & Workflow Automation" ${this.user.service_interest === 'AI & Workflow Automation' ? 'selected' : ''}>AI &amp; Workflow Automation</option>
-                        <option value="Tech Tutorials & Mentorship" ${this.user.service_interest === 'Tech Tutorials & Mentorship' ? 'selected' : ''}>Tech Tutorials &amp; Mentorship</option>
-                        <option value="Graphic Design & Video" ${this.user.service_interest === 'Graphic Design & Video' ? 'selected' : ''}>Graphic Design &amp; Video</option>
-                        <option value="IT & Customer Support" ${this.user.service_interest === 'IT & Customer Support' ? 'selected' : ''}>IT &amp; Customer Support</option>
+                        ${serviceTracks
+                          .map(
+                            (track) =>
+                              `<option value="${escHtml(track)}" ${track === userTrack ? 'selected' : ''}>${escHtml(track)}</option>`
+                          )
+                          .join('')}
                       </select>
                     </div>
                   </div>
-                  <button type="submit" id="profile-submit-btn" class="btn btn-outline btn-sm">Save Profile Changes</button>
+                  <button type="submit" id="profile-submit-btn" class="btn btn-lime btn-sm" style="padding:11px 22px;">Save Profile Changes →</button>
                   ${this.renderFormConfirmation('profile-settings')}
                 </form>
               </div>
+
+              <div class="glass-card">
+                <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:6px;">
+                  <h2 style="font-size:20px;font-weight:900;margin:0;">Password &amp; Security</h2>
+                  <button type="button" style="background:none;border:none;color:#C8E61E;font-size:12px;font-weight:700;cursor:pointer;" onclick="window.app.showPortalPassword=!window.app.showPortalPassword;window.app.render();">
+                    ${this.showPortalPassword ? 'Hide Passwords' : 'Show Passwords'}
+                  </button>
+                </div>
+                <p style="font-size:13.5px;color:var(--yole-text-muted);margin:0 0 18px;">Update your portal sign-in password at any time.</p>
+
+                <form novalidate onsubmit="window.app.handlePasswordUpdateSubmit(event)">
+                  <div class="form-group">
+                    <label class="form-label">Current Password *</label>
+                    <input type="${pwdType}" name="current_password" required autocomplete="current-password" class="form-control" placeholder="Enter your current password" />
+                  </div>
+                  <div class="grid-2" style="gap:12px;">
+                    <div class="form-group">
+                      <label class="form-label">New Password *</label>
+                      <input type="${pwdType}" name="new_password" required minlength="6" autocomplete="new-password" class="form-control" placeholder="Min. 6 characters" />
+                    </div>
+                    <div class="form-group">
+                      <label class="form-label">Confirm New Password *</label>
+                      <input type="${pwdType}" name="confirm_password" required minlength="6" autocomplete="new-password" class="form-control" placeholder="Re-enter new password" />
+                    </div>
+                  </div>
+                  <button type="submit" id="password-submit-btn" class="btn btn-outline btn-sm" style="padding:11px 22px;">Update Password →</button>
+                  ${this.renderFormConfirmation('password-settings')}
+                </form>
+              </div>
             </div>
-          </div>
+          `
+              : ''
+          }
         </div>
       </section>
     `;
@@ -4091,17 +4660,24 @@ ${C.renderRoiCalculatorWidget ? C.renderRoiCalculatorWidget() : ""}
     try {
       let updatedUser = null;
       try {
-        const { user } = await this.api('/api/auth/profile', {
+        const res = await this.api('/api/auth/profile', {
           method: 'PUT',
           body: JSON.stringify(updatedFields)
         });
-        updatedUser = user;
+        updatedUser = res.user;
+        if (res.token) {
+          this.token = res.token;
+          localStorage.setItem('yoletech_token', res.token);
+        }
       } catch {
         updatedUser = { ...this.user, ...updatedFields };
       }
       this.user = updatedUser;
       this.saveLocalRegisteredUser(updatedUser);
       localStorage.setItem('yoletech_user', JSON.stringify(updatedUser));
+      if (typeof this.loadDashboardData === 'function') {
+        this.loadDashboardData(true);
+      }
       this.setFormConfirmation('profile-settings', {
         title: 'Profile Settings Saved!',
         message: `Your profile details for <strong>${updatedUser.name}</strong> and primary service track (<strong>${updatedUser.service_interest}</strong>) have been validated and updated.`
@@ -4117,8 +4693,101 @@ ${C.renderRoiCalculatorWidget ? C.renderRoiCalculatorWidget() : ""}
       this.showToast(err.message, 'error');
       if (submitBtn) {
         submitBtn.disabled = false;
-        submitBtn.textContent = 'Save Profile Changes';
+        submitBtn.textContent = 'Save Profile Changes →';
       }
+    }
+  }
+
+  async handlePasswordUpdateSubmit(e) {
+    e.preventDefault();
+    const form = e.target;
+    const curPwd = (form.current_password?.value || '').trim();
+    const newPwd = (form.new_password?.value || '').trim();
+    const confPwd = (form.confirm_password?.value || '').trim();
+
+    if (!curPwd || !newPwd || !confPwd) {
+      this.setFormConfirmation('password-settings', {
+        type: 'error',
+        title: 'Missing Password Fields',
+        message: 'Please complete your current password, new password, and confirmation.'
+      });
+      this.render();
+      return;
+    }
+    if (newPwd.length < 6) {
+      this.setFormConfirmation('password-settings', {
+        type: 'error',
+        title: 'Password Too Short',
+        message: 'Your new password must be at least 6 characters long.'
+      });
+      this.render();
+      return;
+    }
+    if (newPwd !== confPwd) {
+      this.setFormConfirmation('password-settings', {
+        type: 'error',
+        title: 'Passwords Do Not Match',
+        message: 'New password and confirmation password do not match.'
+      });
+      this.render();
+      return;
+    }
+
+    const submitBtn = document.getElementById('password-submit-btn');
+    if (submitBtn) {
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Updating Password...';
+    }
+
+    try {
+      try {
+        const res = await this.api('/api/auth/profile', {
+          method: 'PUT',
+          body: JSON.stringify({
+            name: this.user.name,
+            phone: this.user.phone,
+            company: this.user.company,
+            service_interest: this.user.service_interest,
+            current_password: curPwd,
+            new_password: newPwd
+          })
+        });
+        if (res?.token) {
+          this.token = res.token;
+          localStorage.setItem('yoletech_token', res.token);
+        }
+      } catch (apiErr) {
+        if (String(apiErr.message || '').toLowerCase().includes('incorrect')) {
+          throw apiErr;
+        }
+        const localRec = this.getLocalRegisteredUsers().find(
+          (u) => String(u.email || '').toLowerCase() === String(this.user.email || '').toLowerCase()
+        );
+        if (localRec && localRec._pwd && localRec._pwd !== curPwd) {
+          throw new Error('Current password is incorrect.');
+        }
+      }
+
+      this.saveLocalRegisteredUser(this.user, newPwd);
+      form.reset();
+      this.setFormConfirmation('password-settings', {
+        title: 'Password Updated!',
+        message: 'Your Client Portal password has been securely updated.'
+      });
+      this.showToast('Password updated successfully!');
+      this.render();
+    } catch (err) {
+      this.setFormConfirmation('password-settings', {
+        type: 'error',
+        title: 'Password Update Failed',
+        message: err.message || 'Could not update your password.'
+      });
+      this.showToast(err.message || 'Could not update password.', 'error');
+      if (submitBtn) {
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Update Password →';
+      }
+      this.render();
     }
   }
 
@@ -4127,6 +4796,7 @@ ${C.renderRoiCalculatorWidget ? C.renderRoiCalculatorWidget() : ""}
     const form = e.target;
     const isValid = this.validateForm(form, 'portal-inquiry', [
       { name: 'service_category', label: 'Project Category', required: true },
+      { name: 'reference_url', label: 'Dataset / Reference URL', required: false, type: 'url' },
       { name: 'message', label: 'Project Scope & Deliverables', required: true, minLength: 10 }
     ]);
     if (!isValid) return;
@@ -4137,12 +4807,26 @@ ${C.renderRoiCalculatorWidget ? C.renderRoiCalculatorWidget() : ""}
       submitBtn.textContent = 'Submitting Request to Yoletech...';
     }
 
+    const timeline = (form.timeline?.value || '').trim();
+    const engagementTier = (form.engagement_tier?.value || '').trim();
+    const referenceUrl = (form.reference_url?.value || '').trim();
+    const rawScope = form.message.value.trim();
+
+    const metaHeaders = [
+      timeline ? `[Timeline: ${timeline}]` : '',
+      engagementTier ? `[Engagement Tier: ${engagementTier}]` : '',
+      referenceUrl ? `[Reference Link: ${referenceUrl}]` : ''
+    ].filter(Boolean);
+
+    const formattedMessage = metaHeaders.length ? `${metaHeaders.join('\n')}\n${rawScope}` : rawScope;
+
     const payload = {
       name: this.user.name,
       email: this.user.email,
       phone: this.user.phone || '',
       service_category: form.service_category.value,
-      message: form.message.value.trim()
+      budget: engagementTier || form.service_category.value,
+      message: formattedMessage
     };
 
     const subject = `[YOLETECH Client Portal Request] ${payload.service_category} — ${payload.name}`;
@@ -4196,13 +4880,19 @@ ${C.renderRoiCalculatorWidget ? C.renderRoiCalculatorWidget() : ""}
       });
 
       await this.loadClientData();
+      if (typeof this.loadDashboardData === 'function') {
+        this.loadDashboardData(true);
+      }
       form.reset();
       this.setFormConfirmation('portal-inquiry', {
         title: 'Service / Project Request Confirmed!',
-        message: `Thank you, <strong>${payload.name}</strong>! Your <strong>${payload.service_category}</strong> request ("<em>${payload.message.slice(0, 80)}${payload.message.length > 80 ? '...' : ''}</em>") has been submitted to Yoletech (<strong>${this.notifyEmail}</strong>) and added to <strong>Your Projects &amp; Service Requests</strong>.`,
+        message: `Thank you, <strong>${payload.name}</strong>! Your <strong>${payload.service_category}</strong> request ("<em>${rawScope.slice(0, 80)}${rawScope.length > 80 ? '...' : ''}</em>") has been submitted to Yoletech (<strong>${this.notifyEmail}</strong>) and added to <strong>Overview &amp; Projects</strong>.`,
         actionsHtml: `
           <div style="display:flex;gap:10px;flex-wrap:wrap;">
-            <a href="${whatsappUrl}" target="_blank" rel="noopener" class="btn btn-lime btn-sm">
+            <button type="button" class="btn btn-lime btn-sm" onclick="window.app.setPortalTab('overview')">
+              📋 View in Overview &amp; Projects →
+            </button>
+            <a href="${whatsappUrl}" target="_blank" rel="noopener" class="btn btn-outline btn-sm">
               💬 Follow Up on WhatsApp ↗
             </a>
             <a href="${mailtoUrl}" class="btn btn-outline btn-sm">
@@ -4772,11 +5462,13 @@ ${C.renderRoiCalculatorWidget ? C.renderRoiCalculatorWidget() : ""}
 
             <div class="grid-2" style="gap:12px;margin-bottom:12px;">
               <div>
-                <label class="form-label">Status</label>
+                <label class="form-label">Milestone Stage</label>
                 <select class="form-control" onchange="window.app.updateInquiry(${inq.id}, { status: this.value })">
-                  <option value="NEW" ${inq.status === 'NEW' ? 'selected' : ''}>NEW</option>
-                  <option value="IN_PROGRESS" ${inq.status === 'IN_PROGRESS' ? 'selected' : ''}>IN_PROGRESS</option>
-                  <option value="RESOLVED" ${inq.status === 'RESOLVED' ? 'selected' : ''}>RESOLVED</option>
+                  <option value="NEW" ${inq.status === 'NEW' ? 'selected' : ''}>1. NEW (Submitted)</option>
+                  <option value="SCOPING" ${inq.status === 'SCOPING' ? 'selected' : ''}>2. SCOPING &amp; AUDIT</option>
+                  <option value="IN_PROGRESS" ${inq.status === 'IN_PROGRESS' ? 'selected' : ''}>3. IN_PROGRESS</option>
+                  <option value="REVIEW" ${inq.status === 'REVIEW' ? 'selected' : ''}>4. CLIENT REVIEW</option>
+                  <option value="COMPLETED" ${inq.status === 'COMPLETED' || inq.status === 'RESOLVED' ? 'selected' : ''}>5. COMPLETED</option>
                 </select>
               </div>
               <div>
@@ -4786,8 +5478,8 @@ ${C.renderRoiCalculatorWidget ? C.renderRoiCalculatorWidget() : ""}
             </div>
 
             <div class="form-group">
-              <label class="form-label">Status Note Visible in Client Portal</label>
-              <input type="text" class="form-control" value="${(inq.admin_response || '').replace(/"/g, '&quot;')}" onchange="window.app.updateInquiry(${inq.id}, { admin_response: this.value })" placeholder="Write milestone update for client..." />
+              <label class="form-label">Milestone Note &amp; Deliverable URL (Visible in Client Portal)</label>
+              <input type="text" class="form-control" value="${(inq.admin_response || '').replace(/"/g, '&quot;')}" onchange="window.app.updateInquiry(${inq.id}, { admin_response: this.value })" placeholder="Write milestone update or paste deliverable link (https://...)..." />
             </div>
 
             <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;padding-top:10px;border-top:1px solid rgba(255,255,255,0.1);">
@@ -4823,12 +5515,36 @@ ${C.renderRoiCalculatorWidget ? C.renderRoiCalculatorWidget() : ""}
   }
 
   async updateInquiry(id, updates) {
+    const stageDefaultProgress = {
+      NEW: 15,
+      SCOPING: 30,
+      IN_PROGRESS: 55,
+      REVIEW: 85,
+      COMPLETED: 100,
+      RESOLVED: 100
+    };
+    const nextUpdates = { ...updates };
+    if (nextUpdates.status && nextUpdates.project_progress === undefined && stageDefaultProgress[nextUpdates.status] !== undefined) {
+      nextUpdates.project_progress = stageDefaultProgress[nextUpdates.status];
+    }
     try {
-      await this.api(`/api/inquiries/${id}`, {
-        method: 'PUT',
-        body: JSON.stringify(updates)
-      });
+      try {
+        await this.api(`/api/inquiries/${id}`, {
+          method: 'PUT',
+          body: JSON.stringify(nextUpdates)
+        });
+      } catch (apiErr) {
+        const localExists = this.getLocalInquiries().some((i) => String(i.id) === String(id));
+        if (!localExists) throw apiErr;
+      }
+      try {
+        const localList = this.getLocalInquiries().map((i) =>
+          String(i.id) === String(id) ? { ...i, ...nextUpdates } : i
+        );
+        localStorage.setItem('yoletech_local_inquiries', JSON.stringify(localList));
+      } catch {}
       await this.loadAdminData();
+      if (typeof this.loadDashboardData === 'function') await this.loadDashboardData(true);
       this.showToast('Project inquiry updated.');
       this.render();
     } catch (err) {

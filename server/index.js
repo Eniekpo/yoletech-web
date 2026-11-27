@@ -216,6 +216,16 @@ function createJsonFallbackDatabase() {
             return { lastInsertRowid: id };
           }
 
+          if (/UPDATE users SET password_hash = \? WHERE id = \?/i.test(norm)) {
+            const id = Number(args[1]);
+            const u = state.users.find((x) => Number(x.id) === id);
+            if (u) {
+              u.password_hash = args[0];
+              saveState();
+            }
+            return { changes: u ? 1 : 0 };
+          }
+
           if (/UPDATE users SET name = \?, phone = \?, company = \?, service_interest = \? WHERE id = \?/i.test(norm)) {
             const id = Number(args[4]);
             const u = state.users.find((x) => Number(x.id) === id);
@@ -1402,6 +1412,27 @@ const requestHandler = async (req, res) => {
       const user = getAuthUser(req);
       if (!user) return sendJson(res, 401, { error: 'Unauthorized' });
       const body = await parseBody(req);
+
+      if (body.new_password) {
+        if (String(body.new_password).length < 6) {
+          return sendJson(res, 400, { error: 'New password must be at least 6 characters.' });
+        }
+        const fullRecord =
+          db.prepare('SELECT * FROM users WHERE id = ?').get(user.id) ||
+          db.prepare('SELECT * FROM users WHERE email = ?').get(String(user.email || '').toLowerCase());
+        if (fullRecord && fullRecord.password_hash && body.current_password) {
+          if (!verifyPassword(String(body.current_password), fullRecord.password_hash)) {
+            return sendJson(res, 400, { error: 'Current password is incorrect.' });
+          }
+        } else if (fullRecord && fullRecord.password_hash && !body.current_password) {
+          return sendJson(res, 400, { error: 'Please enter your current password to set a new password.' });
+        }
+        const newHash = hashPassword(String(body.new_password));
+        if (fullRecord) {
+          db.prepare('UPDATE users SET password_hash = ? WHERE id = ?').run(newHash, fullRecord.id);
+        }
+      }
+
       db.prepare(
         `UPDATE users SET name = ?, phone = ?, company = ?, service_interest = ? WHERE id = ?`
       ).run(
@@ -1411,12 +1442,20 @@ const requestHandler = async (req, res) => {
         body.service_interest || user.service_interest,
         user.id
       );
-      const updated = db
-        .prepare(
-          'SELECT id, name, email, phone, company, service_interest, role, status, created_at FROM users WHERE id = ?'
-        )
-        .get(user.id);
-      return sendJson(res, 200, { user: updated });
+      const updated =
+        db
+          .prepare(
+            'SELECT id, name, email, phone, company, service_interest, role, status, created_at FROM users WHERE id = ?'
+          )
+          .get(user.id) || {
+          ...user,
+          name: body.name || user.name,
+          phone: body.phone ?? user.phone,
+          company: body.company ?? user.company,
+          service_interest: body.service_interest || user.service_interest
+        };
+      const refreshedToken = signToken(updated);
+      return sendJson(res, 200, { user: updated, token: refreshedToken });
     }
 
     // --- ADMIN CLIENT MANAGEMENT ENDPOINTS ---
