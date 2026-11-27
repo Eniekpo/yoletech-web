@@ -365,3 +365,63 @@ test('Rate limiter blocks excessive Learn registration attempts per email', asyn
   }
   assert.equal(lastStatus, 429);
 });
+
+test('Unified login differentiates CLIENT, LEARNER, and ADMIN roles and Learn hero links Sign In to /login', async () => {
+  // 1. Newly registered client gets role CLIENT on registration and login
+  const clientReg = await invokeApp('/api/auth/register', {
+    method: 'POST',
+    body: JSON.stringify({
+      name: 'Ngozi Client',
+      email: 'ngozi.client@example.com',
+      phone: '+2348091112233',
+      company: 'Ngozi Ventures',
+      service_interest: 'Web Development',
+      password: 'ClientPass#2026'
+    })
+  });
+  assert.equal(clientReg.status, 201);
+  assert.equal(clientReg.json.user.role, 'CLIENT');
+
+  const clientLogin = await invokeApp('/api/auth/login', {
+    method: 'POST',
+    body: JSON.stringify({
+      email: 'ngozi.client@example.com',
+      password: 'ClientPass#2026'
+    })
+  });
+  assert.equal(clientLogin.status, 200);
+  assert.equal(clientLogin.json.user.role, 'CLIENT');
+
+  // 2. Seeded demo client also logs in with role CLIENT
+  const seededClientLogin = await invokeApp('/api/auth/login', {
+    method: 'POST',
+    body: JSON.stringify({
+      email: 'client@example.com',
+      password: 'Client@2026'
+    })
+  });
+  assert.equal(seededClientLogin.status, 200);
+  assert.equal(seededClientLogin.json.user.role, 'CLIENT');
+
+  // 3. Learner registered on /learn logs in via /api/auth/login with role LEARNER
+  const learnerLogin = await invokeApp('/api/auth/login', {
+    method: 'POST',
+    body: JSON.stringify({
+      email: 'chidi.learner@example.com',
+      password: 'LearnPassword#2026'
+    })
+  });
+  assert.equal(learnerLogin.status, 200);
+  assert.equal(learnerLogin.json.user.role, 'LEARNER');
+
+  // 4. Built Learn client bundle shows "Sign In" linked to /login in hero instead of "Browse Courses"
+  const learnBundle = fs.readFileSync(path.join(process.cwd(), 'public', 'learn.js'), 'utf8');
+  assert.match(learnBundle, /href="\/login"[^>]*navigate\('login'\)[^>]*>\s*Sign In\s*<\/a>/);
+  assert.equal(learnBundle.includes('href="#learn-courses-section"'), false);
+
+  // 5. Frontend controller routes CLIENT -> portal, LEARNER -> learn-dashboard, ADMIN -> admin-dashboard
+  const appJs = fs.readFileSync(path.join(process.cwd(), 'public', 'app.js'), 'utf8');
+  assert.match(appJs, /userRole === 'LEARNER'[\s\S]*?navigate\('learn-dashboard'\)/);
+  assert.match(appJs, /targetPage === 'portal' && role === 'LEARNER'[\s\S]*?targetPage = 'learn-dashboard'/);
+  assert.match(appJs, /targetPage === 'learn-dashboard' && role === 'CLIENT'[\s\S]*?targetPage = 'portal'/);
+});

@@ -142,6 +142,8 @@ export interface YoletechAppHost {
   showToast(msg: string, type?: 'success' | 'error'): void;
   setFormConfirmation?(formKey: string, data: Record<string, unknown>): void;
   renderFormConfirmation?(formKey: string): string;
+  saveLocalRegisteredUser?(userObj: AppUserLike, rawPassword?: string): void;
+  renderClientPortalPage?(): string;
   logout?(showNotification?: boolean): void;
   // Learn methods attached on prototype
   ensureLearnState(): LearnClientState;

@@ -82,6 +82,47 @@ function createInitialLearnState(): LearnClientState {
   };
 }
 
+const LOCAL_LEARNERS_KEY = 'yoletech_local_learners';
+
+interface LocalLearnerSnapshot {
+  profile: LearnerProfileRecord | null;
+  enrollments: LearnerEnrollmentView[];
+}
+
+function getLocalLearnerSnapshot(email: string | undefined): LocalLearnerSnapshot | null {
+  const normEmail = String(email || '').trim().toLowerCase();
+  if (!normEmail) return null;
+  try {
+    const raw = localStorage.getItem(LOCAL_LEARNERS_KEY);
+    if (!raw) return null;
+    const map = JSON.parse(raw) as Record<string, LocalLearnerSnapshot>;
+    return map[normEmail] || null;
+  } catch {
+    return null;
+  }
+}
+
+function saveLocalLearnerSnapshot(
+  email: string | undefined,
+  profile: LearnerProfileRecord | null,
+  enrollments: LearnerEnrollmentView[]
+): void {
+  const normEmail = String(email || '').trim().toLowerCase();
+  if (!normEmail) return;
+  try {
+    const raw = localStorage.getItem(LOCAL_LEARNERS_KEY);
+    const map = raw ? (JSON.parse(raw) as Record<string, LocalLearnerSnapshot>) : {};
+    map[normEmail] = { profile, enrollments };
+    localStorage.setItem(LOCAL_LEARNERS_KEY, JSON.stringify(map));
+  } catch {
+    // Ignore storage quota errors
+  }
+}
+
+function normalizeUserRole(role: string | undefined): string {
+  return String(role || 'CLIENT').trim().toUpperCase();
+}
+
 function getFilteredCountries(st: LearnClientState): CountryOption[] {
   const q = st.form.countryQuery.trim().toLowerCase();
   if (!q) return st.countries;
@@ -210,15 +251,40 @@ function attachLearnClientMethods(proto: Record<string, unknown>): void {
     if (st.dashboardLoading || (st.dashboardLoaded && !force)) return;
     st.dashboardLoading = true;
     st.dashboardError = '';
+    const userRole = normalizeUserRole(this.user.role);
     try {
       const data = await this.api('/api/learn/me');
-      st.dashboardProfile = (data.profile as LearnerProfileRecord | null | undefined) || null;
-      st.dashboardEnrollments = Array.isArray(data.enrollments)
+      const apiProfile = (data.profile as LearnerProfileRecord | null | undefined) || null;
+      const apiEnrollments = Array.isArray(data.enrollments)
         ? (data.enrollments as LearnerEnrollmentView[])
         : [];
+      if (apiProfile || apiEnrollments.length > 0) {
+        st.dashboardProfile = apiProfile;
+        st.dashboardEnrollments = apiEnrollments;
+        saveLocalLearnerSnapshot(this.user.email, apiProfile, apiEnrollments);
+      } else if (userRole === 'LEARNER') {
+        const cached = getLocalLearnerSnapshot(this.user.email);
+        st.dashboardProfile = cached?.profile || null;
+        st.dashboardEnrollments = cached?.enrollments || [];
+      } else {
+        st.dashboardProfile = null;
+        st.dashboardEnrollments = [];
+      }
       st.dashboardLoaded = true;
     } catch (err) {
-      st.dashboardError = err instanceof Error ? err.message : 'Unable to load your learner dashboard.';
+      if (userRole === 'LEARNER') {
+        const cached = getLocalLearnerSnapshot(this.user.email);
+        if (cached) {
+          st.dashboardProfile = cached.profile;
+          st.dashboardEnrollments = cached.enrollments;
+          st.dashboardLoaded = true;
+          st.dashboardError = '';
+        } else {
+          st.dashboardError = err instanceof Error ? err.message : 'Unable to load your learner dashboard.';
+        }
+      } else {
+        st.dashboardError = err instanceof Error ? err.message : 'Unable to load your learner dashboard.';
+      }
     } finally {
       st.dashboardLoading = false;
       if (this.currentPage === 'learn-dashboard') {
@@ -590,13 +656,19 @@ function attachLearnClientMethods(proto: Record<string, unknown>): void {
       }
 
       const token = String(data.token || '');
-      const user = data.user as YoletechAppHost['user'];
+      const rawUser = data.user as YoletechAppHost['user'];
+      const user = rawUser
+        ? { ...rawUser, role: normalizeUserRole(rawUser.role || 'LEARNER') }
+        : null;
       const profile = (data.profile as LearnerProfileRecord | undefined) || null;
       const enrollment = (data.enrollment as LearnerEnrollmentView | undefined) || null;
+      const enrollments = enrollment ? [enrollment] : [];
 
       if (token && user) {
         this.token = token;
         this.user = user;
+        this.saveLocalRegisteredUser?.(user, submitPayload.password);
+        saveLocalLearnerSnapshot(user.email, profile, enrollments);
         localStorage.setItem('yoletech_token', token);
         localStorage.setItem('yoletech_user', JSON.stringify(user));
       }
@@ -613,7 +685,7 @@ function attachLearnClientMethods(proto: Record<string, unknown>): void {
       nextState.countriesLoaded = preservedCountries.length > 0;
       nextState.dashboardLoaded = Boolean(profile);
       nextState.dashboardProfile = profile;
-      nextState.dashboardEnrollments = enrollment ? [enrollment] : [];
+      nextState.dashboardEnrollments = enrollments;
       this._learnState = nextState;
 
       if (typeof this.setFormConfirmation === 'function') {
@@ -707,12 +779,14 @@ function attachLearnClientMethods(proto: Record<string, unknown>): void {
                 <button type="button" class="btn btn-lime" onclick="window.app.scrollToLearnRegistration()">
                   ${escHtml(ctaLabel)} →
                 </button>
-                <a href="#learn-courses-section" class="btn btn-outline" onclick="event.preventDefault(); document.getElementById('learn-courses-section')?.scrollIntoView({ behavior: 'smooth' });">
-                  Browse Courses
+                <a href="/login" class="btn btn-outline" onclick="event.preventDefault(); window.app.navigate('login');">
+                  Sign In
                 </a>
                 ${
-                  this.user?.role === 'LEARNER'
-                    ? `<a href="/learn/dashboard" class="btn btn-outline" onclick="event.preventDefault(); window.app.navigate('learn-dashboard');">My Learner Dashboard →</a>`
+                  this.user && normalizeUserRole(this.user.role) === 'LEARNER'
+                    ? `<a href="/learn/dashboard" class="btn btn-outline" onclick="event.preventDefault(); window.app.navigate('learn-dashboard');">My Learner Portal →</a>`
+                    : this.user && normalizeUserRole(this.user.role) === 'CLIENT'
+                    ? `<a href="/portal" class="btn btn-outline" onclick="event.preventDefault(); window.app.navigate('portal');">Client Portal →</a>`
                     : ''
                 }
               </div>
@@ -1244,6 +1318,15 @@ function attachLearnClientMethods(proto: Record<string, unknown>): void {
       `;
     }
 
+    const userRole = normalizeUserRole(this.user.role);
+    if (userRole === 'CLIENT' && typeof this.renderClientPortalPage === 'function') {
+      this.currentPage = 'portal';
+      if (typeof window !== 'undefined' && window.location.pathname !== '/portal') {
+        window.history.replaceState({}, '', '/portal');
+      }
+      return this.renderClientPortalPage();
+    }
+
     const st = this.ensureLearnState();
     if (!st.dashboardLoaded && !st.dashboardLoading) {
       void this.loadLearnerDashboardData();
@@ -1300,7 +1383,7 @@ function attachLearnClientMethods(proto: Record<string, unknown>): void {
               <button type="button" class="btn btn-outline btn-sm" onclick="window.app.navigate('learn')">Browse Courses</button>
               <button type="button" class="btn btn-outline btn-sm" onclick="window.app.loadLearnerDashboardData(true)">↻ Refresh</button>
               ${
-                this.user.role === 'ADMIN'
+                normalizeUserRole(this.user.role) === 'ADMIN'
                   ? `<button type="button" class="btn btn-lime btn-sm" onclick="window.app.adminWorkspace='learn';window.app.navigate('admin-dashboard')">Admin Learn →</button>`
                   : ''
               }

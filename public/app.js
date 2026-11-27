@@ -531,18 +531,30 @@ class YoletechApp {
     }
   }
 
+  getUserRole(user = this.user) {
+    return String(user?.role || 'CLIENT').trim().toUpperCase();
+  }
+
+  getPortalRouteForRole(role) {
+    const normalized = String(role || 'CLIENT').trim().toUpperCase();
+    if (normalized === 'ADMIN') return 'admin-dashboard';
+    if (normalized === 'LEARNER') return 'learn-dashboard';
+    return 'portal';
+  }
+
   async verifySession() {
     try {
       await this.syncLocalClientsToServer();
       const { user } = await this.api('/api/auth/me');
-      this.user = user;
-      localStorage.setItem('yoletech_user', JSON.stringify(user));
+      this.user = { ...user, role: this.getUserRole(user) };
+      localStorage.setItem('yoletech_user', JSON.stringify(this.user));
     } catch {
       // Preserve locally stored authenticated session if serverless container restarted
       if (!this.user) {
         this.logout(false);
         return;
       }
+      this.user = { ...this.user, role: this.getUserRole(this.user) };
     }
     if (this.user?.email) {
       const localMatch = this.getLocalRegisteredUsers().find(
@@ -553,9 +565,22 @@ class YoletechApp {
         localStorage.setItem('yoletech_user', JSON.stringify(this.user));
       }
     }
-    if (this.user?.role === 'ADMIN') {
+    const role = this.getUserRole(this.user);
+    if (role === 'ADMIN') {
       await this.loadAdminData();
+    } else if (role === 'LEARNER') {
+      if (this.currentPage === 'portal') {
+        this.currentPage = 'learn-dashboard';
+        window.history.replaceState({}, '', '/learn/dashboard');
+      }
+      if (typeof this.loadLearnerDashboardData === 'function') {
+        await this.loadLearnerDashboardData(true);
+      }
     } else if (this.user) {
+      if (this.currentPage === 'learn-dashboard') {
+        this.currentPage = 'portal';
+        window.history.replaceState({}, '', '/portal');
+      }
       await this.loadClientData();
     }
   }
@@ -589,7 +614,9 @@ class YoletechApp {
       this.adminDateFilterError = '';
     }
 
-    const localUsers = this.getLocalRegisteredUsers();
+    const localUsers = this.getLocalRegisteredUsers().filter(
+      (u) => u && String(u.role || 'CLIENT').trim().toUpperCase() === 'CLIENT'
+    );
     const mergedClients = [...apiClients];
     localUsers.forEach((lu) => {
       if (!mergedClients.some((c) => String(c.email).toLowerCase() === String(lu.email).toLowerCase())) {
@@ -933,26 +960,34 @@ class YoletechApp {
 
   async navigate(page, extra = null) {
     this.mobileMenuOpen = false;
-    if (page === 'blog-detail' && extra) {
+    let targetPage = page;
+    const role = this.user ? this.getUserRole(this.user) : '';
+    if (targetPage === 'portal' && role === 'LEARNER') {
+      targetPage = 'learn-dashboard';
+    } else if (targetPage === 'learn-dashboard' && role === 'CLIENT') {
+      targetPage = 'portal';
+    }
+
+    if (targetPage === 'blog-detail' && extra) {
       this.currentPage = 'blog-detail';
       this.activeBlogSlug = extra;
       this.activeBlogPost = this.blogPosts.find((p) => p.slug === extra) || null;
       window.history.pushState({}, '', `/blog/${extra}`);
-    } else if (page === 'register') {
+    } else if (targetPage === 'register') {
       this.currentPage = 'login';
       this.authMode = 'register';
       window.history.pushState({}, '', '/register');
-    } else if (page === 'learn-dashboard') {
+    } else if (targetPage === 'learn-dashboard') {
       this.currentPage = 'learn-dashboard';
       window.history.pushState({}, '', '/learn/dashboard');
     } else {
-      this.currentPage = page;
-      if (page === 'login' && !extra) this.authMode = 'login';
-      const url = page === 'home' ? '/' : `/${page}`;
+      this.currentPage = targetPage;
+      if (targetPage === 'login' && !extra) this.authMode = 'login';
+      const url = targetPage === 'home' ? '/' : `/${targetPage}`;
       window.history.pushState({}, '', url);
     }
 
-    if (this.currentPage === 'admin-dashboard' && this.user?.role === 'ADMIN') {
+    if (this.currentPage === 'admin-dashboard' && role === 'ADMIN') {
       await this.loadAdminData();
       if (this.adminWorkspace === 'learn' && typeof this.loadAdminLearnData === 'function') {
         await this.loadAdminLearnData();
@@ -1129,6 +1164,15 @@ class YoletechApp {
   logout(showNotification = true) {
     this.token = null;
     this.user = null;
+    this.inquiries = [];
+    this.clients = [];
+    if (this._learnState) {
+      this._learnState.dashboardLoaded = false;
+      this._learnState.dashboardLoading = false;
+      this._learnState.dashboardProfile = null;
+      this._learnState.dashboardEnrollments = [];
+      this._learnState.dashboardError = '';
+    }
     localStorage.removeItem('yoletech_token');
     localStorage.removeItem('yoletech_user');
     if (showNotification) {
@@ -1285,17 +1329,13 @@ class YoletechApp {
 
     let authButtons = '';
     if (this.user) {
-      const dashPage =
-        this.user.role === 'ADMIN'
-          ? 'admin-dashboard'
-          : this.user.role === 'LEARNER'
-          ? 'learn-dashboard'
-          : 'portal';
+      const role = this.getUserRole(this.user);
+      const dashPage = this.getPortalRouteForRole(role);
       const dashLabel =
-        this.user.role === 'ADMIN'
+        role === 'ADMIN'
           ? 'Admin Dashboard'
-          : this.user.role === 'LEARNER'
-          ? 'Learner Dashboard'
+          : role === 'LEARNER'
+          ? 'Learner Portal'
           : 'Client Portal';
       authButtons = `
         <button class="btn btn-lime btn-sm" onclick="window.app.navigate('${dashPage}')">
@@ -3648,14 +3688,16 @@ ${C.renderRoiCalculatorWidget ? C.renderRoiCalculatorWidget() : ""}
         <div class="container" style="max-width:540px;">
           <div class="glass-card auth-card" style="border-color:#C8E61E;">
             <div style="text-align:center;margin-bottom:24px;">
-              <div class="eyebrow" style="justify-content:center;"><span class="eyebrow-dot"></span> CLIENT PORTAL</div>
+              <div class="eyebrow" style="justify-content:center;">
+                <span class="eyebrow-dot"></span> ${isLogin ? 'CLIENT & LEARNER PORTAL' : 'CLIENT PORTAL'}
+              </div>
               <h1 style="font-size:28px;font-weight:900;">
                 ${isLogin ? 'Sign In to Your Portal' : 'Create a Client Account'}
               </h1>
               <p style="font-size:14px;color:var(--yole-text-muted);margin-top:6px;">
                 ${
                   isLogin
-                    ? 'Sign in to track your project deliverables and manage service requests.'
+                    ? 'Sign in with your Client or Learner account — you will be directed automatically to your portal.'
                     : 'Register to request projects, track deliverables, and manage your account.'
                 }
               </p>
@@ -3695,11 +3737,19 @@ ${C.renderRoiCalculatorWidget ? C.renderRoiCalculatorWidget() : ""}
                   Sign In to Portal →
                 </button>
                 ${this.renderFormConfirmation('login')}
-                <div style="text-align:center;margin-top:16px;font-size:13px;color:var(--yole-text-muted);">
-                  Don't have a client account yet?
-                  <a style="color:#C8E61E;font-weight:700;cursor:pointer;margin-left:4px;" onclick="window.app.authMode='register';window.app.render();">
-                    Register here →
-                  </a>
+                <div style="text-align:center;margin-top:16px;font-size:13px;color:var(--yole-text-muted);display:flex;flex-direction:column;gap:8px;">
+                  <div>
+                    New client?
+                    <a style="color:#C8E61E;font-weight:700;cursor:pointer;margin-left:4px;" onclick="window.app.authMode='register';window.app.render();">
+                      Create a Client Account →
+                    </a>
+                  </div>
+                  <div>
+                    Registering for a training program?
+                    <a href="/learn" style="color:#C8E61E;font-weight:700;cursor:pointer;margin-left:4px;" onclick="event.preventDefault();window.app.navigate('learn').then(() => window.setTimeout(() => window.app.scrollToLearnRegistration?.(), 120));">
+                      Register as a Learner →
+                    </a>
+                  </div>
                 </div>
               </form>
             `
@@ -3807,16 +3857,17 @@ ${C.renderRoiCalculatorWidget ? C.renderRoiCalculatorWidget() : ""}
       };
     }
 
-    // 3. Check locally registered clients in browser storage
+    // 3. Check locally registered clients & learners in browser storage
     const localUsers = this.getLocalRegisteredUsers();
     const matched = localUsers.find(
       (u) => String(u.email || '').toLowerCase() === normEmail && u._pwd === password
     );
     if (matched) {
       const { _pwd, ...cleanUser } = matched;
+      const role = this.getUserRole(cleanUser);
       return {
-        token: 'local-client-jwt-' + Date.now(),
-        user: cleanUser
+        token: `local-${role.toLowerCase()}-jwt-${Date.now()}`,
+        user: { ...cleanUser, role }
       };
     }
 
@@ -3858,33 +3909,50 @@ ${C.renderRoiCalculatorWidget ? C.renderRoiCalculatorWidget() : ""}
         }
       }
 
-      const { token, user } = authData;
+      const { token, user: rawUser } = authData;
+      const userRole = this.getUserRole(rawUser);
+      const user = { ...rawUser, role: userRole };
       this.token = token;
       this.user = user;
+      this.inquiries = [];
+      this.clients = [];
+      if (this._learnState) {
+        this._learnState.dashboardLoaded = false;
+        this._learnState.dashboardProfile = null;
+        this._learnState.dashboardEnrollments = [];
+        this._learnState.dashboardError = '';
+      }
       this.saveLocalRegisteredUser(user, password);
       localStorage.setItem('yoletech_token', token);
       localStorage.setItem('yoletech_user', JSON.stringify(user));
 
+      const portalName =
+        userRole === 'ADMIN'
+          ? 'Admin Dashboard'
+          : userRole === 'LEARNER'
+          ? 'Learner Portal'
+          : 'Client Portal';
+
       this.setFormConfirmation('login', {
         title: 'Sign-In Confirmed!',
-        message: `Welcome back, <strong>${user.name}</strong>! Opening your portal...`
+        message: `Welcome back, <strong>${user.name}</strong>! Opening your ${portalName}...`
       });
       this.setFormConfirmation('auth-welcome', {
         title: 'Sign-In Confirmed',
         message: `Welcome back, <strong>${user.name}</strong> (${user.email})! Your session is verified and active.`
       });
       this.showToast(`Welcome back, ${user.name}!`);
-      if (user.role === 'ADMIN') {
+      if (userRole === 'ADMIN') {
         await this.loadAdminData();
-        this.navigate('admin-dashboard');
-      } else if (user.role === 'LEARNER') {
+        await this.navigate('admin-dashboard');
+      } else if (userRole === 'LEARNER') {
         if (typeof this.loadLearnerDashboardData === 'function') {
           await this.loadLearnerDashboardData(true);
         }
-        this.navigate('learn-dashboard');
+        await this.navigate('learn-dashboard');
       } else {
         await this.loadClientData();
-        this.navigate('portal');
+        await this.navigate('portal');
       }
     } catch (err) {
       this.setFormConfirmation('login', {
@@ -4157,6 +4225,13 @@ ${C.renderRoiCalculatorWidget ? C.renderRoiCalculatorWidget() : ""}
   renderClientPortalPage() {
     if (!this.user) {
       return this.renderAuthPage();
+    }
+    if (this.getUserRole(this.user) === 'LEARNER' && typeof this.renderLearnerDashboardPage === 'function') {
+      this.currentPage = 'learn-dashboard';
+      if (typeof window !== 'undefined' && window.location.pathname !== '/learn/dashboard') {
+        window.history.replaceState({}, '', '/learn/dashboard');
+      }
+      return this.renderLearnerDashboardPage();
     }
 
     const escHtml = (v) =>
@@ -6206,7 +6281,9 @@ ${C.renderRoiCalculatorWidget ? C.renderRoiCalculatorWidget() : ""}
       // Reflect milestone progress in the client's CRM & Portal status
       if (shouldSyncClient && syncedClientStatus && existingInq?.email) {
         const targetEmail = String(existingInq.email).trim().toLowerCase();
-        const localUsers = this.getLocalRegisteredUsers();
+        const localUsers = this.getLocalRegisteredUsers().filter(
+          (u) => u && String(u.role || 'CLIENT').trim().toUpperCase() === 'CLIENT'
+        );
         const clientMatch =
           localUsers.find((u) => String(u.email || '').trim().toLowerCase() === targetEmail) ||
           (this.clients || []).find((c) => String(c.email || '').trim().toLowerCase() === targetEmail);
