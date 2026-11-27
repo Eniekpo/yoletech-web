@@ -285,19 +285,29 @@ function loadPublishedLearnDataForSeo() {
   try {
     const { DatabaseSync } = require('node:sqlite');
     const dbPath = process.env.YOLETECH_DB_PATH || path.join(__dirname, 'yoletech.db');
-    if (!fs.existsSync(dbPath)) return { courses: [], content: null };
-    const db = new DatabaseSync(dbPath, { readOnly: true });
-    const courses = db
-      .prepare(
-        `SELECT id, title, slug, short_description, level, mode, duration, price
-         FROM courses WHERE status = 'published' ORDER BY display_order ASC, id ASC`
-      )
-      .all();
-    const content = db
-      .prepare(`SELECT headline, subheadline FROM learn_page_content WHERE id = 1`)
-      .get();
-    db.close();
-    return { courses: Array.isArray(courses) ? courses : [], content: content || null };
+    if (fs.existsSync(dbPath)) {
+      const db = new DatabaseSync(dbPath, { readOnly: true });
+      const courses = db
+        .prepare(
+          `SELECT id, title, slug, short_description, level, mode, duration, price
+           FROM courses WHERE status = 'published' ORDER BY display_order ASC, id ASC`
+        )
+        .all();
+      const content = db
+        .prepare(`SELECT headline, subheadline FROM learn_page_content WHERE id = 1`)
+        .get();
+      db.close();
+      return { courses: Array.isArray(courses) ? courses : [], content: content || null };
+    }
+  } catch {
+    // Fall back to seeded defaults if node:sqlite is unavailable in the serverless runtime
+  }
+  try {
+    const learnMod = require('./learn/index.js');
+    return {
+      courses: Array.isArray(learnMod.DEFAULT_SEED_COURSES) ? learnMod.DEFAULT_SEED_COURSES : [],
+      content: learnMod.DEFAULT_LEARN_PAGE_CONTENT || null
+    };
   } catch {
     return { courses: [], content: null };
   }

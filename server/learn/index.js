@@ -345,6 +345,26 @@ function flattenZodFieldErrors(error) {
 }
 
 // src/learn/db.ts
+function isJsonFallback(db) {
+  return Boolean(db.__isJsonFallback && typeof db.__getState === "function" && typeof db.__saveState === "function");
+}
+function getFallbackState(db) {
+  const s = db.__getState();
+  if (!Array.isArray(s.users)) s.users = [];
+  if (!Array.isArray(s.courses)) s.courses = [];
+  if (!Array.isArray(s.learner_profiles)) s.learner_profiles = [];
+  if (!Array.isArray(s.enrollments)) s.enrollments = [];
+  if (!s.seq) {
+    s.seq = { users: 1, courses: 1, learner_profiles: 1, enrollments: 1 };
+  }
+  if (typeof s.seq.courses !== "number") s.seq.courses = 1;
+  if (typeof s.seq.learner_profiles !== "number") s.seq.learner_profiles = 1;
+  if (typeof s.seq.enrollments !== "number") s.seq.enrollments = 1;
+  return s;
+}
+function nowTimestamp() {
+  return (/* @__PURE__ */ new Date()).toISOString().replace("T", " ").slice(0, 19);
+}
 function parseJsonStringArray(raw) {
   if (!raw) return [];
   try {
@@ -391,6 +411,44 @@ function hydrateCourse(row) {
   };
 }
 function ensureLearnSchemaAndSeed(db) {
+  if (isJsonFallback(db)) {
+    const s = getFallbackState(db);
+    let dirty = false;
+    const now = nowTimestamp();
+    if (s.courses.length === 0) {
+      for (const c of DEFAULT_SEED_COURSES) {
+        const id = s.seq.courses++;
+        s.courses.push({
+          id,
+          title: c.title,
+          slug: c.slug,
+          short_description: c.short_description,
+          outcomes: [...c.outcomes],
+          level: c.level,
+          mode: c.mode,
+          duration: c.duration,
+          price: c.price,
+          status: c.status,
+          display_order: c.display_order,
+          created_at: now,
+          updated_at: now
+        });
+      }
+      dirty = true;
+    }
+    if (!s.learn_page_content) {
+      s.learn_page_content = {
+        headline: DEFAULT_LEARN_PAGE_CONTENT.headline,
+        subheadline: DEFAULT_LEARN_PAGE_CONTENT.subheadline,
+        cta_label: DEFAULT_LEARN_PAGE_CONTENT.cta_label,
+        faq: DEFAULT_LEARN_PAGE_CONTENT.faq.map((f) => ({ ...f })),
+        updated_at: now
+      };
+      dirty = true;
+    }
+    if (dirty) db.__saveState();
+    return;
+  }
   db.exec(`
     CREATE TABLE IF NOT EXISTS schema_migrations (
       id TEXT PRIMARY KEY,
@@ -493,6 +551,10 @@ function ensureLearnSchemaAndSeed(db) {
   }
 }
 function listPublishedCourses(db) {
+  if (isJsonFallback(db)) {
+    const s = getFallbackState(db);
+    return s.courses.filter((c) => c.status === "published").sort((a, b) => a.display_order - b.display_order || a.id - b.id);
+  }
   const rows = db.prepare(
     `SELECT id, title, slug, short_description, outcomes_json, level, mode, duration, price, status, display_order, created_at, updated_at
        FROM courses
@@ -502,6 +564,13 @@ function listPublishedCourses(db) {
   return rows.map(hydrateCourse);
 }
 function listAllCourses(db) {
+  if (isJsonFallback(db)) {
+    const s = getFallbackState(db);
+    return [...s.courses].map((c) => ({
+      ...c,
+      enrollment_count: s.enrollments.filter((e) => e.course_id === c.id).length
+    })).sort((a, b) => a.display_order - b.display_order || a.id - b.id);
+  }
   const rows = db.prepare(
     `SELECT c.id, c.title, c.slug, c.short_description, c.outcomes_json, c.level, c.mode, c.duration, c.price, c.status, c.display_order, c.created_at, c.updated_at,
               COUNT(e.id) AS enrollment_count
@@ -513,6 +582,10 @@ function listAllCourses(db) {
   return rows.map(hydrateCourse);
 }
 function getCourseById(db, id) {
+  if (isJsonFallback(db)) {
+    const s = getFallbackState(db);
+    return s.courses.find((c) => c.id === id) || null;
+  }
   const row = db.prepare(
     `SELECT id, title, slug, short_description, outcomes_json, level, mode, duration, price, status, display_order, created_at, updated_at
        FROM courses WHERE id = ?`
@@ -522,6 +595,32 @@ function getCourseById(db, id) {
 function createCourse(db, input) {
   const baseSlug = input.slug && input.slug.length > 0 ? input.slug : slugifyCourseTitle(input.title);
   let slug = baseSlug || `course-${Date.now()}`;
+  const now = nowTimestamp();
+  if (isJsonFallback(db)) {
+    const s = getFallbackState(db);
+    if (s.courses.some((c) => c.slug === slug)) {
+      slug = `${slug}-${Date.now().toString().slice(-4)}`;
+    }
+    const maxOrder = s.courses.reduce((m, c) => Math.max(m, c.display_order), 0);
+    const created2 = {
+      id: s.seq.courses++,
+      title: input.title,
+      slug,
+      short_description: input.short_description,
+      outcomes: [...input.outcomes],
+      level: input.level,
+      mode: input.mode,
+      duration: input.duration || "",
+      price: input.price || "",
+      status: input.status || "draft",
+      display_order: input.display_order || maxOrder + 1,
+      created_at: now,
+      updated_at: now
+    };
+    s.courses.push(created2);
+    db.__saveState();
+    return created2;
+  }
   const existing = db.prepare("SELECT id FROM courses WHERE slug = ?").get(slug);
   if (existing) {
     slug = `${slug}-${Date.now().toString().slice(-4)}`;
@@ -531,7 +630,6 @@ function createCourse(db, input) {
     const maxRow = db.prepare("SELECT COALESCE(MAX(display_order), 0) AS max_order FROM courses").get();
     displayOrder = Number(maxRow?.max_order || 0) + 1;
   }
-  const now = (/* @__PURE__ */ new Date()).toISOString().replace("T", " ").slice(0, 19);
   const res = db.prepare(
     `INSERT INTO courses (title, slug, short_description, outcomes_json, level, mode, duration, price, status, display_order, created_at, updated_at)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
@@ -556,6 +654,28 @@ function createCourse(db, input) {
   return created;
 }
 function updateCourse(db, id, input) {
+  const now = nowTimestamp();
+  if (isJsonFallback(db)) {
+    const s = getFallbackState(db);
+    const target = s.courses.find((c) => c.id === id);
+    if (!target) return null;
+    if (input.slug && input.slug.length > 0 && s.courses.some((c) => c.id !== id && c.slug === input.slug)) {
+      throw new Error("UNIQUE constraint failed: courses.slug");
+    }
+    target.title = input.title ?? target.title;
+    target.slug = input.slug && input.slug.length > 0 ? input.slug : target.slug;
+    target.short_description = input.short_description ?? target.short_description;
+    target.outcomes = input.outcomes ?? target.outcomes;
+    target.level = input.level ?? target.level;
+    target.mode = input.mode ?? target.mode;
+    target.duration = input.duration !== void 0 ? input.duration : target.duration;
+    target.price = input.price !== void 0 ? input.price : target.price;
+    target.status = input.status ?? target.status;
+    target.display_order = input.display_order !== void 0 ? input.display_order : target.display_order;
+    target.updated_at = now;
+    db.__saveState();
+    return target;
+  }
   const existing = getCourseById(db, id);
   if (!existing) return null;
   const nextTitle = input.title ?? existing.title;
@@ -568,7 +688,6 @@ function updateCourse(db, id, input) {
   const nextPrice = input.price !== void 0 ? input.price : existing.price;
   const nextStatus = input.status ?? existing.status;
   const nextOrder = input.display_order !== void 0 ? input.display_order : existing.display_order;
-  const now = (/* @__PURE__ */ new Date()).toISOString().replace("T", " ").slice(0, 19);
   db.prepare(
     `UPDATE courses
      SET title = ?, slug = ?, short_description = ?, outcomes_json = ?, level = ?, mode = ?, duration = ?, price = ?, status = ?, display_order = ?, updated_at = ?
@@ -590,12 +709,27 @@ function updateCourse(db, id, input) {
   return getCourseById(db, id);
 }
 function deleteOrArchiveCourse(db, id) {
+  const now = nowTimestamp();
+  if (isJsonFallback(db)) {
+    const s = getFallbackState(db);
+    const target = s.courses.find((c) => c.id === id);
+    if (!target) return { action: "not_found", enrollmentCount: 0 };
+    const enrollmentCount2 = s.enrollments.filter((e) => e.course_id === id).length;
+    if (enrollmentCount2 > 0) {
+      target.status = "draft";
+      target.updated_at = now;
+      db.__saveState();
+      return { action: "archived", enrollmentCount: enrollmentCount2 };
+    }
+    s.courses = s.courses.filter((c) => c.id !== id);
+    db.__saveState();
+    return { action: "deleted", enrollmentCount: 0 };
+  }
   const existing = getCourseById(db, id);
   if (!existing) return { action: "not_found", enrollmentCount: 0 };
   const countRow = db.prepare("SELECT COUNT(*) as count FROM enrollments WHERE course_id = ?").get(id);
   const enrollmentCount = Number(countRow?.count || 0);
   if (enrollmentCount > 0) {
-    const now = (/* @__PURE__ */ new Date()).toISOString().replace("T", " ").slice(0, 19);
     db.prepare(`UPDATE courses SET status = 'draft', updated_at = ? WHERE id = ?`).run(now, id);
     return { action: "archived", enrollmentCount };
   }
@@ -603,7 +737,19 @@ function deleteOrArchiveCourse(db, id) {
   return { action: "deleted", enrollmentCount: 0 };
 }
 function reorderCourses(db, orderedIds) {
-  const now = (/* @__PURE__ */ new Date()).toISOString().replace("T", " ").slice(0, 19);
+  const now = nowTimestamp();
+  if (isJsonFallback(db)) {
+    const s = getFallbackState(db);
+    orderedIds.forEach((courseId, index) => {
+      const target = s.courses.find((c) => c.id === courseId);
+      if (target) {
+        target.display_order = index + 1;
+        target.updated_at = now;
+      }
+    });
+    db.__saveState();
+    return listAllCourses(db);
+  }
   const stmt = db.prepare("UPDATE courses SET display_order = ?, updated_at = ? WHERE id = ?");
   db.exec("BEGIN IMMEDIATE;");
   try {
@@ -618,6 +764,10 @@ function reorderCourses(db, orderedIds) {
   return listAllCourses(db);
 }
 function getLearnPageContent(db) {
+  if (isJsonFallback(db)) {
+    const s = getFallbackState(db);
+    return s.learn_page_content || { ...DEFAULT_LEARN_PAGE_CONTENT };
+  }
   const row = db.prepare("SELECT id, headline, subheadline, cta_label, faq_json, updated_at FROM learn_page_content WHERE id = 1").get();
   if (!row) {
     return { ...DEFAULT_LEARN_PAGE_CONTENT };
@@ -631,7 +781,19 @@ function getLearnPageContent(db) {
   };
 }
 function updateLearnPageContent(db, input) {
-  const now = (/* @__PURE__ */ new Date()).toISOString().replace("T", " ").slice(0, 19);
+  const now = nowTimestamp();
+  if (isJsonFallback(db)) {
+    const s = getFallbackState(db);
+    s.learn_page_content = {
+      headline: input.headline,
+      subheadline: input.subheadline,
+      cta_label: input.cta_label,
+      faq: input.faq.map((f) => ({ ...f })),
+      updated_at: now
+    };
+    db.__saveState();
+    return s.learn_page_content;
+  }
   const exists = db.prepare("SELECT id FROM learn_page_content WHERE id = 1").get();
   if (exists) {
     db.prepare(
@@ -649,6 +811,81 @@ function updateLearnPageContent(db, input) {
 }
 function registerLearnerTransaction(db, params) {
   const normalizedEmail = params.email.trim().toLowerCase();
+  const now = nowTimestamp();
+  if (isJsonFallback(db)) {
+    const s = getFallbackState(db);
+    const course2 = s.courses.find((c) => c.id === params.courseId && c.status === "published");
+    if (!course2) return { ok: false, code: "COURSE_NOT_FOUND" };
+    if (s.users.some((u) => String(u.email).toLowerCase() === normalizedEmail)) {
+      return { ok: false, code: "EMAIL_EXISTS" };
+    }
+    const userId = s.seq.users++;
+    const userRow = {
+      id: userId,
+      name: params.fullName,
+      email: normalizedEmail,
+      password_hash: params.passwordHash,
+      phone: params.phoneE164,
+      company: "",
+      service_interest: course2.title,
+      role: "LEARNER",
+      status: "ACTIVE",
+      admin_notes: "Registered via YOLETECH Learn",
+      created_at: now
+    };
+    const learnerId = s.seq.learner_profiles++;
+    const profile = {
+      id: learnerId,
+      user_id: userId,
+      full_name: params.fullName,
+      gender: params.gender,
+      country_code: params.countryCode,
+      country_name: params.countryName,
+      state_code: params.stateCode,
+      state_name: params.stateName,
+      city: params.city,
+      phone: params.phoneE164,
+      consent_accepted_at: now,
+      created_at: now,
+      updated_at: now
+    };
+    const enrollmentId = s.seq.enrollments++;
+    const enrollmentRow = {
+      id: enrollmentId,
+      learner_id: learnerId,
+      course_id: course2.id,
+      status: "PENDING",
+      notes: "",
+      created_at: now,
+      updated_at: now
+    };
+    s.users.push(userRow);
+    s.learner_profiles.push(profile);
+    s.enrollments.push(enrollmentRow);
+    db.__saveState();
+    const user = {
+      id: userId,
+      name: params.fullName,
+      email: normalizedEmail,
+      phone: params.phoneE164,
+      company: "",
+      service_interest: course2.title,
+      role: "LEARNER",
+      status: "ACTIVE",
+      created_at: now
+    };
+    const enrollment = {
+      ...enrollmentRow,
+      course_title: course2.title,
+      course_slug: course2.slug,
+      course_level: course2.level,
+      course_mode: course2.mode,
+      course_duration: course2.duration,
+      course_price: course2.price,
+      course_short_description: course2.short_description
+    };
+    return { ok: true, user, profile, enrollment };
+  }
   const course = db.prepare(
     `SELECT id, title, slug, short_description, outcomes_json, level, mode, duration, price, status, display_order, created_at, updated_at
        FROM courses WHERE id = ? AND status = 'published'`
@@ -660,7 +897,6 @@ function registerLearnerTransaction(db, params) {
   if (existingUser) {
     return { ok: false, code: "EMAIL_EXISTS" };
   }
-  const now = (/* @__PURE__ */ new Date()).toISOString().replace("T", " ").slice(0, 19);
   db.exec("BEGIN IMMEDIATE;");
   try {
     const userRes = db.prepare(
@@ -754,6 +990,25 @@ function registerLearnerTransaction(db, params) {
   }
 }
 function getLearnerDashboardData(db, userId) {
+  if (isJsonFallback(db)) {
+    const s = getFallbackState(db);
+    const profile2 = s.learner_profiles.find((p) => p.user_id === userId) || null;
+    if (!profile2) return { profile: null, enrollments: [] };
+    const enrollments2 = s.enrollments.filter((e) => e.learner_id === profile2.id).map((e) => {
+      const course = s.courses.find((c) => c.id === e.course_id);
+      return {
+        ...e,
+        course_title: course?.title || "Course",
+        course_slug: course?.slug || "",
+        course_level: course?.level || "Beginner",
+        course_mode: course?.mode || "online",
+        course_duration: course?.duration || "",
+        course_price: course?.price || "",
+        course_short_description: course?.short_description || ""
+      };
+    }).sort((a, b) => b.id - a.id);
+    return { profile: profile2, enrollments: enrollments2 };
+  }
   const profile = db.prepare(
     `SELECT id, user_id, full_name, gender, country_code, country_name, state_code, state_name, city, phone, consent_accepted_at, created_at, updated_at
        FROM learner_profiles WHERE user_id = ?`
@@ -773,6 +1028,25 @@ function getLearnerDashboardData(db, userId) {
   return { profile, enrollments };
 }
 function getAdminLearnSummary(db) {
+  if (isJsonFallback(db)) {
+    const s = getFallbackState(db);
+    const sortedCourses = [...s.courses].sort((a, b) => a.display_order - b.display_order || a.id - b.id);
+    return {
+      totalRegistrations: s.enrollments.length,
+      pendingCount: s.enrollments.filter((e) => e.status === "PENDING").length,
+      approvedCount: s.enrollments.filter((e) => e.status === "APPROVED").length,
+      rejectedCount: s.enrollments.filter((e) => e.status === "REJECTED").length,
+      completedCount: s.enrollments.filter((e) => e.status === "COMPLETED").length,
+      publishedCourses: s.courses.filter((c) => c.status === "published").length,
+      totalCourses: s.courses.length,
+      registrationsPerCourse: sortedCourses.map((c) => ({
+        course_id: c.id,
+        course_title: c.title,
+        course_slug: c.slug,
+        count: s.enrollments.filter((e) => e.course_id === c.id).length
+      }))
+    };
+  }
   const statusRows = db.prepare(`SELECT status, COUNT(*) as count FROM enrollments GROUP BY status`).all();
   let totalRegistrations = 0;
   let pendingCount = 0;
@@ -846,7 +1120,77 @@ function buildRegistrationsWhereClause(filters) {
     params
   };
 }
+function hydrateFallbackRegistration(s, e) {
+  const lp = s.learner_profiles.find((p) => p.id === e.learner_id);
+  const u = lp ? s.users.find((usr) => usr.id === lp.user_id) : void 0;
+  const c = s.courses.find((course) => course.id === e.course_id);
+  if (!lp || !u || !c) return null;
+  return {
+    enrollment_id: e.id,
+    learner_id: lp.id,
+    user_id: u.id,
+    course_id: c.id,
+    full_name: lp.full_name,
+    email: u.email,
+    gender: lp.gender,
+    phone: lp.phone,
+    country_code: lp.country_code,
+    country_name: lp.country_name,
+    state_code: lp.state_code,
+    state_name: lp.state_name,
+    city: lp.city,
+    course_title: c.title,
+    course_slug: c.slug,
+    status: e.status,
+    notes: e.notes,
+    created_at: e.created_at,
+    updated_at: e.updated_at
+  };
+}
 function listAdminRegistrations(db, filters, paginate = true) {
+  if (isJsonFallback(db)) {
+    const s = getFallbackState(db);
+    let rows2 = s.enrollments.map((e) => hydrateFallbackRegistration(s, e)).filter((r) => r !== null);
+    if (filters.courseId && filters.courseId > 0) {
+      rows2 = rows2.filter((r) => r.course_id === filters.courseId);
+    }
+    if (filters.country && filters.country.trim()) {
+      const target = filters.country.trim().toLowerCase();
+      rows2 = rows2.filter(
+        (r) => r.country_name.toLowerCase() === target || r.country_code.toLowerCase() === target
+      );
+    }
+    if (filters.status) {
+      rows2 = rows2.filter((r) => r.status === filters.status);
+    }
+    if (filters.from && /^\d{4}-\d{2}-\d{2}$/.test(filters.from)) {
+      const from = filters.from;
+      rows2 = rows2.filter((r) => r.created_at.slice(0, 10) >= from);
+    }
+    if (filters.to && /^\d{4}-\d{2}-\d{2}$/.test(filters.to)) {
+      const to = filters.to;
+      rows2 = rows2.filter((r) => r.created_at.slice(0, 10) <= to);
+    }
+    if (filters.search && filters.search.trim()) {
+      const q = filters.search.trim().toLowerCase();
+      rows2 = rows2.filter(
+        (r) => r.full_name.toLowerCase().includes(q) || r.email.toLowerCase().includes(q) || r.phone.toLowerCase().includes(q) || r.city.toLowerCase().includes(q) || r.state_name.toLowerCase().includes(q) || r.country_name.toLowerCase().includes(q) || r.course_title.toLowerCase().includes(q)
+      );
+    }
+    rows2.sort((a, b) => b.enrollment_id - a.enrollment_id);
+    const total2 = rows2.length;
+    const page2 = Math.max(1, Number(filters.page) || 1);
+    const limit2 = Math.min(100, Math.max(1, Number(filters.limit) || 20));
+    const totalPages2 = Math.max(1, Math.ceil(total2 / limit2));
+    const safePage2 = Math.min(page2, totalPages2);
+    const paged = paginate ? rows2.slice((safePage2 - 1) * limit2, safePage2 * limit2) : rows2;
+    const countries = Array.from(new Set(s.learner_profiles.map((p) => p.country_name).filter(Boolean))).sort();
+    return {
+      registrations: paged,
+      countries,
+      pagination: { page: safePage2, limit: limit2, total: total2, totalPages: totalPages2 }
+    };
+  }
   const { whereSql, params } = buildRegistrationsWhereClause(filters);
   const countRow = db.prepare(
     `SELECT COUNT(*) AS count
@@ -891,11 +1235,21 @@ function listAdminRegistrations(db, filters, paginate = true) {
   };
 }
 function updateEnrollment(db, enrollmentId, updates) {
+  const now = nowTimestamp();
+  if (isJsonFallback(db)) {
+    const s = getFallbackState(db);
+    const target = s.enrollments.find((e) => e.id === enrollmentId);
+    if (!target) return null;
+    if (updates.status) target.status = updates.status;
+    if (updates.notes !== void 0) target.notes = updates.notes;
+    target.updated_at = now;
+    db.__saveState();
+    return hydrateFallbackRegistration(s, target);
+  }
   const existing = db.prepare("SELECT id, status, notes FROM enrollments WHERE id = ?").get(enrollmentId);
   if (!existing) return null;
   const nextStatus = updates.status ?? existing.status;
   const nextNotes = updates.notes !== void 0 ? updates.notes : existing.notes;
-  const now = (/* @__PURE__ */ new Date()).toISOString().replace("T", " ").slice(0, 19);
   db.prepare(`UPDATE enrollments SET status = ?, notes = ?, updated_at = ? WHERE id = ?`).run(
     nextStatus,
     nextNotes,
@@ -917,7 +1271,21 @@ function updateEnrollment(db, enrollmentId, updates) {
   return row || null;
 }
 function bulkUpdateEnrollments(db, ids, status) {
-  const now = (/* @__PURE__ */ new Date()).toISOString().replace("T", " ").slice(0, 19);
+  const now = nowTimestamp();
+  if (isJsonFallback(db)) {
+    const s = getFallbackState(db);
+    let updated2 = 0;
+    for (const id of ids) {
+      const target = s.enrollments.find((e) => e.id === id);
+      if (target) {
+        target.status = status;
+        target.updated_at = now;
+        updated2 += 1;
+      }
+    }
+    db.__saveState();
+    return updated2;
+  }
   const stmt = db.prepare("UPDATE enrollments SET status = ?, updated_at = ? WHERE id = ?");
   let updated = 0;
   db.exec("BEGIN IMMEDIATE;");

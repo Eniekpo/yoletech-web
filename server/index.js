@@ -100,7 +100,28 @@ function createJsonFallbackDatabase() {
   const loadState = () => {
     try {
       if (fs.existsSync(storePath)) {
-        state = JSON.parse(fs.readFileSync(storePath, 'utf8'));
+        const loaded = JSON.parse(fs.readFileSync(storePath, 'utf8'));
+        state = {
+          users: [],
+          inquiries: [],
+          portfolio_projects: [],
+          testimonials: [],
+          courses: [],
+          learner_profiles: [],
+          enrollments: [],
+          learn_page_content: null,
+          ...loaded,
+          seq: {
+            users: 1,
+            inquiries: 1,
+            portfolio_projects: 1,
+            testimonials: 1,
+            courses: 1,
+            learner_profiles: 1,
+            enrollments: 1,
+            ...(loaded.seq || {})
+          }
+        };
       }
     } catch {
       // ignore read errors
@@ -118,6 +139,14 @@ function createJsonFallbackDatabase() {
   loadState();
 
   return {
+    __isJsonFallback: true,
+    __getState() {
+      loadState();
+      return state;
+    },
+    __saveState() {
+      saveState();
+    },
     exec() {},
     prepare(sql) {
       const norm = sql.replace(/\s+/g, ' ').trim();
@@ -133,7 +162,7 @@ function createJsonFallbackDatabase() {
             const table = RegExp.$1;
             return { count: (state[table] || []).length };
           }
-          if (/FROM users WHERE email = \?/i.test(norm)) {
+          if (/FROM users WHERE (?:LOWER\(email\)|email) = \?/i.test(norm)) {
             const email = String(args[0] || '').toLowerCase();
             return state.users.find((u) => String(u.email).toLowerCase() === email) || undefined;
           }
@@ -156,7 +185,7 @@ function createJsonFallbackDatabase() {
           if (/FROM testimonials WHERE approved = 1/i.test(norm)) {
             return [...state.testimonials].filter((t) => Number(t.approved) === 1).sort((a, b) => b.id - a.id);
           }
-          if (/FROM users WHERE.*role = 'CLIENT'/i.test(norm)) {
+          if (/FROM users WHERE.*(?:role|COALESCE\(role,\s*'CLIENT'\)\)) = 'CLIENT'/i.test(norm)) {
             return [...(state.users || [])]
               .filter((u) => String(u.role || 'CLIENT').toUpperCase() === 'CLIENT')
               .sort((a, b) => (/ORDER BY id ASC/i.test(norm) ? a.id - b.id : b.id - a.id));
