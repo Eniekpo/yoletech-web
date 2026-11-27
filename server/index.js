@@ -226,6 +226,16 @@ function createJsonFallbackDatabase() {
             return { changes: u ? 1 : 0 };
           }
 
+          if (/UPDATE users SET status = \? WHERE id = \?/i.test(norm)) {
+            const id = Number(args[1]);
+            const u = state.users.find((x) => Number(x.id) === id);
+            if (u) {
+              u.status = args[0];
+              saveState();
+            }
+            return { changes: u ? 1 : 0 };
+          }
+
           if (/UPDATE users SET name = \?, phone = \?, company = \?, service_interest = \? WHERE id = \?/i.test(norm)) {
             const id = Number(args[4]);
             const u = state.users.find((x) => Number(x.id) === id);
@@ -1663,19 +1673,76 @@ const requestHandler = async (req, res) => {
       }
       const id = Number(pathname.split('/').pop());
       const body = await parseBody(req);
-      const existing = db.prepare('SELECT * FROM inquiries WHERE id = ?').get(id);
+      let existing = db.prepare('SELECT * FROM inquiries WHERE id = ?').get(id);
+      let targetId = id;
+
+      if (!existing && body.email && body.message) {
+        const matchedClient = db
+          .prepare('SELECT id FROM users WHERE email = ?')
+          .get(String(body.email).trim().toLowerCase());
+        const inserted = db
+          .prepare(
+            `INSERT INTO inquiries (user_id, name, email, phone, service_category, budget, message, status, project_progress, admin_response, created_at)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+          )
+          .run(
+            matchedClient ? matchedClient.id : null,
+            String(body.name || 'Client').trim(),
+            String(body.email).trim().toLowerCase(),
+            String(body.phone || '').trim(),
+            String(body.service_category || 'Data Analysis & Analytics').trim(),
+            String(body.budget || body.service_category || 'Data Analysis & Analytics').trim(),
+            String(body.message).trim(),
+            String(body.status || 'NEW').toUpperCase(),
+            Number.isFinite(Number(body.project_progress)) ? Number(body.project_progress) : 10,
+            String(body.admin_response || ''),
+            body.created_at || new Date().toISOString().slice(0, 19).replace('T', ' ')
+          );
+        targetId = Number(inserted.lastInsertRowid);
+        existing = db.prepare('SELECT * FROM inquiries WHERE id = ?').get(targetId);
+      }
+
       if (!existing) return sendJson(res, 404, { error: 'Inquiry not found' });
+
+      const nextStatus = String(body.status ?? existing.status ?? 'NEW').toUpperCase();
+      const nextProgress = Number.isFinite(Number(body.project_progress))
+        ? Math.min(100, Math.max(0, Number(body.project_progress)))
+        : existing.project_progress;
+      const nextResponse = body.admin_response ?? existing.admin_response;
 
       db.prepare(
         `UPDATE inquiries SET status = ?, project_progress = ?, admin_response = ? WHERE id = ?`
-      ).run(
-        body.status ?? existing.status,
-        body.project_progress ?? existing.project_progress,
-        body.admin_response ?? existing.admin_response,
-        id
-      );
-      const updated = db.prepare('SELECT * FROM inquiries WHERE id = ?').get(id);
-      return sendJson(res, 200, { inquiry: updated });
+      ).run(nextStatus, nextProgress, nextResponse, targetId);
+      const updated = db.prepare('SELECT * FROM inquiries WHERE id = ?').get(targetId);
+
+      // Reflect milestone progress in the client's account status
+      let updatedClient = null;
+      if (body.sync_client_status !== false) {
+        const deriveClientStatus = (st, prog) => {
+          if (body.client_status) return String(body.client_status).toUpperCase();
+          if (st === 'COMPLETED' || st === 'RESOLVED' || prog >= 100) return 'COMPLETED';
+          if (st === 'IN_PROGRESS' || st === 'REVIEW' || st === 'SIGN_OFF' || prog >= 40) return 'ACTIVE';
+          if (st === 'SCOPING' || prog >= 20) return 'ONBOARDING';
+          return 'LEAD';
+        };
+        const targetClient =
+          (updated.user_id ? db.prepare('SELECT * FROM users WHERE id = ?').get(updated.user_id) : null) ||
+          (updated.email
+            ? db.prepare('SELECT * FROM users WHERE email = ?').get(String(updated.email).trim().toLowerCase())
+            : null);
+
+        if (targetClient && String(targetClient.role || 'CLIENT').toUpperCase() === 'CLIENT') {
+          const nextClientStatus = deriveClientStatus(nextStatus, nextProgress);
+          db.prepare('UPDATE users SET status = ? WHERE id = ?').run(nextClientStatus, targetClient.id);
+          updatedClient = db
+            .prepare(
+              'SELECT id, name, email, phone, company, service_interest, role, status, admin_notes, created_at FROM users WHERE id = ?'
+            )
+            .get(targetClient.id);
+        }
+      }
+
+      return sendJson(res, 200, { inquiry: updated, client: updatedClient });
     }
 
     if (pathname.startsWith('/api/inquiries/') && req.method === 'DELETE') {
@@ -1743,13 +1810,15 @@ const requestHandler = async (req, res) => {
     if (pathname === '/api/analytics/sync' && req.method === 'POST') {
       const body = await parseBody(req);
       const incomingClients = Array.isArray(body.clients) ? body.clients.slice(0, 100) : [];
+      const incomingInquiries = Array.isArray(body.inquiries) ? body.inquiries.slice(0, 100) : [];
       let synced = 0;
+      let syncedInquiries = 0;
       const defaultSyncHash = hashPassword('Client@2026');
       for (const c of incomingClients) {
         const email = String(c?.email || '').trim().toLowerCase();
         const name = String(c?.name || '').trim();
         if (!email || !name || String(c?.role || 'CLIENT').toUpperCase() !== 'CLIENT') continue;
-        const existing = db.prepare('SELECT id FROM users WHERE email = ?').get(email);
+        const existing = db.prepare('SELECT id, status FROM users WHERE email = ?').get(email);
         if (!existing) {
           const createdAt =
             typeof c.created_at === 'string' && /^\d{4}-\d{2}-\d{2}/.test(c.created_at.trim())
@@ -1774,9 +1843,65 @@ const requestHandler = async (req, res) => {
           } catch {
             // Ignore duplicate constraint race
           }
+        } else if (c.status && c.updated_at && String(c.status).toUpperCase() !== String(existing.status || '').toUpperCase()) {
+          try {
+            db.prepare('UPDATE users SET status = ? WHERE id = ?').run(String(c.status).toUpperCase(), existing.id);
+          } catch {}
         }
       }
-      return sendJson(res, 200, { ok: true, synced }, { 'Cache-Control': 'no-store' });
+
+      if (incomingInquiries.length) {
+        const existingInqs = db.prepare('SELECT id, email, message, status, project_progress, admin_response FROM inquiries').all();
+        for (const inq of incomingInquiries) {
+          const email = String(inq?.email || '').trim().toLowerCase();
+          const message = String(inq?.message || '').trim();
+          if (!email || !message) continue;
+          const match = existingInqs.find(
+            (e) => String(e.email || '').trim().toLowerCase() === email && String(e.message || '').trim() === message
+          );
+          const nextProg = Number.isFinite(Number(inq.project_progress)) ? Number(inq.project_progress) : 10;
+          const nextSt = String(inq.status || 'NEW').toUpperCase();
+          const nextResp = String(inq.admin_response || '');
+          if (!match) {
+            const clientRow = db.prepare('SELECT id FROM users WHERE email = ?').get(email);
+            const createdAt =
+              typeof inq.created_at === 'string' && /^\d{4}-\d{2}-\d{2}/.test(inq.created_at.trim())
+                ? inq.created_at.trim()
+                : new Date().toISOString().slice(0, 19).replace('T', ' ');
+            try {
+              db.prepare(
+                `INSERT INTO inquiries (user_id, name, email, phone, service_category, budget, message, status, project_progress, admin_response, created_at)
+                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+              ).run(
+                clientRow ? clientRow.id : null,
+                String(inq.name || 'Client').trim(),
+                email,
+                String(inq.phone || '').trim(),
+                String(inq.service_category || 'Data Analysis & Analytics').trim(),
+                String(inq.budget || inq.service_category || 'Data Analysis & Analytics').trim(),
+                message,
+                nextSt,
+                nextProg,
+                nextResp,
+                createdAt
+              );
+              syncedInquiries += 1;
+            } catch {}
+          } else if (inq.updated_at && (nextProg !== Number(match.project_progress) || nextSt !== String(match.status || '').toUpperCase() || nextResp !== String(match.admin_response || ''))) {
+            try {
+              db.prepare('UPDATE inquiries SET status = ?, project_progress = ?, admin_response = ? WHERE id = ?').run(
+                nextSt,
+                nextProg,
+                nextResp,
+                match.id
+              );
+              syncedInquiries += 1;
+            } catch {}
+          }
+        }
+      }
+
+      return sendJson(res, 200, { ok: true, synced, syncedInquiries }, { 'Cache-Control': 'no-store' });
     }
 
     // Public visitors receive anonymised client records (no names, emails, phones or notes).

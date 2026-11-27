@@ -6781,3 +6781,572 @@ body.preloader-active {
     font-size: 9.5px;
   }
 }
+
+/* ============================================================================
+   ADMIN WORKSPACE TABS & DELIVERY MILESTONE TRACKER CONSOLE
+   ============================================================================ */
+.admin-workspace-tabs {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  padding: 10px;
+  margin-bottom: 26px;
+  border-radius: 18px;
+  background: rgba(15, 13, 44, 0.72);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.admin-workspace-tab {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 18px;
+  border-radius: 13px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--yole-text-muted);
+  text-align: left;
+  cursor: pointer;
+  transition: background-color 170ms ease, border-color 170ms ease, color 170ms ease, box-shadow 170ms ease;
+}
+
+.admin-workspace-tab:hover {
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--yole-white);
+}
+
+.admin-workspace-tab.active {
+  background: linear-gradient(135deg, #2F2B73 0%, #1B184A 100%);
+  border-color: #C8E61E;
+  color: #FFFFFF;
+  box-shadow: 0 10px 26px rgba(0, 0, 0, 0.28), 0 0 0 1px rgba(200, 230, 30, 0.25);
+}
+
+.admin-workspace-tab-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+
+.admin-workspace-tab-copy strong {
+  font-size: 15.5px;
+  font-weight: 850;
+  color: inherit;
+}
+
+.admin-workspace-tab-copy span {
+  font-size: 12.5px;
+  opacity: 0.8;
+}
+
+.admin-workspace-tab-badge {
+  flex: 0 0 auto;
+  padding: 4px 11px;
+  border-radius: 999px;
+  font-size: 11.5px;
+  font-weight: 800;
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--yole-white);
+}
+
+.admin-workspace-tab.active .admin-workspace-tab-badge {
+  background: #C8E61E;
+  color: #16133A;
+}
+
+.admin-milestone-console {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.admin-milestone-intro {
+  padding: 24px 26px;
+  border-color: rgba(200, 230, 30, 0.32);
+}
+
+.admin-milestone-summary {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.admin-stage-tile {
+  padding: 16px 14px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  text-align: left;
+  cursor: pointer;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  transition: transform 160ms ease, border-color 160ms ease, box-shadow 160ms ease;
+}
+
+.admin-stage-tile:hover {
+  transform: translateY(-2px);
+  border-color: rgba(200, 230, 30, 0.45);
+}
+
+.admin-stage-tile.is-selected {
+  border-color: #C8E61E;
+  background: rgba(200, 230, 30, 0.12);
+  box-shadow: 0 8px 22px rgba(200, 230, 30, 0.14);
+}
+
+.admin-stage-tile-label {
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--yole-text-muted);
+}
+
+.admin-stage-tile-count {
+  font-size: 26px;
+  font-weight: 900;
+  line-height: 1.15;
+  color: var(--yole-white);
+  font-variant-numeric: tabular-nums;
+}
+
+.admin-stage-tile-sub {
+  font-size: 11.5px;
+  color: var(--yole-text-subtle);
+}
+
+.admin-milestone-toolbar {
+  padding: 16px 18px;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.admin-milestone-list {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.admin-milestone-card {
+  padding: 22px 24px;
+  border-color: rgba(255, 255, 255, 0.12);
+}
+
+.admin-milestone-card.is-all-done {
+  border-color: rgba(200, 230, 30, 0.5);
+}
+
+.admin-milestone-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.admin-milestone-title-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 5px;
+}
+
+.admin-milestone-title-row h3 {
+  font-size: 19px;
+  font-weight: 900;
+  margin: 0;
+}
+
+.admin-milestone-submeta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  font-size: 12.5px;
+  color: var(--yole-text-muted);
+}
+
+.admin-milestone-submeta a {
+  color: #C8E61E;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.admin-milestone-status-cluster {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.admin-client-status-pill {
+  font-size: 12px;
+  padding: 5px 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--yole-text-muted);
+}
+
+.admin-client-status-pill strong {
+  font-weight: 850;
+}
+
+.admin-client-status-pill.is-completed {
+  background: rgba(56, 189, 248, 0.14);
+  border-color: rgba(56, 189, 248, 0.45);
+  color: #7DD3FC;
+}
+
+.admin-client-status-pill.is-active {
+  background: rgba(200, 230, 30, 0.14);
+  border-color: rgba(200, 230, 30, 0.45);
+  color: #C8E61E;
+}
+
+.admin-client-status-pill.is-onboarding {
+  background: rgba(247, 148, 29, 0.16);
+  border-color: rgba(247, 148, 29, 0.45);
+  color: #FDBA74;
+}
+
+.admin-progress-pill {
+  font-size: 12px;
+  font-weight: 850;
+  padding: 5px 12px;
+  border-radius: 999px;
+  background: rgba(200, 230, 30, 0.18);
+  color: #C8E61E;
+}
+
+.admin-milestone-scope {
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--yole-text-muted);
+  background: rgba(15, 13, 44, 0.55);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  padding: 12px 14px;
+  margin: 0 0 14px;
+  white-space: pre-line;
+}
+
+.admin-stepper-box {
+  background: rgba(10, 8, 30, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 14px;
+  padding: 16px;
+  margin-bottom: 14px;
+}
+
+.admin-stepper-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  font-size: 12.5px;
+  color: var(--yole-text-muted);
+  margin-bottom: 10px;
+}
+
+.admin-stepper-top strong {
+  color: var(--yole-white);
+}
+
+.admin-step-grid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.admin-step-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 5px;
+  padding: 12px 8px;
+  border-radius: 12px;
+  border: 1.5px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--yole-text-muted);
+  cursor: pointer;
+  transition: transform 150ms ease, border-color 150ms ease, background-color 150ms ease, box-shadow 150ms ease;
+}
+
+.admin-step-btn:hover {
+  transform: translateY(-2px);
+  border-color: rgba(200, 230, 30, 0.6);
+  color: var(--yole-white);
+}
+
+.admin-step-badge {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 900;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1.5px solid rgba(255, 255, 255, 0.2);
+}
+
+.admin-step-name {
+  font-size: 12.5px;
+  font-weight: 800;
+  line-height: 1.25;
+}
+
+.admin-step-meta {
+  font-size: 10.5px;
+  opacity: 0.78;
+}
+
+.admin-step-btn.is-done {
+  background: rgba(200, 230, 30, 0.14);
+  border-color: #C8E61E;
+  color: #FFFFFF;
+}
+
+.admin-step-btn.is-done .admin-step-badge {
+  background: #C8E61E;
+  border-color: #C8E61E;
+  color: #16133A;
+}
+
+.admin-step-btn.is-next {
+  background: rgba(247, 148, 29, 0.14);
+  border-color: #F7941D;
+  color: #FFFFFF;
+  box-shadow: 0 0 0 3px rgba(247, 148, 29, 0.14);
+}
+
+.admin-step-btn.is-next .admin-step-badge {
+  background: rgba(247, 148, 29, 0.22);
+  border-color: #F7941D;
+  color: #F7941D;
+}
+
+.admin-milestone-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.admin-milestone-cta-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+
+.admin-milestone-contact-links {
+  margin-left: auto;
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.admin-complete-banner {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 14px;
+  border-radius: 999px;
+  font-size: 12.5px;
+  font-weight: 800;
+  background: rgba(200, 230, 30, 0.18);
+  border: 1px solid rgba(200, 230, 30, 0.5);
+  color: #C8E61E;
+}
+
+.admin-milestone-note-row {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.admin-milestone-note-row .form-control {
+  flex: 1 1 auto;
+}
+
+/* Light Mode Overrides for Admin Workspace Tabs & Delivery Milestone Tracker */
+[data-theme="light"] .admin-workspace-tabs {
+  background: #F1F5F9;
+  border-color: #CBD5E1;
+}
+
+[data-theme="light"] .admin-workspace-tab {
+  color: #475569;
+}
+
+[data-theme="light"] .admin-workspace-tab:hover {
+  background: #FFFFFF;
+  color: #0F172A;
+}
+
+[data-theme="light"] .admin-workspace-tab.active {
+  background: linear-gradient(135deg, #1E1B54 0%, #2F2B73 100%);
+  border-color: #1E1B54;
+  color: #FFFFFF;
+  box-shadow: 0 10px 24px rgba(30, 27, 84, 0.22);
+}
+
+[data-theme="light"] .admin-workspace-tab-badge {
+  background: rgba(15, 23, 42, 0.08);
+  color: #1E293B;
+}
+
+[data-theme="light"] .admin-workspace-tab.active .admin-workspace-tab-badge {
+  background: #C8E61E;
+  color: #16133A;
+}
+
+[data-theme="light"] .admin-stage-tile {
+  border-color: #E2E8F0;
+}
+
+[data-theme="light"] .admin-stage-tile.is-selected {
+  background: #ECFCCB;
+  border-color: #65A30D;
+  box-shadow: 0 6px 18px rgba(101, 163, 13, 0.16);
+}
+
+[data-theme="light"] .admin-stage-tile-count,
+[data-theme="light"] .admin-stepper-top strong {
+  color: #0F172A;
+}
+
+[data-theme="light"] .admin-milestone-submeta a {
+  color: #3F6212;
+}
+
+[data-theme="light"] .admin-milestone-card.is-all-done {
+  border-color: #65A30D;
+}
+
+[data-theme="light"] .admin-client-status-pill {
+  background: #F8FAFC;
+  border-color: #CBD5E1;
+  color: #334155;
+}
+
+[data-theme="light"] .admin-client-status-pill.is-completed {
+  background: #E0F2FE;
+  border-color: #0284C7;
+  color: #0369A1;
+}
+
+[data-theme="light"] .admin-client-status-pill.is-active {
+  background: #ECFCCB;
+  border-color: #65A30D;
+  color: #3F6212;
+}
+
+[data-theme="light"] .admin-client-status-pill.is-onboarding {
+  background: #FFEDD5;
+  border-color: #EA580C;
+  color: #C2410C;
+}
+
+[data-theme="light"] .admin-progress-pill,
+[data-theme="light"] .admin-complete-banner {
+  background: #ECFCCB;
+  border-color: #84CC16;
+  color: #3F6212;
+}
+
+[data-theme="light"] .admin-milestone-scope {
+  background: #F8FAFC;
+  border-color: #E2E8F0;
+  color: #334155;
+}
+
+[data-theme="light"] .admin-stepper-box {
+  background: #F8FAFC;
+  border-color: #E2E8F0;
+}
+
+[data-theme="light"] .admin-step-btn {
+  background: #FFFFFF;
+  border-color: #CBD5E1;
+  color: #475569;
+}
+
+[data-theme="light"] .admin-step-btn:hover {
+  border-color: #65A30D;
+  color: #0F172A;
+}
+
+[data-theme="light"] .admin-step-badge {
+  background: #F1F5F9;
+  border-color: #CBD5E1;
+  color: #64748B;
+}
+
+[data-theme="light"] .admin-step-btn.is-done {
+  background: #ECFCCB;
+  border-color: #65A30D;
+  color: #1A2E05;
+}
+
+[data-theme="light"] .admin-step-btn.is-done .admin-step-badge {
+  background: #65A30D;
+  border-color: #65A30D;
+  color: #FFFFFF;
+}
+
+[data-theme="light"] .admin-step-btn.is-next {
+  background: #FFF7ED;
+  border-color: #EA580C;
+  color: #9A3412;
+}
+
+[data-theme="light"] .admin-step-btn.is-next .admin-step-badge {
+  background: #FFEDD5;
+  border-color: #EA580C;
+  color: #C2410C;
+}
+
+@media (max-width: 1100px) {
+  .admin-milestone-summary {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .admin-step-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 720px) {
+  .admin-workspace-tabs {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-milestone-summary {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .admin-step-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .admin-milestone-note-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .admin-milestone-contact-links {
+    margin-left: 0;
+  }
+}

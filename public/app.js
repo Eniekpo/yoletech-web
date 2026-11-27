@@ -18,7 +18,12 @@ class YoletechApp {
     this.portalTab = 'overview';
     this.portalProjectFilter = 'ALL';
     this.showPortalPassword = false;
+    this.adminWorkspace = 'crm';
     this.adminTab = 'clients';
+    this.milestoneSearch = '';
+    this.milestoneStageFilter = 'ALL';
+    this.milestonePage = 1;
+    this.milestoneLimit = 10;
     this.footerTab = 'overview';
     this.clientSearch = '';
     this.clientStatusFilter = 'ALL';
@@ -257,11 +262,13 @@ class YoletechApp {
       const localClients = this.getLocalRegisteredUsers().filter(
         (u) => u && u.email && String(u.role || 'CLIENT').toUpperCase() === 'CLIENT'
       );
-      if (!localClients.length) return;
+      const localInquiries = this.getLocalInquiries().filter((i) => i && i.email && i.message);
+      if (!localClients.length && !localInquiries.length) return;
       await this.api('/api/analytics/sync', {
         method: 'POST',
         body: JSON.stringify({
-          clients: localClients.map(({ _pwd, ...rest }) => rest)
+          clients: localClients.map(({ _pwd, ...rest }) => rest),
+          inquiries: localInquiries
         })
       });
     } catch {
@@ -519,6 +526,7 @@ class YoletechApp {
 
   async verifySession() {
     try {
+      await this.syncLocalClientsToServer();
       const { user } = await this.api('/api/auth/me');
       this.user = user;
       localStorage.setItem('yoletech_user', JSON.stringify(user));
@@ -527,6 +535,15 @@ class YoletechApp {
       if (!this.user) {
         this.logout(false);
         return;
+      }
+    }
+    if (this.user?.email) {
+      const localMatch = this.getLocalRegisteredUsers().find(
+        (u) => String(u.email || '').toLowerCase() === String(this.user.email).toLowerCase()
+      );
+      if (localMatch && localMatch.updated_at && localMatch.status && localMatch.status !== this.user.status) {
+        this.user = { ...this.user, status: localMatch.status };
+        localStorage.setItem('yoletech_user', JSON.stringify(this.user));
       }
     }
     if (this.user?.role === 'ADMIN') {
@@ -591,9 +608,25 @@ class YoletechApp {
       : null;
 
     const localInq = this.getLocalInquiries();
-    const mergedInq = [...apiInquiries];
+    const mergedInq = apiInquiries.map((i) => ({ ...i }));
     localInq.forEach((li) => {
-      if (!mergedInq.some((i) => i.email === li.email && i.message === li.message)) {
+      const matchIdx = mergedInq.findIndex(
+        (i) =>
+          String(i.id) === String(li.id) ||
+          (String(i.email || '').toLowerCase() === String(li.email || '').toLowerCase() &&
+            String(i.message || '').trim() === String(li.message || '').trim())
+      );
+      if (matchIdx >= 0) {
+        const apiItem = mergedInq[matchIdx];
+        if (li.updated_at && (!apiItem.updated_at || String(li.updated_at) >= String(apiItem.updated_at))) {
+          mergedInq[matchIdx] = {
+            ...apiItem,
+            status: li.status ?? apiItem.status,
+            project_progress: li.project_progress ?? apiItem.project_progress,
+            admin_response: li.admin_response ?? apiItem.admin_response
+          };
+        }
+      } else {
         mergedInq.unshift(li);
       }
     });
@@ -601,6 +634,7 @@ class YoletechApp {
   }
 
   async loadClientData() {
+    await this.syncLocalClientsToServer();
     let apiInquiries = [];
     try {
       const data = await this.api('/api/inquiries');
@@ -610,9 +644,25 @@ class YoletechApp {
     }
     const myEmail = String(this.user?.email || '').toLowerCase();
     const localInq = this.getLocalInquiries().filter((i) => String(i.email || '').toLowerCase() === myEmail);
-    const merged = [...apiInquiries];
+    const merged = apiInquiries.map((i) => ({ ...i }));
     localInq.forEach((li) => {
-      if (!merged.some((i) => i.message === li.message && i.service_category === li.service_category)) {
+      const matchIdx = merged.findIndex(
+        (i) =>
+          String(i.id) === String(li.id) ||
+          (String(i.message || '').trim() === String(li.message || '').trim() &&
+            String(i.service_category || '') === String(li.service_category || ''))
+      );
+      if (matchIdx >= 0) {
+        const apiItem = merged[matchIdx];
+        if (li.updated_at && (!apiItem.updated_at || String(li.updated_at) >= String(apiItem.updated_at))) {
+          merged[matchIdx] = {
+            ...apiItem,
+            status: li.status ?? apiItem.status,
+            project_progress: li.project_progress ?? apiItem.project_progress,
+            admin_response: li.admin_response ?? apiItem.admin_response
+          };
+        }
+      } else {
         merged.unshift(li);
       }
     });
@@ -2471,7 +2521,7 @@ ${C.renderRoiCalculatorWidget ? C.renderRoiCalculatorWidget() : ""}
             ${
               this.user?.role === 'ADMIN'
                 ? `<div style="display:flex;justify-content:center;gap:10px;flex-wrap:wrap;margin-top:16px;">
-                    <button class="btn btn-lime btn-sm" onclick="window.app.adminTab='portfolio';window.app.navigate('admin-dashboard')">+ Add Project in Admin</button>
+                    <button class="btn btn-lime btn-sm" onclick="window.app.adminWorkspace='crm';window.app.adminTab='portfolio';window.app.navigate('admin-dashboard')">+ Add Project in Admin</button>
                     <a href="/admin/" target="_blank" class="btn btn-outline btn-sm">Open Decap Bridge CMS ↗</a>
                   </div>`
                 : ''
@@ -2948,7 +2998,7 @@ ${C.renderRoiCalculatorWidget ? C.renderRoiCalculatorWidget() : ""}
             ${
               this.user?.role === 'ADMIN'
                 ? `<div style="display:flex;justify-content:center;gap:10px;flex-wrap:wrap;margin-top:16px;">
-                    <button class="btn btn-lime btn-sm" onclick="window.app.adminTab='blog';window.app.navigate('admin-dashboard')">+ Write New Article</button>
+                    <button class="btn btn-lime btn-sm" onclick="window.app.adminWorkspace='crm';window.app.adminTab='blog';window.app.navigate('admin-dashboard')">+ Write New Article</button>
                   </div>`
                 : ''
             }
@@ -3946,14 +3996,69 @@ ${C.renderRoiCalculatorWidget ? C.renderRoiCalculatorWidget() : ""}
     return baseTracks;
   }
 
-  getPortalMilestoneStage(inq) {
+  getMilestoneDefinitions() {
+    return [
+      {
+        step: 1,
+        label: 'Submitted',
+        shortLabel: 'Submitted',
+        description: 'Brief verified & intake acknowledged',
+        completedStatus: 'SCOPING',
+        progress: 20,
+        clientStatus: 'ONBOARDING'
+      },
+      {
+        step: 2,
+        label: 'Scoping',
+        shortLabel: 'Scoping',
+        description: 'Architecture, requirements & schedule locked',
+        completedStatus: 'IN_PROGRESS',
+        progress: 40,
+        clientStatus: 'ACTIVE'
+      },
+      {
+        step: 3,
+        label: 'In Progress',
+        shortLabel: 'In Progress',
+        description: 'Core engineering, analytics & build delivered',
+        completedStatus: 'REVIEW',
+        progress: 60,
+        clientStatus: 'ACTIVE'
+      },
+      {
+        step: 4,
+        label: 'Review',
+        shortLabel: 'Review',
+        description: 'Client staging preview & feedback approved',
+        completedStatus: 'SIGN_OFF',
+        progress: 80,
+        clientStatus: 'ACTIVE'
+      },
+      {
+        step: 5,
+        label: 'Completed',
+        shortLabel: 'Completed',
+        description: 'Final handoff, documentation & sign-off complete',
+        completedStatus: 'COMPLETED',
+        progress: 100,
+        clientStatus: 'COMPLETED'
+      }
+    ];
+  }
+
+  getCompletedMilestoneCount(inq) {
     const status = String(inq?.status || 'NEW').toUpperCase();
-    const progress = Number.isFinite(Number(inq?.project_progress)) ? Number(inq.project_progress) : 15;
+    const progress = Number.isFinite(Number(inq?.project_progress)) ? Number(inq.project_progress) : 10;
     if (status === 'COMPLETED' || status === 'RESOLVED' || progress >= 100) return 5;
-    if (status === 'REVIEW' || progress >= 80) return 4;
-    if (status === 'IN_PROGRESS' || progress >= 40) return 3;
-    if (status === 'SCOPING' || progress >= 20) return 2;
-    return 1;
+    if (status === 'SIGN_OFF' || progress >= 80) return 4;
+    if (status === 'REVIEW' || progress >= 60) return 3;
+    if (status === 'IN_PROGRESS' || progress >= 40) return 2;
+    if (status === 'SCOPING' || progress >= 20) return 1;
+    return 0;
+  }
+
+  getPortalMilestoneStage(inq) {
+    return Math.min(5, this.getCompletedMilestoneCount(inq) + 1);
   }
 
   parsePortalInquiryDetails(rawMessage = '') {
@@ -4097,6 +4202,7 @@ ${C.renderRoiCalculatorWidget ? C.renderRoiCalculatorWidget() : ""}
       SCOPING: { label: 'Scoping & Audit', pillClass: 'orange', sla: 'Architecture Review' },
       IN_PROGRESS: { label: 'In Development', pillClass: 'lime', sla: 'Active Build' },
       REVIEW: { label: 'Client Review', pillClass: 'lime', sla: 'Ready for Feedback' },
+      SIGN_OFF: { label: 'Final Sign-Off', pillClass: 'lime', sla: 'Ready for Completion' },
       COMPLETED: { label: 'Completed', pillClass: 'lime', sla: 'Delivered & Signed Off' },
       RESOLVED: { label: 'Completed', pillClass: 'lime', sla: 'Delivered & Signed Off' }
     };
@@ -4112,13 +4218,13 @@ ${C.renderRoiCalculatorWidget ? C.renderRoiCalculatorWidget() : ""}
 
     const renderProjectCard = (inq, idx) => {
       const rawStatus = String(inq.status || 'NEW').toUpperCase();
-      const completed = isInqCompleted(inq);
+      const doneSteps = this.getCompletedMilestoneCount(inq);
+      const completed = doneSteps >= 5 || isInqCompleted(inq);
       const progress = completed
         ? 100
         : Number.isFinite(Number(inq.project_progress))
         ? Math.min(99, Math.max(5, Number(inq.project_progress)))
-        : 15;
-      const stage = this.getPortalMilestoneStage(inq);
+        : 10;
       const meta = statusMeta[rawStatus] || statusMeta.NEW;
       const ticketId = `YT-${String(1000 + (Number(inq.id) % 9000 || idx + 1)).padStart(4, '0')}`;
       const createdDate = String(inq.created_at || '').slice(0, 10);
@@ -4182,9 +4288,13 @@ ${C.renderRoiCalculatorWidget ? C.renderRoiCalculatorWidget() : ""}
                 .map((lbl, i) => {
                   const stepNum = i + 1;
                   const stateClass =
-                    stepNum < stage || completed ? 'is-done' : stepNum === stage ? 'is-current' : 'is-upcoming';
+                    stepNum <= doneSteps || completed
+                      ? 'is-done'
+                      : stepNum === doneSteps + 1
+                      ? 'is-current'
+                      : 'is-upcoming';
                   return `<li class="portal-step ${stateClass}">
-                    <span class="portal-step-dot">${stepNum < stage || completed ? '✓' : stepNum}</span>
+                    <span class="portal-step-dot">${stepNum <= doneSteps || completed ? '✓' : stepNum}</span>
                     <span class="portal-step-label">${lbl}</span>
                   </li>`;
                 })
@@ -5015,14 +5125,21 @@ ${C.renderRoiCalculatorWidget ? C.renderRoiCalculatorWidget() : ""}
         );
       });
 
+    const activeWorkspace = this.adminWorkspace === 'milestones' ? 'milestones' : 'crm';
+    const activeTrackedProjects = (this.inquiries || []).filter(
+      (inq) => this.getCompletedMilestoneCount(inq) < 5
+    ).length;
+
     return `
       <section class="section" style="padding-top:40px;">
         <div class="container">
           <!-- ADMIN HEADER BAR -->
-          <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px;margin-bottom:28px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px;margin-bottom:22px;">
             <div>
               <div class="eyebrow"><span class="eyebrow-dot"></span> ADMIN DASHBOARD</div>
-              <h1 style="font-size:30px;font-weight:900;">Client CRM &amp; Platform Management</h1>
+              <h1 style="font-size:30px;font-weight:900;">
+                ${activeWorkspace === 'milestones' ? 'Delivery Milestone Tracker' : 'Client CRM &amp; Platform Management'}
+              </h1>
             </div>
             <div style="display:flex;gap:10px;flex-wrap:wrap;">
               <button class="btn btn-outline btn-sm" onclick="window.app.exportClientsToCSV()">
@@ -5034,6 +5151,40 @@ ${C.renderRoiCalculatorWidget ? C.renderRoiCalculatorWidget() : ""}
             </div>
           </div>
 
+          <!-- PRIMARY ADMIN INTERFACE TAB MENU -->
+          <div class="admin-workspace-tabs" role="tablist" aria-label="Admin dashboard interfaces">
+            <button
+              type="button"
+              role="tab"
+              aria-selected="${activeWorkspace === 'crm'}"
+              class="admin-workspace-tab ${activeWorkspace === 'crm' ? 'active' : ''}"
+              onclick="window.app.setAdminWorkspace('crm')"
+            >
+              <span class="admin-workspace-tab-copy">
+                <strong>Client CRM &amp; Platform</strong>
+                <span>Clients, Inquiries, Blog, Portfolio &amp; Testimonials</span>
+              </span>
+              <span class="admin-workspace-tab-badge">${totalClients}</span>
+            </button>
+            <button
+              type="button"
+              role="tab"
+              aria-selected="${activeWorkspace === 'milestones'}"
+              class="admin-workspace-tab ${activeWorkspace === 'milestones' ? 'active' : ''}"
+              onclick="window.app.setAdminWorkspace('milestones')"
+            >
+              <span class="admin-workspace-tab-copy">
+                <strong>Delivery Milestone Tracker</strong>
+                <span>Complete Steps 1–5 &amp; Sync Client Status</span>
+              </span>
+              <span class="admin-workspace-tab-badge">${activeTrackedProjects} active</span>
+            </button>
+          </div>
+
+          ${
+            activeWorkspace === 'milestones'
+              ? this.renderAdminMilestoneTrackerTab()
+              : `
           <!-- DATA OVERVIEW KPI ROW -->
           <div class="metrics-strip" style="margin-bottom:24px;">
             <div class="metric-cell">
@@ -5056,7 +5207,7 @@ ${C.renderRoiCalculatorWidget ? C.renderRoiCalculatorWidget() : ""}
 
           ${this.renderAdminAnalyticsOverview(activeClients, onboardingClients, completedClients)}
 
-          <!-- ADMIN NAVIGATION TABS -->
+          <!-- CRM SUB-NAVIGATION TABS -->
           <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:28px;">
             <button class="selector-pill ${this.adminTab === 'clients' ? 'active' : ''}" onclick="window.app.adminTab='clients';window.app.render();">
               👥 Clients (${totalClients})
@@ -5086,9 +5237,382 @@ ${C.renderRoiCalculatorWidget ? C.renderRoiCalculatorWidget() : ""}
               ? this.renderAdminPortfolioTab()
               : this.renderAdminTestimonialsTab()
           }
+          `
+          }
         </div>
       </section>
     `;
+  }
+
+  setAdminWorkspace(mode) {
+    this.adminWorkspace = mode === 'milestones' ? 'milestones' : 'crm';
+    this.render();
+  }
+
+  openClientMilestones(query = '') {
+    this.adminWorkspace = 'milestones';
+    this.milestoneSearch = String(query || '').trim();
+    this.milestoneStageFilter = 'ALL';
+    this.milestonePage = 1;
+    this.render();
+  }
+
+  renderAdminMilestoneTrackerTab() {
+    const escHtml = (v) =>
+      String(v ?? '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+
+    const steps = this.getMilestoneDefinitions();
+    const allInquiries = Array.isArray(this.inquiries) ? this.inquiries : [];
+
+    // Build fast client lookup by id and email so each card displays live synced client status
+    const clientByEmail = new Map();
+    const clientById = new Map();
+    (this.clients || []).forEach((c) => {
+      if (!c || String(c.role || 'CLIENT').toUpperCase() === 'ADMIN') return;
+      if (c.email) clientByEmail.set(String(c.email).trim().toLowerCase(), c);
+      if (c.id !== undefined && c.id !== null) clientById.set(String(c.id), c);
+    });
+
+    const stageCounts = { ALL: allInquiries.length, ACTIVE: 0, 0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
+    allInquiries.forEach((inq) => {
+      const done = this.getCompletedMilestoneCount(inq);
+      stageCounts[done] = (stageCounts[done] || 0) + 1;
+      if (done < 5) stageCounts.ACTIVE += 1;
+    });
+
+    const query = String(this.milestoneSearch || '').trim().toLowerCase();
+    const filtered = allInquiries.filter((inq, idx) => {
+      const done = this.getCompletedMilestoneCount(inq);
+      if (this.milestoneStageFilter === 'ACTIVE' && done >= 5) return false;
+      if (this.milestoneStageFilter === 'COMPLETED' && done < 5) return false;
+      if (this.milestoneStageFilter === '3-4' && done !== 3 && done !== 4) return false;
+      if (/^[0-5]$/.test(String(this.milestoneStageFilter)) && done !== Number(this.milestoneStageFilter)) {
+        return false;
+      }
+      if (!query) return true;
+      const ticketId = `yt-${String(1000 + (Number(inq.id) % 9000 || idx + 1)).padStart(4, '0')}`;
+      const matchedClient =
+        clientByEmail.get(String(inq.email || '').trim().toLowerCase()) ||
+        (inq.user_id ? clientById.get(String(inq.user_id)) : null);
+      const hay = `${ticketId} ${inq.name || ''} ${inq.email || ''} ${matchedClient?.company || ''} ${inq.service_category || ''} ${inq.message || ''} ${inq.status || ''}`.toLowerCase();
+      return hay.includes(query);
+    });
+
+    const limit = this.milestoneLimit || 10;
+    const totalFiltered = filtered.length;
+    const totalPages = Math.max(1, Math.ceil(totalFiltered / limit));
+    if (!this.milestonePage || this.milestonePage < 1) this.milestonePage = 1;
+    if (this.milestonePage > totalPages) this.milestonePage = totalPages;
+    const curPage = this.milestonePage;
+    const startIdx = (curPage - 1) * limit;
+    const pageItems = filtered.slice(startIdx, startIdx + limit);
+
+    const statusBadgeClass = (st) => {
+      const up = String(st || 'ACTIVE').toUpperCase();
+      if (up === 'COMPLETED') return 'is-completed';
+      if (up === 'ACTIVE') return 'is-active';
+      if (up === 'ONBOARDING') return 'is-onboarding';
+      return 'is-lead';
+    };
+
+    const summaryCards = [
+      { id: 'ALL', label: 'All Projects', count: stageCounts.ALL, sub: `${stageCounts.ACTIVE} active` },
+      { id: '0', label: 'Awaiting Step 1', count: stageCounts[0], sub: 'New submissions' },
+      { id: '1', label: 'Step 1 Done (Scoping)', count: stageCounts[1], sub: '20% · Onboarding' },
+      { id: '2', label: 'Step 2 Done (Build)', count: stageCounts[2], sub: '40% · Active' },
+      { id: '3-4', label: 'Step 3–4 (Review)', count: stageCounts[3] + stageCounts[4], sub: '60%–80% · Active' },
+      { id: '5', label: 'Step 5 Completed', count: stageCounts[5], sub: '100% · Completed' }
+    ];
+
+    const renderMilestoneCard = (inq, idx) => {
+      const doneSteps = this.getCompletedMilestoneCount(inq);
+      const completed = doneSteps >= 5;
+      const progress = completed
+        ? 100
+        : Number.isFinite(Number(inq.project_progress))
+        ? Math.min(99, Math.max(0, Number(inq.project_progress)))
+        : doneSteps * 20;
+      const ticketId = `YT-${String(1000 + (Number(inq.id) % 9000 || startIdx + idx + 1)).padStart(4, '0')}`;
+      const matchedClient =
+        clientByEmail.get(String(inq.email || '').trim().toLowerCase()) ||
+        (inq.user_id ? clientById.get(String(inq.user_id)) : null);
+      const clientStatus = String(matchedClient?.status || (completed ? 'COMPLETED' : doneSteps >= 2 ? 'ACTIVE' : doneSteps === 1 ? 'ONBOARDING' : 'LEAD')).toUpperCase();
+      const parsed = this.parsePortalInquiryDetails(inq.message);
+      const links = this.extractDeliverableLinks(inq.admin_response);
+      const createdDate = String(inq.created_at || '').slice(0, 10);
+      const createdFmt = /^\d{4}-\d{2}-\d{2}$/.test(createdDate)
+        ? new Date(`${createdDate}T00:00:00Z`).toLocaleDateString('en-GB', {
+            day: '2-digit',
+            month: 'short',
+            year: 'numeric',
+            timeZone: 'UTC'
+          })
+        : 'Recent';
+      const nextStepObj = doneSteps < 5 ? steps[doneSteps] : null;
+
+      return `
+        <article class="glass-card admin-milestone-card ${completed ? 'is-all-done' : ''}">
+          <div class="admin-milestone-head">
+            <div class="admin-milestone-client">
+              <div class="admin-milestone-title-row">
+                <span class="portal-ticket-id">#${escHtml(ticketId)}</span>
+                <h3>${escHtml(inq.name || 'Client')}</h3>
+                <span class="tech-pill lime">${escHtml(inq.service_category || 'General Service')}</span>
+              </div>
+              <div class="admin-milestone-submeta">
+                <span>${escHtml(matchedClient?.company || 'Client Partner')}</span>
+                <span>•</span>
+                <a href="mailto:${escHtml(inq.email || '')}">${escHtml(inq.email || '—')}</a>
+                <span>•</span>
+                <span>Submitted ${escHtml(createdFmt)}</span>
+              </div>
+            </div>
+
+            <div class="admin-milestone-status-cluster">
+              <span class="admin-client-status-pill ${statusBadgeClass(clientStatus)}" title="Client account status automatically synced from milestone progress">
+                Client Status: <strong>${escHtml(clientStatus)}</strong>
+              </span>
+              <span class="admin-progress-pill">${progress}% Complete</span>
+            </div>
+          </div>
+
+          <p class="admin-milestone-scope">${escHtml(parsed.cleanBody)}</p>
+
+          ${
+            parsed.timeline || parsed.tier || parsed.referenceUrl
+              ? `<div class="portal-brief-chips">
+                  ${parsed.timeline ? `<span class="portal-brief-chip">⏱ Timeline: <strong>${escHtml(parsed.timeline)}</strong></span>` : ''}
+                  ${parsed.tier ? `<span class="portal-brief-chip">📦 Tier: <strong>${escHtml(parsed.tier)}</strong></span>` : ''}
+                  ${
+                    parsed.referenceUrl
+                      ? `<a href="${escHtml(parsed.referenceUrl)}" target="_blank" rel="noopener noreferrer" class="portal-brief-chip portal-brief-link">🔗 Client Reference Link ↗</a>`
+                      : ''
+                  }
+                </div>`
+              : ''
+          }
+
+          <!-- INTERACTIVE 5-STEP MILESTONE COMPLETION CONTROL -->
+          <div class="admin-stepper-box">
+            <div class="admin-stepper-top">
+              <span><strong>Delivery Milestone Tracker</strong> · ${doneSteps} of 5 Steps Completed</span>
+              <span>Click any step below to complete or adjust milestone progress</span>
+            </div>
+
+            <div class="portal-progress-track" role="progressbar" aria-valuenow="${progress}" aria-valuemin="0" aria-valuemax="100">
+              <div class="portal-progress-fill" style="width:${progress}%;"></div>
+            </div>
+
+            <div class="admin-step-grid" role="group" aria-label="Milestone steps for ${escHtml(inq.name || ticketId)}">
+              ${steps
+                .map((st) => {
+                  const isDone = st.step <= doneSteps;
+                  const isNext = st.step === doneSteps + 1;
+                  const targetStep = isDone && st.step === doneSteps ? st.step - 1 : st.step;
+                  return `
+                    <button
+                      type="button"
+                      class="admin-step-btn ${isDone ? 'is-done' : isNext ? 'is-next' : 'is-pending'}"
+                      onclick="window.app.completeAdminMilestoneStep('${escHtml(String(inq.id))}', ${targetStep})"
+                      title="${isDone && st.step === doneSteps ? `Click to unmark Step ${st.step}` : `Click to complete Step ${st.step} (${st.progress}% · Client → ${st.clientStatus})`}"
+                    >
+                      <span class="admin-step-badge">${isDone ? '✓' : st.step}</span>
+                      <span class="admin-step-name">${st.step}. ${escHtml(st.label)}</span>
+                      <span class="admin-step-meta">${st.progress}% · → ${escHtml(st.clientStatus)}</span>
+                    </button>
+                  `;
+                })
+                .join('')}
+            </div>
+          </div>
+
+          <!-- QUICK COMPLETION CTA & CLIENT PORTAL NOTE / DELIVERABLE LINK -->
+          <div class="admin-milestone-controls">
+            <div class="admin-milestone-cta-row">
+              ${
+                nextStepObj
+                  ? `<button type="button" class="btn btn-lime btn-sm" onclick="window.app.completeAdminMilestoneStep('${escHtml(String(inq.id))}', ${nextStepObj.step})">
+                      ✓ Complete Step ${nextStepObj.step}: ${escHtml(nextStepObj.label)} (${nextStepObj.progress}%) →
+                    </button>`
+                  : `<span class="admin-complete-banner">✓ All 5 Milestones Completed · Client Status: COMPLETED</span>`
+              }
+              ${
+                doneSteps > 0
+                  ? `<button type="button" class="btn btn-outline btn-sm" onclick="window.app.completeAdminMilestoneStep('${escHtml(String(inq.id))}', ${doneSteps - 1})">
+                      ← Step Back
+                    </button>`
+                  : ''
+              }
+              <div class="admin-milestone-contact-links">
+                ${
+                  inq.phone
+                    ? `<a href="https://wa.me/${String(inq.phone).replace(/[^0-9]/g, '')}" target="_blank" rel="noopener noreferrer" class="btn btn-outline btn-sm">💬 WhatsApp ↗</a>`
+                    : ''
+                }
+                ${
+                  inq.email
+                    ? `<a href="mailto:${escHtml(inq.email)}?subject=${encodeURIComponent(`[YOLETECH Update #${ticketId}] ${inq.service_category || ''}`)}" class="btn btn-outline btn-sm">✉️ Email</a>`
+                    : ''
+                }
+              </div>
+            </div>
+
+            <div class="admin-milestone-note-row">
+              <input
+                type="text"
+                id="milestone-note-${escHtml(String(inq.id))}"
+                class="form-control"
+                value="${escHtml(inq.admin_response || '')}"
+                placeholder="Write milestone update or paste deliverable URL (https://...) visible on the client's portal..."
+                onkeydown="if(event.key==='Enter'){event.preventDefault();window.app.saveAdminMilestoneNote('${escHtml(String(inq.id))}');}"
+              />
+              <button type="button" class="btn btn-outline btn-sm" onclick="window.app.saveAdminMilestoneNote('${escHtml(String(inq.id))}')">
+                Save Update Note
+              </button>
+            </div>
+            ${
+              links.length
+                ? `<div class="portal-deliverable-btns" style="margin-top:8px;">
+                    ${links
+                      .map(
+                        (url, lIdx) =>
+                          `<a href="${escHtml(url)}" target="_blank" rel="noopener noreferrer" class="portal-brief-chip portal-brief-link">🔗 Shared Deliverable${links.length > 1 ? ` #${lIdx + 1}` : ''} ↗</a>`
+                      )
+                      .join('')}
+                  </div>`
+                : ''
+            }
+          </div>
+        </article>
+      `;
+    };
+
+    return `
+      <div class="admin-milestone-console">
+        <div class="glass-card admin-milestone-intro">
+          <div>
+            <div class="eyebrow" style="margin-bottom:6px;"><span class="eyebrow-dot"></span> DELIVERY OPERATIONS CONSOLE</div>
+            <h2 style="font-size:23px;font-weight:900;margin:0 0 6px;">Delivery Milestone Tracker</h2>
+            <p style="font-size:14px;color:var(--yole-text-muted);margin:0;max-width:760px;">
+              Complete milestones 1 through 5 for each client request. Progress immediately updates the client's portal stepper, delivery percentage, and synced CRM status (<strong>Step 1 → Onboarding</strong>, <strong>Steps 2–4 → Active</strong>, <strong>Step 5 → Completed</strong>).
+            </p>
+          </div>
+        </div>
+
+        <!-- 6-CARD PIPELINE SUMMARY FILTER STRIP -->
+        <div class="admin-milestone-summary" role="group" aria-label="Filter projects by milestone stage">
+          ${summaryCards
+            .map(
+              (card) => `
+            <button
+              type="button"
+              class="glass-card admin-stage-tile ${String(this.milestoneStageFilter) === card.id ? 'is-selected' : ''}"
+              onclick="window.app.milestoneStageFilter='${card.id}';window.app.milestonePage=1;window.app.render();"
+            >
+              <span class="admin-stage-tile-label">${escHtml(card.label)}</span>
+              <strong class="admin-stage-tile-count">${card.count}</strong>
+              <span class="admin-stage-tile-sub">${escHtml(card.sub)}</span>
+            </button>
+          `
+            )
+            .join('')}
+        </div>
+
+        <!-- SEARCH & FILTER TOOLBAR -->
+        <div class="glass-card admin-milestone-toolbar">
+          <div style="flex:1 1 280px;">
+            <input
+              type="search"
+              id="admin-milestone-search"
+              class="form-control"
+              placeholder="Search by client name, email, company, ticket #YT-, or project scope..."
+              value="${escHtml(this.milestoneSearch || '')}"
+              oninput="window.app.milestoneSearch=this.value;window.app.milestonePage=1;window.app.render();"
+            />
+          </div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+            <button type="button" class="selector-pill ${this.milestoneStageFilter === 'ALL' ? 'active' : ''}" onclick="window.app.milestoneStageFilter='ALL';window.app.milestonePage=1;window.app.render();">All (${stageCounts.ALL})</button>
+            <button type="button" class="selector-pill ${this.milestoneStageFilter === 'ACTIVE' ? 'active' : ''}" onclick="window.app.milestoneStageFilter='ACTIVE';window.app.milestonePage=1;window.app.render();">In Progress (${stageCounts.ACTIVE})</button>
+            <button type="button" class="selector-pill ${this.milestoneStageFilter === 'COMPLETED' ? 'active' : ''}" onclick="window.app.milestoneStageFilter='COMPLETED';window.app.milestonePage=1;window.app.render();">Completed (${stageCounts[5]})</button>
+            ${
+              this.milestoneSearch || this.milestoneStageFilter !== 'ALL'
+                ? `<button type="button" class="btn btn-outline btn-sm" onclick="window.app.milestoneSearch='';window.app.milestoneStageFilter='ALL';window.app.milestonePage=1;window.app.render();">Clear Filters</button>`
+                : ''
+            }
+          </div>
+        </div>
+
+        <div style="display:flex;justify-content:space-between;align-items:center;font-size:12.5px;color:var(--yole-text-muted);margin:0 2px 12px;">
+          <span>Showing <strong>${totalFiltered ? startIdx + 1 : 0}–${Math.min(startIdx + limit, totalFiltered)}</strong> of <strong>${totalFiltered}</strong> tracked project${totalFiltered === 1 ? '' : 's'}</span>
+          <span>Page <strong>${curPage}</strong> of <strong>${totalPages}</strong></span>
+        </div>
+
+        ${
+          pageItems.length === 0
+            ? `<div class="glass-card portal-empty-state">
+                <h3>No Matching Projects Found</h3>
+                <p>Adjust your stage filter or search query to locate client delivery requests.</p>
+              </div>`
+            : `<div class="admin-milestone-list">
+                ${pageItems.map((inq, idx) => renderMilestoneCard(inq, idx)).join('')}
+              </div>`
+        }
+
+        ${
+          totalPages > 1
+            ? `<div style="display:flex;justify-content:center;align-items:center;gap:12px;margin-top:20px;">
+                <button type="button" class="btn btn-outline btn-sm" ${curPage <= 1 ? 'disabled' : ''} onclick="window.app.milestonePage=${curPage - 1};window.app.render();">← Previous</button>
+                <span style="font-size:13px;font-weight:700;">Page ${curPage} of ${totalPages}</span>
+                <button type="button" class="btn btn-outline btn-sm" ${curPage >= totalPages ? 'disabled' : ''} onclick="window.app.milestonePage=${curPage + 1};window.app.render();">Next →</button>
+              </div>`
+            : ''
+        }
+      </div>
+    `;
+  }
+
+  async completeAdminMilestoneStep(inquiryId, targetStep) {
+    const stepNum = Math.max(0, Math.min(5, Number(targetStep) || 0));
+    const steps = this.getMilestoneDefinitions();
+    const targetObj = stepNum > 0 ? steps[stepNum - 1] : null;
+    const updates = targetObj
+      ? {
+          status: targetObj.completedStatus,
+          project_progress: targetObj.progress,
+          client_status: targetObj.clientStatus,
+          sync_client_status: true
+        }
+      : {
+          status: 'NEW',
+          project_progress: 10,
+          client_status: 'LEAD',
+          sync_client_status: true
+        };
+
+    const noteInput = document.getElementById(`milestone-note-${inquiryId}`);
+    if (noteInput) {
+      updates.admin_response = noteInput.value.trim();
+    }
+
+    const label = targetObj
+      ? `Step ${targetObj.step} (${targetObj.label}) completed — ${targetObj.progress}% · Client status synced to ${targetObj.clientStatus}`
+      : 'Milestone reset to Submitted (10%) — Client status set to LEAD';
+
+    await this.updateInquiry(inquiryId, updates, label);
+  }
+
+  async saveAdminMilestoneNote(inquiryId) {
+    const noteInput = document.getElementById(`milestone-note-${inquiryId}`);
+    if (!noteInput) return;
+    await this.updateInquiry(
+      inquiryId,
+      { admin_response: noteInput.value.trim(), sync_client_status: false },
+      'Milestone update note saved to Client Portal.'
+    );
   }
 
 
@@ -5463,27 +5987,29 @@ ${C.renderRoiCalculatorWidget ? C.renderRoiCalculatorWidget() : ""}
             <div class="grid-2" style="gap:12px;margin-bottom:12px;">
               <div>
                 <label class="form-label">Milestone Stage</label>
-                <select class="form-control" onchange="window.app.updateInquiry(${inq.id}, { status: this.value })">
-                  <option value="NEW" ${inq.status === 'NEW' ? 'selected' : ''}>1. NEW (Submitted)</option>
-                  <option value="SCOPING" ${inq.status === 'SCOPING' ? 'selected' : ''}>2. SCOPING &amp; AUDIT</option>
-                  <option value="IN_PROGRESS" ${inq.status === 'IN_PROGRESS' ? 'selected' : ''}>3. IN_PROGRESS</option>
-                  <option value="REVIEW" ${inq.status === 'REVIEW' ? 'selected' : ''}>4. CLIENT REVIEW</option>
-                  <option value="COMPLETED" ${inq.status === 'COMPLETED' || inq.status === 'RESOLVED' ? 'selected' : ''}>5. COMPLETED</option>
+                <select class="form-control" onchange="window.app.updateInquiry('${inq.id}', { status: this.value })">
+                  <option value="NEW" ${inq.status === 'NEW' ? 'selected' : ''}>0. NEW (Awaiting Step 1 — 10%)</option>
+                  <option value="SCOPING" ${inq.status === 'SCOPING' ? 'selected' : ''}>1. Step 1 Done — Scoping (20%)</option>
+                  <option value="IN_PROGRESS" ${inq.status === 'IN_PROGRESS' ? 'selected' : ''}>2. Step 2 Done — In Progress (40%)</option>
+                  <option value="REVIEW" ${inq.status === 'REVIEW' ? 'selected' : ''}>3. Step 3 Done — Review (60%)</option>
+                  <option value="SIGN_OFF" ${inq.status === 'SIGN_OFF' ? 'selected' : ''}>4. Step 4 Done — Final Sign-Off (80%)</option>
+                  <option value="COMPLETED" ${inq.status === 'COMPLETED' || inq.status === 'RESOLVED' ? 'selected' : ''}>5. Step 5 Done — Completed (100%)</option>
                 </select>
               </div>
               <div>
-                <label class="form-label">Progress (${inq.project_progress || 15}%)</label>
-                <input type="range" min="0" max="100" step="5" value="${inq.project_progress || 15}" class="form-control" onchange="window.app.updateInquiry(${inq.id}, { project_progress: Number(this.value) })" />
+                <label class="form-label">Progress (${inq.project_progress || 10}%)</label>
+                <input type="range" min="0" max="100" step="5" value="${inq.project_progress || 10}" class="form-control" onchange="window.app.updateInquiry('${inq.id}', { project_progress: Number(this.value) })" />
               </div>
             </div>
 
             <div class="form-group">
               <label class="form-label">Milestone Note &amp; Deliverable URL (Visible in Client Portal)</label>
-              <input type="text" class="form-control" value="${(inq.admin_response || '').replace(/"/g, '&quot;')}" onchange="window.app.updateInquiry(${inq.id}, { admin_response: this.value })" placeholder="Write milestone update or paste deliverable link (https://...)..." />
+              <input type="text" class="form-control" value="${(inq.admin_response || '').replace(/"/g, '&quot;')}" onchange="window.app.updateInquiry('${inq.id}', { admin_response: this.value, sync_client_status: false })" placeholder="Write milestone update or paste deliverable link (https://...)..." />
             </div>
 
-            <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;padding-top:10px;border-top:1px solid rgba(255,255,255,0.1);">
-              <div style="display:flex;gap:8px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;padding-top:10px;border-top:1px solid rgba(255,255,255,0.1);">
+              <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                <button type="button" class="btn btn-outline btn-sm" style="padding:5px 10px;font-size:11.5px;" onclick="window.app.openClientMilestones('${String(inq.email || inq.name || '').replace(/'/g, "\\'")}')">🎯 Milestones</button>
                 <a href="mailto:${inq.email}" class="btn btn-outline btn-sm" style="padding:5px 10px;font-size:11.5px;">Email Client</a>
                 ${
                   inq.phone
@@ -5491,7 +6017,7 @@ ${C.renderRoiCalculatorWidget ? C.renderRoiCalculatorWidget() : ""}
                     : ''
                 }
               </div>
-              <button class="btn btn-outline btn-sm" style="padding:5px 10px;font-size:11.5px;border-color:#ef4444;color:#ef4444;" onclick="window.app.deleteInquiry(${inq.id})">
+              <button class="btn btn-outline btn-sm" style="padding:5px 10px;font-size:11.5px;border-color:#ef4444;color:#ef4444;" onclick="window.app.deleteInquiry('${inq.id}')">
                 Delete Inquiry
               </button>
             </div>
@@ -5505,7 +6031,16 @@ ${C.renderRoiCalculatorWidget ? C.renderRoiCalculatorWidget() : ""}
 
   async deleteInquiry(id) {
     try {
-      await this.api(`/api/inquiries/${id}`, { method: 'DELETE' });
+      try {
+        await this.api(`/api/inquiries/${id}`, { method: 'DELETE' });
+      } catch (apiErr) {
+        const localExists = this.getLocalInquiries().some((i) => String(i.id) === String(id));
+        if (!localExists) throw apiErr;
+      }
+      try {
+        const nextLocal = this.getLocalInquiries().filter((i) => String(i.id) !== String(id));
+        localStorage.setItem('yoletech_local_inquiries', JSON.stringify(nextLocal));
+      } catch {}
       await this.loadAdminData();
       this.showToast('Project inquiry deleted.');
       this.render();
@@ -5514,38 +6049,127 @@ ${C.renderRoiCalculatorWidget ? C.renderRoiCalculatorWidget() : ""}
     }
   }
 
-  async updateInquiry(id, updates) {
+  async updateInquiry(id, updates, customToast = '') {
     const stageDefaultProgress = {
-      NEW: 15,
-      SCOPING: 30,
-      IN_PROGRESS: 55,
-      REVIEW: 85,
+      NEW: 10,
+      SCOPING: 20,
+      IN_PROGRESS: 40,
+      REVIEW: 60,
+      SIGN_OFF: 80,
       COMPLETED: 100,
       RESOLVED: 100
     };
+    const deriveClientStatus = (st, prog) => {
+      if (updates.client_status) return String(updates.client_status).toUpperCase();
+      if (st === 'COMPLETED' || st === 'RESOLVED' || prog >= 100) return 'COMPLETED';
+      if (st === 'IN_PROGRESS' || st === 'REVIEW' || st === 'SIGN_OFF' || prog >= 40) return 'ACTIVE';
+      if (st === 'SCOPING' || prog >= 20) return 'ONBOARDING';
+      return 'LEAD';
+    };
+
+    const existingInq = (this.inquiries || []).find((i) => String(i.id) === String(id));
     const nextUpdates = { ...updates };
     if (nextUpdates.status && nextUpdates.project_progress === undefined && stageDefaultProgress[nextUpdates.status] !== undefined) {
       nextUpdates.project_progress = stageDefaultProgress[nextUpdates.status];
     }
+    const resolvedStatus = String(nextUpdates.status ?? existingInq?.status ?? 'NEW').toUpperCase();
+    const resolvedProgress = Number.isFinite(Number(nextUpdates.project_progress))
+      ? Number(nextUpdates.project_progress)
+      : Number(existingInq?.project_progress ?? 10);
+    const shouldSyncClient = nextUpdates.sync_client_status !== false;
+    const syncedClientStatus = shouldSyncClient ? deriveClientStatus(resolvedStatus, resolvedProgress) : null;
+    const nowStamp = new Date().toISOString();
+
     try {
+      let apiResult = null;
       try {
-        await this.api(`/api/inquiries/${id}`, {
+        apiResult = await this.api(`/api/inquiries/${id}`, {
           method: 'PUT',
-          body: JSON.stringify(nextUpdates)
+          body: JSON.stringify({
+            ...nextUpdates,
+            ...(syncedClientStatus ? { client_status: syncedClientStatus } : {}),
+            ...(existingInq
+              ? {
+                  name: existingInq.name,
+                  email: existingInq.email,
+                  phone: existingInq.phone,
+                  service_category: existingInq.service_category,
+                  budget: existingInq.budget,
+                  message: existingInq.message,
+                  created_at: existingInq.created_at
+                }
+              : {})
+          })
         });
       } catch (apiErr) {
-        const localExists = this.getLocalInquiries().some((i) => String(i.id) === String(id));
-        if (!localExists) throw apiErr;
+        if (!existingInq) throw apiErr;
       }
+
+      // Persist updated inquiry into localStorage so client & admin stay synced even across container rotations
       try {
-        const localList = this.getLocalInquiries().map((i) =>
-          String(i.id) === String(id) ? { ...i, ...nextUpdates } : i
+        const localList = this.getLocalInquiries();
+        const updatedRecord = {
+          ...(existingInq || {}),
+          ...(apiResult?.inquiry || {}),
+          ...nextUpdates,
+          status: resolvedStatus,
+          project_progress: resolvedProgress,
+          updated_at: nowStamp
+        };
+        const matchIdx = localList.findIndex(
+          (i) =>
+            String(i.id) === String(id) ||
+            (existingInq &&
+              String(i.email || '').toLowerCase() === String(existingInq.email || '').toLowerCase() &&
+              String(i.message || '').trim() === String(existingInq.message || '').trim())
         );
+        if (matchIdx >= 0) {
+          localList[matchIdx] = { ...localList[matchIdx], ...updatedRecord };
+        } else if (existingInq) {
+          localList.unshift(updatedRecord);
+        }
         localStorage.setItem('yoletech_local_inquiries', JSON.stringify(localList));
       } catch {}
+
+      // Reflect milestone progress in the client's CRM & Portal status
+      if (shouldSyncClient && syncedClientStatus && existingInq?.email) {
+        const targetEmail = String(existingInq.email).trim().toLowerCase();
+        const localUsers = this.getLocalRegisteredUsers();
+        const clientMatch =
+          localUsers.find((u) => String(u.email || '').trim().toLowerCase() === targetEmail) ||
+          (this.clients || []).find((c) => String(c.email || '').trim().toLowerCase() === targetEmail);
+        if (clientMatch && String(clientMatch.role || 'CLIENT').toUpperCase() === 'CLIENT') {
+          this.saveLocalRegisteredUser({
+            ...clientMatch,
+            ...(apiResult?.client || {}),
+            status: syncedClientStatus,
+            updated_at: nowStamp
+          });
+        }
+        // Also update in-memory clients immediately
+        this.clients = (this.clients || []).map((c) =>
+          String(c.email || '').trim().toLowerCase() === targetEmail && String(c.role || 'CLIENT').toUpperCase() === 'CLIENT'
+            ? { ...c, status: syncedClientStatus }
+            : c
+        );
+      }
+
+      // Immediately update in-memory inquiries
+      this.inquiries = (this.inquiries || []).map((i) =>
+        String(i.id) === String(id)
+          ? {
+              ...i,
+              ...nextUpdates,
+              status: resolvedStatus,
+              project_progress: resolvedProgress,
+              updated_at: nowStamp
+            }
+          : i
+      );
+
       await this.loadAdminData();
       if (typeof this.loadDashboardData === 'function') await this.loadDashboardData(true);
-      this.showToast('Project inquiry updated.');
+      this.showToast(customToast || (syncedClientStatus ? `Milestone updated · Client status synced to ${syncedClientStatus}.` : 'Project inquiry updated.'));
       this.render();
     } catch (err) {
       this.showToast(err.message, 'error');
@@ -6377,9 +7001,12 @@ ${C.renderRoiCalculatorWidget ? C.renderRoiCalculatorWidget() : ""}
     const pageChanged = this.renderedPage !== this.currentPage;
 
     const activeEl = document.activeElement;
-    const preserveSearchFocus = activeEl && activeEl.id === 'admin-client-search';
-    const selStart = preserveSearchFocus ? activeEl.selectionStart : null;
-    const selEnd = preserveSearchFocus ? activeEl.selectionEnd : null;
+    const preserveSearchId =
+      activeEl && (activeEl.id === 'admin-client-search' || activeEl.id === 'admin-milestone-search')
+        ? activeEl.id
+        : null;
+    const selStart = preserveSearchId ? activeEl.selectionStart : null;
+    const selEnd = preserveSearchId ? activeEl.selectionEnd : null;
 
     let pageContent = '';
     switch (this.currentPage) {
@@ -6451,8 +7078,8 @@ ${C.renderRoiCalculatorWidget ? C.renderRoiCalculatorWidget() : ""}
       this.mountDashboard();
     }
 
-    if (preserveSearchFocus) {
-      const searchInput = document.getElementById('admin-client-search');
+    if (preserveSearchId) {
+      const searchInput = document.getElementById(preserveSearchId);
       if (searchInput) {
         searchInput.focus();
         if (selStart !== null && selEnd !== null) {
