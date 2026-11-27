@@ -166,6 +166,8 @@ class YoletechApp {
       'dashboard',
       'about',
       'services',
+      'learn',
+      'learn-dashboard',
       'portfolio',
       'testimonials',
       'blog',
@@ -177,6 +179,11 @@ class YoletechApp {
     ];
     if (!path || path === '' || path === 'index.html') {
       this.currentPage = 'home';
+    } else if (path === 'learn/dashboard') {
+      this.currentPage = 'learn-dashboard';
+      if (queryPage || hashPage) {
+        window.history.replaceState({}, '', '/learn/dashboard');
+      }
     } else if (path.startsWith('blog/')) {
       this.currentPage = 'blog-detail';
       this.activeBlogSlug = path.split('/')[1];
@@ -935,6 +942,9 @@ class YoletechApp {
       this.currentPage = 'login';
       this.authMode = 'register';
       window.history.pushState({}, '', '/register');
+    } else if (page === 'learn-dashboard') {
+      this.currentPage = 'learn-dashboard';
+      window.history.pushState({}, '', '/learn/dashboard');
     } else {
       this.currentPage = page;
       if (page === 'login' && !extra) this.authMode = 'login';
@@ -944,8 +954,18 @@ class YoletechApp {
 
     if (this.currentPage === 'admin-dashboard' && this.user?.role === 'ADMIN') {
       await this.loadAdminData();
+      if (this.adminWorkspace === 'learn' && typeof this.loadAdminLearnData === 'function') {
+        await this.loadAdminLearnData();
+      }
     } else if (this.currentPage === 'portal' && this.user) {
       await this.loadClientData();
+    } else if (this.currentPage === 'learn' && typeof this.loadLearnPublicData === 'function') {
+      await this.loadLearnPublicData();
+      if (typeof this.loadLearnCountries === 'function') {
+        void this.loadLearnCountries();
+      }
+    } else if (this.currentPage === 'learn-dashboard' && this.user && typeof this.loadLearnerDashboardData === 'function') {
+      await this.loadLearnerDashboardData(true);
     } else if (this.currentPage === 'dashboard' && typeof this.loadDashboardData === 'function') {
       await this.loadDashboardData(true);
     }
@@ -1259,13 +1279,24 @@ class YoletechApp {
       { id: 'dashboard', label: 'Dashboard' },
       { id: 'about', label: 'About' },
       { id: 'services', label: 'Services' },
+      { id: 'learn', label: 'Learn' },
       { id: 'contact', label: 'Contact' }
     ];
 
     let authButtons = '';
     if (this.user) {
-      const dashPage = this.user.role === 'ADMIN' ? 'admin-dashboard' : 'portal';
-      const dashLabel = this.user.role === 'ADMIN' ? 'Admin Dashboard' : 'Client Portal';
+      const dashPage =
+        this.user.role === 'ADMIN'
+          ? 'admin-dashboard'
+          : this.user.role === 'LEARNER'
+          ? 'learn-dashboard'
+          : 'portal';
+      const dashLabel =
+        this.user.role === 'ADMIN'
+          ? 'Admin Dashboard'
+          : this.user.role === 'LEARNER'
+          ? 'Learner Dashboard'
+          : 'Client Portal';
       authButtons = `
         <button class="btn btn-lime btn-sm" onclick="window.app.navigate('${dashPage}')">
           ${dashLabel} →
@@ -1297,6 +1328,7 @@ class YoletechApp {
               <li>
                 <a href="/${item.id}" class="nav-link ${
                   this.currentPage === item.id ||
+                  (item.id === 'learn' && this.currentPage === 'learn-dashboard') ||
                   (item.id === 'blog' && this.currentPage === 'blog-detail')
                     ? 'active'
                     : ''
@@ -1460,6 +1492,7 @@ class YoletechApp {
             <p>See how thoughtful engineering turns complex challenges into clear outcomes.</p>
           </div>
           <ul class="footer-link-grid">
+            <li><a href="/learn" onclick="event.preventDefault(); window.app.navigate('learn')"><span class="footer-link-main">${icon('graduation')}<span>Learn &amp; Training</span></span><span aria-hidden="true">↗</span></a></li>
             <li><a href="/about" onclick="event.preventDefault(); window.app.navigate('about')"><span class="footer-link-main">${icon('users')}<span>About YOLETECH</span></span><span aria-hidden="true">↗</span></a></li>
             <li><a href="/portfolio" onclick="event.preventDefault(); window.app.navigate('portfolio')"><span class="footer-link-main">${icon('briefcase')}<span>Portfolio &amp; Case Studies</span></span><span aria-hidden="true">↗</span></a></li>
             <li><a href="/testimonials" onclick="event.preventDefault(); window.app.navigate('testimonials')"><span class="footer-link-main">${icon('quote')}<span>Client Testimonials</span></span><span aria-hidden="true">↗</span></a></li>
@@ -3844,6 +3877,11 @@ ${C.renderRoiCalculatorWidget ? C.renderRoiCalculatorWidget() : ""}
       if (user.role === 'ADMIN') {
         await this.loadAdminData();
         this.navigate('admin-dashboard');
+      } else if (user.role === 'LEARNER') {
+        if (typeof this.loadLearnerDashboardData === 'function') {
+          await this.loadLearnerDashboardData(true);
+        }
+        this.navigate('learn-dashboard');
       } else {
         await this.loadClientData();
         this.navigate('portal');
@@ -5102,17 +5140,17 @@ ${C.renderRoiCalculatorWidget ? C.renderRoiCalculatorWidget() : ""}
       `;
     }
 
-    const totalClients = this.clients.filter((c) => c.role !== 'ADMIN').length;
-    const activeClients = this.clients.filter((c) => c.role !== 'ADMIN' && c.status === 'ACTIVE').length;
-    const onboardingClients = this.clients.filter((c) => c.role !== 'ADMIN' && c.status === 'ONBOARDING').length;
-    const completedClients = this.clients.filter((c) => c.role !== 'ADMIN' && c.status === 'COMPLETED').length;
+    const totalClients = this.clients.filter((c) => c.role !== 'ADMIN' && c.role !== 'LEARNER').length;
+    const activeClients = this.clients.filter((c) => c.role !== 'ADMIN' && c.role !== 'LEARNER' && c.status === 'ACTIVE').length;
+    const onboardingClients = this.clients.filter((c) => c.role !== 'ADMIN' && c.role !== 'LEARNER' && c.status === 'ONBOARDING').length;
+    const completedClients = this.clients.filter((c) => c.role !== 'ADMIN' && c.role !== 'LEARNER' && c.status === 'COMPLETED').length;
 
     const clientsForDisplay =
       this.adminClientDateFrom || this.adminClientDateTo
         ? this.adminDateFilteredClients || []
         : this.clients;
     const filteredClients = clientsForDisplay
-      .filter((c) => c.role !== 'ADMIN')
+      .filter((c) => c.role !== 'ADMIN' && c.role !== 'LEARNER')
       .filter((c) => {
         if (this.clientStatusFilter !== 'ALL' && c.status !== this.clientStatusFilter) return false;
         if (!this.clientSearch) return true;
@@ -5125,10 +5163,18 @@ ${C.renderRoiCalculatorWidget ? C.renderRoiCalculatorWidget() : ""}
         );
       });
 
-    const activeWorkspace = this.adminWorkspace === 'milestones' ? 'milestones' : 'crm';
+    const activeWorkspace =
+      this.adminWorkspace === 'milestones'
+        ? 'milestones'
+        : this.adminWorkspace === 'learn'
+        ? 'learn'
+        : 'crm';
     const activeTrackedProjects = (this.inquiries || []).filter(
       (inq) => this.getCompletedMilestoneCount(inq) < 5
     ).length;
+    const learnPendingBadge = this._adminLearnState?.summary
+      ? `${this._adminLearnState.summary.pendingCount} pending`
+      : 'Courses';
 
     return `
       <section class="section" style="padding-top:40px;">
@@ -5138,16 +5184,22 @@ ${C.renderRoiCalculatorWidget ? C.renderRoiCalculatorWidget() : ""}
             <div>
               <div class="eyebrow"><span class="eyebrow-dot"></span> ADMIN DASHBOARD</div>
               <h1 style="font-size:30px;font-weight:900;">
-                ${activeWorkspace === 'milestones' ? 'Delivery Milestone Tracker' : 'Client CRM &amp; Platform Management'}
+                ${
+                  activeWorkspace === 'milestones'
+                    ? 'Delivery Milestone Tracker'
+                    : activeWorkspace === 'learn'
+                    ? 'Learn Courses &amp; Registrations'
+                    : 'Client CRM &amp; Platform Management'
+                }
               </h1>
             </div>
             <div style="display:flex;gap:10px;flex-wrap:wrap;">
-              <button class="btn btn-outline btn-sm" onclick="window.app.exportClientsToCSV()">
-                ⬇ Export Clients CSV
-              </button>
-              <button class="btn btn-lime btn-sm" onclick="window.app.loadAdminData().then(() => window.app.render())">
-                ↻ Refresh Data
-              </button>
+              ${
+                activeWorkspace === 'learn'
+                  ? `<button class="btn btn-lime btn-sm" onclick="window.app.loadAdminLearnData(true)">↻ Refresh Learn Data</button>`
+                  : `<button class="btn btn-outline btn-sm" onclick="window.app.exportClientsToCSV()">⬇ Export Clients CSV</button>
+                     <button class="btn btn-lime btn-sm" onclick="window.app.loadAdminData().then(() => window.app.render())">↻ Refresh Data</button>`
+              }
             </div>
           </div>
 
@@ -5179,11 +5231,28 @@ ${C.renderRoiCalculatorWidget ? C.renderRoiCalculatorWidget() : ""}
               </span>
               <span class="admin-workspace-tab-badge">${activeTrackedProjects} active</span>
             </button>
+            <button
+              type="button"
+              role="tab"
+              aria-selected="${activeWorkspace === 'learn'}"
+              class="admin-workspace-tab ${activeWorkspace === 'learn' ? 'active' : ''}"
+              onclick="window.app.setAdminWorkspace('learn')"
+            >
+              <span class="admin-workspace-tab-copy">
+                <strong>Learn</strong>
+                <span>Courses, Learner Registrations &amp; Page Content</span>
+              </span>
+              <span class="admin-workspace-tab-badge">${learnPendingBadge}</span>
+            </button>
           </div>
 
           ${
             activeWorkspace === 'milestones'
               ? this.renderAdminMilestoneTrackerTab()
+              : activeWorkspace === 'learn'
+              ? typeof this.renderAdminLearnWorkspace === 'function'
+                ? this.renderAdminLearnWorkspace()
+                : ''
               : `
           <!-- DATA OVERVIEW KPI ROW -->
           <div class="metrics-strip" style="margin-bottom:24px;">
@@ -5245,7 +5314,10 @@ ${C.renderRoiCalculatorWidget ? C.renderRoiCalculatorWidget() : ""}
   }
 
   setAdminWorkspace(mode) {
-    this.adminWorkspace = mode === 'milestones' ? 'milestones' : 'crm';
+    this.adminWorkspace = mode === 'milestones' ? 'milestones' : mode === 'learn' ? 'learn' : 'crm';
+    if (this.adminWorkspace === 'learn' && typeof this.loadAdminLearnData === 'function') {
+      void this.loadAdminLearnData();
+    }
     this.render();
   }
 
@@ -6803,6 +6875,25 @@ ${C.renderRoiCalculatorWidget ? C.renderRoiCalculatorWidget() : ""}
         image: siteLogoUrl,
         schemaType: 'CollectionPage'
       },
+      learn: {
+        title: 'Learn with YOLETECH | Practical Tech Training Programs & Registration',
+        description:
+          this._learnState?.content?.subheadline ||
+          'Explore YOLETECH training programs across Full-Stack Web Development, Data Analysis and Business Intelligence, AI Automation, Customer Support Solutions, IT Support, Graphic Design, and Tech Tutorials.',
+        path: '/learn',
+        type: 'website',
+        image: siteLogoUrl,
+        schemaType: 'CollectionPage'
+      },
+      'learn-dashboard': {
+        title: 'Learner Dashboard | YOLETECH',
+        description: 'View your YOLETECH learner profile and course enrollment status.',
+        path: '/learn/dashboard',
+        type: 'website',
+        image: siteLogoUrl,
+        schemaType: 'WebPage',
+        noindex: true
+      },
       portfolio: {
         title: 'Portfolio & Case Studies | Data Analytics, BI & Full-Stack Web Projects — YOLETECH',
         description:
@@ -6879,6 +6970,42 @@ ${C.renderRoiCalculatorWidget ? C.renderRoiCalculatorWidget() : ""}
 
     let meta = seoMap[this.currentPage] || seoMap.home;
     let schemaPayload = null;
+
+    if (this.currentPage === 'learn' && Array.isArray(this._learnState?.courses)) {
+      const publishedCourses = this._learnState.courses;
+      schemaPayload = {
+        '@context': 'https://schema.org',
+        '@type': 'ItemList',
+        name: this._learnState?.content?.headline || meta.title,
+        description: meta.description,
+        url: `${baseOrigin}/learn`,
+        itemListElement: publishedCourses.map((course, idx) => {
+          const item = {
+            '@type': 'Course',
+            name: course.title,
+            description: course.short_description,
+            url: `${baseOrigin}/learn#${encodeURIComponent(course.slug)}`,
+            provider: {
+              '@type': 'Organization',
+              '@id': `${baseOrigin}/#organization`,
+              name: 'YOLETECH'
+            },
+            educationalLevel: course.level,
+            hasCourseInstance: {
+              '@type': 'CourseInstance',
+              courseMode: course.mode
+            }
+          };
+          if (course.duration) item.timeRequired = course.duration;
+          if (course.price) item.offers = { '@type': 'Offer', description: course.price };
+          return {
+            '@type': 'ListItem',
+            position: idx + 1,
+            item
+          };
+        })
+      };
+    }
 
     if (this.currentPage === 'blog-detail') {
       const post = this.activeBlogPost || (this.blogPosts && this.blogPosts[0]);
@@ -7022,6 +7149,12 @@ ${C.renderRoiCalculatorWidget ? C.renderRoiCalculatorWidget() : ""}
       case 'services':
         pageContent = this.renderServicesPage();
         break;
+      case 'learn':
+        pageContent = typeof this.renderLearnPage === 'function' ? this.renderLearnPage() : this.renderServicesPage();
+        break;
+      case 'learn-dashboard':
+        pageContent = typeof this.renderLearnerDashboardPage === 'function' ? this.renderLearnerDashboardPage() : this.renderAuthPage();
+        break;
       case 'portfolio':
         pageContent = this.renderPortfolioPage();
         break;
@@ -7076,6 +7209,9 @@ ${C.renderRoiCalculatorWidget ? C.renderRoiCalculatorWidget() : ""}
     this.initScrollReveal(root);
     if (this.currentPage === 'dashboard' && typeof this.mountDashboard === 'function') {
       this.mountDashboard();
+    }
+    if (this.currentPage === 'learn' && typeof this.mountLearnPage === 'function') {
+      this.mountLearnPage();
     }
 
     if (preserveSearchId) {

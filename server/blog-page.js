@@ -186,6 +186,7 @@ function renderBlogPage(slug, reqOrigin) {
               <li><a class="nav-link" href="/dashboard">Dashboard</a></li>
               <li><a class="nav-link" href="/about">About</a></li>
               <li><a class="nav-link" href="/services">Services</a></li>
+              <li><a class="nav-link" href="/learn">Learn</a></li>
               <li><a class="nav-link" href="/blog">Blog</a></li>
               <li><a class="nav-link" href="/contact">Contact</a></li>
             </ul>
@@ -264,8 +265,43 @@ const ROUTE_SEO_CONFIG = {
       'Interactive Executive Business Intelligence Dashboard showcasing real-time client metrics, conversion funnels, service distribution, and analytics performance.',
     h1: 'YOLETECH Executive Business Intelligence & Operations Dashboard',
     schemaType: 'WebPage'
+  },
+  '/learn': {
+    title: 'Learn with YOLETECH | Practical Tech Training Programs & Registration',
+    description:
+      'Explore YOLETECH training programs across Full-Stack Web Development, Data Analysis and Business Intelligence, AI Automation, Customer Support Solutions, IT Support, Graphic Design, and Tech Tutorials.',
+    h1: 'Practical Tech Training Built Around Real-World Skills',
+    schemaType: 'CollectionPage'
+  },
+  '/learn/dashboard': {
+    title: 'Learner Dashboard | YOLETECH',
+    description: 'View your YOLETECH learner profile and course enrollment status.',
+    h1: 'YOLETECH Learner Dashboard',
+    schemaType: 'WebPage'
   }
 };
+
+function loadPublishedLearnDataForSeo() {
+  try {
+    const { DatabaseSync } = require('node:sqlite');
+    const dbPath = process.env.YOLETECH_DB_PATH || path.join(__dirname, 'yoletech.db');
+    if (!fs.existsSync(dbPath)) return { courses: [], content: null };
+    const db = new DatabaseSync(dbPath, { readOnly: true });
+    const courses = db
+      .prepare(
+        `SELECT id, title, slug, short_description, level, mode, duration, price
+         FROM courses WHERE status = 'published' ORDER BY display_order ASC, id ASC`
+      )
+      .all();
+    const content = db
+      .prepare(`SELECT headline, subheadline FROM learn_page_content WHERE id = 1`)
+      .get();
+    db.close();
+    return { courses: Array.isArray(courses) ? courses : [], content: content || null };
+  } catch {
+    return { courses: [], content: null };
+  }
+}
 
 function renderRouteSeoHtml(pathname, reqOrigin) {
   const cleanPath = pathname === '/' ? '/' : `/${String(pathname || '').replace(/^\/+|\/+$/g, '')}`;
@@ -296,14 +332,72 @@ function renderRouteSeoHtml(pathname, reqOrigin) {
     `<link rel="canonical" href="${escapeHtml(pageUrl)}" />`
   );
 
-  html = injectDynamicJsonLd(html, {
-    '@context': 'https://schema.org',
-    '@type': cfg.schemaType || 'WebPage',
-    name: cfg.title,
-    description: cfg.description,
-    url: pageUrl,
-    isPartOf: { '@id': `${origin}/#website` }
-  });
+  if (cleanPath === '/learn') {
+    const { courses, content } = loadPublishedLearnDataForSeo();
+    if (content && content.headline) {
+      html = html.replace(
+        /<h1 class="hero-title">[\s\S]*?<\/h1>/,
+        `<h1 class="hero-title">${escapeHtml(content.headline)}</h1>`
+      );
+    }
+    if (content && content.subheadline) {
+      html = replaceMeta(html, 'name', 'description', content.subheadline);
+      html = replaceMeta(html, 'property', 'og:description', content.subheadline);
+      html = replaceMeta(html, 'name', 'twitter:description', content.subheadline);
+    }
+    const courseItems = courses.map((course, idx) => {
+      const courseNode = {
+        '@type': 'Course',
+        name: String(course.title),
+        description: String(course.short_description),
+        url: `${origin}/learn#${encodeURIComponent(String(course.slug))}`,
+        provider: {
+          '@type': 'Organization',
+          '@id': `${origin}/#organization`,
+          name: 'YOLETECH',
+          sameAs: `${origin}/`
+        },
+        educationalLevel: String(course.level || 'Beginner'),
+        hasCourseInstance: {
+          '@type': 'CourseInstance',
+          courseMode: String(course.mode || 'online')
+        }
+      };
+      if (course.duration && String(course.duration).trim()) {
+        courseNode.timeRequired = String(course.duration).trim();
+      }
+      if (course.price && String(course.price).trim()) {
+        courseNode.offers = {
+          '@type': 'Offer',
+          description: String(course.price).trim(),
+          category: 'Paid'
+        };
+      }
+      return {
+        '@type': 'ListItem',
+        position: idx + 1,
+        item: courseNode
+      };
+    });
+
+    html = injectDynamicJsonLd(html, {
+      '@context': 'https://schema.org',
+      '@type': 'ItemList',
+      name: content?.headline || cfg.title,
+      description: content?.subheadline || cfg.description,
+      url: pageUrl,
+      itemListElement: courseItems
+    });
+  } else {
+    html = injectDynamicJsonLd(html, {
+      '@context': 'https://schema.org',
+      '@type': cfg.schemaType || 'WebPage',
+      name: cfg.title,
+      description: cfg.description,
+      url: pageUrl,
+      isPartOf: { '@id': `${origin}/#website` }
+    });
+  }
 
   if (cleanPath !== '/') {
     html = html.replace(
@@ -371,6 +465,7 @@ function renderSitemapXml(reqOrigin) {
   const staticRoutes = [
     { path: '/', changefreq: 'weekly', priority: '1.0' },
     { path: '/services', changefreq: 'weekly', priority: '0.9' },
+    { path: '/learn', changefreq: 'weekly', priority: '0.9' },
     { path: '/portfolio', changefreq: 'weekly', priority: '0.9' },
     { path: '/about', changefreq: 'monthly', priority: '0.85' },
     { path: '/blog', changefreq: 'weekly', priority: '0.85', lastmod: latestBlogDate },

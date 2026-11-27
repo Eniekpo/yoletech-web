@@ -4,6 +4,12 @@ const path = require('node:path');
 const crypto = require('node:crypto');
 const os = require('node:os');
 const { renderBlogPage, renderRouteSeoHtml, renderSitemapXml, renderRssFeedXml } = require('./blog-page.js');
+let learnModule = null;
+try {
+  learnModule = require('./learn/index.js');
+} catch {
+  learnModule = null;
+}
 let DatabaseSync = null;
 try {
   ({ DatabaseSync } = require('node:sqlite'));
@@ -14,7 +20,7 @@ try {
 const PORT = process.env.PORT || 4000;
 const JWT_SECRET = process.env.JWT_SECRET || 'yoletech-super-secret-jwt-key-2026-eniekpo';
 const ADMIN_NOTIFY_EMAIL = process.env.ADMIN_NOTIFY_EMAIL || 'yoletech@yolestica.com';
-const DB_PATH = path.join(__dirname, 'yoletech.db');
+const DB_PATH = process.env.YOLETECH_DB_PATH || path.join(__dirname, 'yoletech.db');
 const PUBLIC_DIR = path.join(__dirname, '..', 'public');
 const BLOG_DIR = path.join(__dirname, '..', 'content', 'blog');
 const PORTFOLIO_DIR = path.join(__dirname, '..', 'content', 'portfolio');
@@ -494,6 +500,15 @@ db.exec(`
     created_at TEXT DEFAULT (datetime('now'))
   );
 `);
+
+if (learnModule && typeof learnModule.ensureLearnSchemaAndSeed === 'function') {
+  try {
+    db.exec('PRAGMA foreign_keys = ON;');
+    learnModule.ensureLearnSchemaAndSeed(db);
+  } catch (err) {
+    console.warn('Learn schema init notice:', err.message);
+  }
+}
 
 function ensureAccount(account) {
   const existing = db.prepare('SELECT id FROM users WHERE email = ?').get(account.email.toLowerCase());
@@ -1314,6 +1329,29 @@ const requestHandler = async (req, res) => {
       }
     }
 
+    // --- LEARN PLATFORM & ADMIN LEARN ENDPOINTS ---
+    if (
+      learnModule &&
+      typeof learnModule.handleLearnApiRequest === 'function' &&
+      (pathname.startsWith('/api/learn') || pathname.startsWith('/api/admin/learn'))
+    ) {
+      const handled = await learnModule.handleLearnApiRequest({
+        db,
+        req,
+        res,
+        pathname,
+        parsedUrl,
+        clientIp,
+        parseBody,
+        sendJson,
+        getAuthUser,
+        hashPassword,
+        signToken,
+        sendEmailToYoletech
+      });
+      if (handled) return;
+    }
+
     // --- AUTH ENDPOINTS ---
     if (pathname === '/api/auth/register' && req.method === 'POST') {
       const body = await parseBody(req);
@@ -1493,11 +1531,11 @@ const requestHandler = async (req, res) => {
 
       const clientQuery = [
         `SELECT id, name, email, phone, company, service_interest, role, status, admin_notes, created_at
-         FROM users`
+         FROM users
+         WHERE UPPER(COALESCE(role, 'CLIENT')) = 'CLIENT'`
       ];
       const clientQueryParams = [];
       if (hasDateFilter) {
-        clientQuery.push("WHERE role <> 'ADMIN'");
         if (fromDate) {
           clientQuery.push('AND date(created_at) >= date(?)');
           clientQueryParams.push(fromDate);

@@ -26,6 +26,8 @@
     { "source": "/dashboard", "destination": "/api/blog-page?route=/dashboard" },
     { "source": "/testimonials", "destination": "/api/blog-page?route=/testimonials" },
     { "source": "/contact", "destination": "/api/blog-page?route=/contact" },
+    { "source": "/learn", "destination": "/api/blog-page?route=/learn" },
+    { "source": "/learn/dashboard", "destination": "/index.html" },
     { "source": "/login", "destination": "/index.html" },
     { "source": "/register", "destination": "/index.html" },
     { "source": "/portal", "destination": "/index.html" },
