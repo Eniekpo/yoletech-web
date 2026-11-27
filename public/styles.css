@@ -1499,6 +1499,31 @@ a.footer-contact-item:hover .footer-item-icon {
   font-size: 11.5px;
 }
 
+.footer-location-link,
+.contact-location-link {
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  text-decoration-color: rgba(200, 230, 30, 0.45);
+  transition: color 160ms ease, text-decoration-color 160ms ease;
+}
+
+.footer-location-link:hover,
+.contact-location-link:hover {
+  color: var(--yole-lime);
+  text-decoration-color: currentColor;
+}
+
+[data-theme="light"] .footer-location-link,
+[data-theme="light"] .contact-location-link {
+  text-decoration-color: rgba(63, 98, 18, 0.4);
+}
+
+[data-theme="light"] .footer-location-link:hover,
+[data-theme="light"] .contact-location-link:hover {
+  color: #3F6212;
+}
+
 .social-icon-row {
   display: flex;
   flex-wrap: wrap;

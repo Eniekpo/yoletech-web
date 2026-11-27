@@ -1319,7 +1319,7 @@ class YoletechApp {
 
           <div class="footer-legal">
             <span>© ${new Date().getFullYear()} YOLETECH. All rights reserved.</span>
-            <span>${D.location}</span>
+            <a class="footer-location-link" href="${D.locationUrl || `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(D.location)}`}" target="_blank" rel="noopener noreferrer" aria-label="Open ${D.location} in Google Maps">${D.location} ↗</a>
           </div>
         </div>
       </footer>
@@ -1415,13 +1415,14 @@ class YoletechApp {
                 <strong>${owner.workingHours}</strong>
               </span>
             </div>
-            <div class="footer-contact-item">
+            <a class="footer-contact-item" href="${owner.locationUrl || `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(owner.location)}`}" target="_blank" rel="noopener noreferrer" aria-label="Open ${owner.location} in Google Maps">
               ${icon('mapPin')}
               <span class="footer-contact-copy">
                 <span class="footer-contact-label">LOCATION</span>
                 <strong>${owner.location}</strong>
               </span>
-            </div>
+              <span class="footer-contact-arrow" aria-hidden="true">↗</span>
+            </a>
           </div>
         </div>
       `
@@ -3342,7 +3343,7 @@ ${C.renderRoiCalculatorWidget ? C.renderRoiCalculatorWidget() : ""}
                     <div style="font-size:12px;font-weight:800;color:#C8E61E;text-transform:uppercase;">Working Hours &amp; Location</div>
                     <div style="font-size:14px;color:var(--yole-text-muted);">
                       ${D.owner.workingHours}<br/>
-                      ${D.owner.location}
+                      <a class="contact-location-link" href="${D.owner.locationUrl || `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(D.owner.location)}`}" target="_blank" rel="noopener noreferrer" aria-label="Open ${D.owner.location} in Google Maps">${D.owner.location} ↗</a>
                     </div>
                   </div>
                 </div>

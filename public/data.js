@@ -7,6 +7,7 @@ window.YOLETECH_DATA = {
     name: "John Oruebi Eniekpo",
     roles: ["Data Analyst", "Business Intelligence Specialist", "Full-Stack Web Developer"],
     location: "Yenagoa, Bayelsa State, Nigeria",
+    locationUrl: "https://www.google.com/maps/search/?api=1&query=Yenagoa%2C+Bayelsa+State%2C+Nigeria",
     phone: "+234 802 552 6389",
     whatsappUrl: "https://wa.me/2348025526389",
     email: "yoletech@yolestica.com",
