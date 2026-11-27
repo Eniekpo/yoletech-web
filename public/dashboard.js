@@ -289,6 +289,90 @@
     },
 
     // ---- Data loading -------------------------------------------------------
+    mergeLocalIntoAnalytics(data) {
+      const norm = (v) => String(v || '').trim().toLowerCase().replace(/\s+/g, ' ');
+      const apiClients = Array.isArray(data?.clients) ? data.clients.map((c) => ({ ...c })) : [];
+      const seenIds = new Set(apiClients.map((c) => String(c.id)));
+
+      const localSources = [
+        ...(typeof this.getLocalRegisteredUsers === 'function' ? this.getLocalRegisteredUsers() : []),
+        ...(Array.isArray(this.clients) ? this.clients : [])
+      ].filter((u) => u && String(u.role || 'CLIENT').toUpperCase() === 'CLIENT');
+
+      const seenExtraEmails = new Set();
+      for (const lu of localSources) {
+        const email = String(lu.email || '').trim().toLowerCase();
+        const nameKey = norm(lu.name || lu.label);
+        const dateKey = String(lu.created_at || lu.created || '').slice(0, 10);
+        if (!email && !nameKey) continue;
+        const dedupeKey = email || `${nameKey}|${dateKey}`;
+        if (seenExtraEmails.has(dedupeKey)) continue;
+        seenExtraEmails.add(dedupeKey);
+
+        const existing = apiClients.find((c) => {
+          if (email && c.email && String(c.email).trim().toLowerCase() === email) return true;
+          const cDate = String(c.created_at || c.created || '').slice(0, 10);
+          return nameKey && norm(c.name || c.label) === nameKey && (!dateKey || !cDate || cDate === dateKey);
+        });
+
+        if (existing) {
+          if (lu.status) existing.status = String(lu.status).toUpperCase();
+          if (lu.service_interest) existing.service_interest = lu.service_interest;
+          if (lu.company) existing.company = lu.company;
+          if (lu.created_at && !existing.created_at) existing.created_at = lu.created_at;
+        } else {
+          let safeId = lu.id;
+          if (safeId === undefined || safeId === null || seenIds.has(String(safeId))) {
+            safeId = `reg-${email || nameKey}-${dateKey || Date.now()}`;
+          }
+          seenIds.add(String(safeId));
+          apiClients.push({
+            id: safeId,
+            name: lu.name || lu.label || 'Registered Client',
+            label: lu.name || lu.label || 'Registered Client',
+            email,
+            company: lu.company || '',
+            service_interest: lu.service_interest || lu.service || 'Unspecified',
+            status: String(lu.status || 'ACTIVE').toUpperCase(),
+            created_at: lu.created_at || lu.created || new Date().toISOString().slice(0, 19).replace('T', ' ')
+          });
+        }
+      }
+
+      const apiInquiries = Array.isArray(data?.inquiries) ? data.inquiries.map((i) => ({ ...i })) : [];
+      const seenInqIds = new Set(apiInquiries.map((i) => String(i.id)));
+      const localInquiries = typeof this.getLocalInquiries === 'function' ? this.getLocalInquiries() : [];
+      const clientByEmail = new Map(
+        apiClients.filter((c) => c.email).map((c) => [String(c.email).toLowerCase(), c.id])
+      );
+
+      for (const li of localInquiries) {
+        if (!li) continue;
+        const already = apiInquiries.some(
+          (i) => String(i.id) === String(li.id) || (li.created_at && i.created_at === li.created_at && (i.service_category || i.service) === (li.service_category || li.service))
+        );
+        if (already) continue;
+        const email = String(li.email || '').trim().toLowerCase();
+        const safeInqId = seenInqIds.has(String(li.id)) ? `local-inq-${li.created_at || Date.now()}` : (li.id ?? `local-inq-${Date.now()}`);
+        seenInqIds.add(String(safeInqId));
+        apiInquiries.push({
+          id: safeInqId,
+          client_id: li.client_id ?? li.user_id ?? (email ? clientByEmail.get(email) || null : null),
+          contact_key: email || `local-${safeInqId}`,
+          service_category: li.service_category || li.service || 'Unspecified',
+          status: String(li.status || 'NEW').toUpperCase(),
+          project_progress: Number.isFinite(Number(li.project_progress)) ? Number(li.project_progress) : 15,
+          created_at: li.created_at || new Date().toISOString().slice(0, 19).replace('T', ' ')
+        });
+      }
+
+      return {
+        ...data,
+        clients: apiClients,
+        inquiries: apiInquiries
+      };
+    },
+
     async loadDashboardData(force = false) {
       const st = this.getDashboardState();
       if (st.loading || (st.raw && !force)) return;
@@ -296,12 +380,21 @@
       st.error = null;
       this.updateDashboardBody();
       try {
-        const data = await this.api('/api/analytics', { cache: 'no-store' });
-        st.raw = this.normaliseDashboardRaw(data, 'live');
+        if (typeof this.syncLocalClientsToServer === 'function') {
+          await this.syncLocalClientsToServer();
+        }
+        const data = await this.api(`/api/analytics?_t=${Date.now()}`, { cache: 'no-store' });
+        st.raw = this.normaliseDashboardRaw(this.mergeLocalIntoAnalytics(data), 'live');
       } catch (err) {
-        console.error('Analytics data could not be loaded:', err);
-        st.raw = null;
-        st.error = 'Analytics data could not be loaded. Please check your connection and try again.';
+        console.warn('Analytics API unavailable, using fallback dataset:', err);
+        try {
+          st.raw = this.buildDashboardFallback();
+          st.error = null;
+        } catch (fallbackErr) {
+          console.error('Analytics fallback failed:', fallbackErr);
+          st.raw = null;
+          st.error = 'Analytics data could not be loaded. Please check your connection and try again.';
+        }
       } finally {
         st.loading = false;
         if (this.currentPage === 'dashboard') this.updateDashboardBody();
@@ -682,9 +775,14 @@
 
       // Period comparison: selected range vs. previous equal-length range, else last 30d vs prior 30d
       const now = new Date();
-      const end = view.to || now;
-      const start = view.from || new Date(end.getTime() - 30 * DAY_MS);
-      const span = Math.max(DAY_MS, end.getTime() - start.getTime());
+      const latestCreatedMs = view.clientsAll.reduce(
+        (mx, c) => (c.created && c.created.getTime() > mx ? c.created.getTime() : mx),
+        0
+      );
+      const effectiveNow = new Date(Math.max(now.getTime(), latestCreatedMs));
+      const end = view.to || effectiveNow;
+      const start = view.from || new Date(now.getTime() - 30 * DAY_MS);
+      const span = Math.max(DAY_MS, (view.to ? end.getTime() : now.getTime()) - start.getTime());
       const prevStart = new Date(start.getTime() - span);
       const between = (d, a, b) => d && d >= a && d <= b;
       const allClientsForPeriod = view.clientsAll.filter(

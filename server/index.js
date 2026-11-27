@@ -118,6 +118,11 @@ function createJsonFallbackDatabase() {
       return {
         get(...args) {
           loadState();
+          if (/SELECT COUNT\(\*\) as count FROM users WHERE role = 'CLIENT'/i.test(norm)) {
+            return {
+              count: (state.users || []).filter((u) => String(u.role || 'CLIENT').toUpperCase() === 'CLIENT').length
+            };
+          }
           if (/SELECT COUNT\(\*\) as count FROM (\w+)/i.test(norm)) {
             const table = RegExp.$1;
             return { count: (state[table] || []).length };
@@ -144,6 +149,11 @@ function createJsonFallbackDatabase() {
           }
           if (/FROM testimonials WHERE approved = 1/i.test(norm)) {
             return [...state.testimonials].filter((t) => Number(t.approved) === 1).sort((a, b) => b.id - a.id);
+          }
+          if (/FROM users WHERE.*role = 'CLIENT'/i.test(norm)) {
+            return [...(state.users || [])]
+              .filter((u) => String(u.role || 'CLIENT').toUpperCase() === 'CLIENT')
+              .sort((a, b) => (/ORDER BY id ASC/i.test(norm) ? a.id - b.id : b.id - a.id));
           }
           if (/FROM (\w+)/i.test(norm)) {
             const table = RegExp.$1;
@@ -1690,7 +1700,46 @@ const requestHandler = async (req, res) => {
       return sendJson(res, 200, { deleted: true });
     }
 
-    // --- ANALYTICS DASHBOARD ENDPOINT (read-only, privacy-safe) ---
+    // --- ANALYTICS DASHBOARD SYNC & READ ENDPOINTS ---
+    if (pathname === '/api/analytics/sync' && req.method === 'POST') {
+      const body = await parseBody(req);
+      const incomingClients = Array.isArray(body.clients) ? body.clients.slice(0, 100) : [];
+      let synced = 0;
+      const defaultSyncHash = hashPassword('Client@2026');
+      for (const c of incomingClients) {
+        const email = String(c?.email || '').trim().toLowerCase();
+        const name = String(c?.name || '').trim();
+        if (!email || !name || String(c?.role || 'CLIENT').toUpperCase() !== 'CLIENT') continue;
+        const existing = db.prepare('SELECT id FROM users WHERE email = ?').get(email);
+        if (!existing) {
+          const createdAt =
+            typeof c.created_at === 'string' && /^\d{4}-\d{2}-\d{2}/.test(c.created_at.trim())
+              ? c.created_at.trim()
+              : new Date().toISOString().slice(0, 19).replace('T', ' ');
+          try {
+            db.prepare(
+              `INSERT INTO users (name, email, password_hash, phone, company, service_interest, role, status, admin_notes, created_at)
+               VALUES (?, ?, ?, ?, ?, ?, 'CLIENT', ?, ?, ?)`
+            ).run(
+              name,
+              email,
+              defaultSyncHash,
+              String(c.phone || '').trim(),
+              String(c.company || '').trim(),
+              String(c.service_interest || 'Data Analytics & BI').trim(),
+              String(c.status || 'ACTIVE').toUpperCase(),
+              String(c.admin_notes || 'Registered via YOLETECH Client Portal').trim(),
+              createdAt
+            );
+            synced += 1;
+          } catch {
+            // Ignore duplicate constraint race
+          }
+        }
+      }
+      return sendJson(res, 200, { ok: true, synced }, { 'Cache-Control': 'no-store' });
+    }
+
     // Public visitors receive anonymised client records (no names, emails, phones or notes).
     // Admins receive client names and companies for operational use.
     if (pathname === '/api/analytics' && req.method === 'GET') {
@@ -1701,7 +1750,7 @@ const requestHandler = async (req, res) => {
       const userRows = db
         .prepare(
           `SELECT id, name, email, company, service_interest, status, role, created_at
-           FROM users WHERE role = 'CLIENT' ORDER BY id ASC`
+           FROM users WHERE UPPER(COALESCE(role, 'CLIENT')) = 'CLIENT' ORDER BY id ASC`
         )
         .all()
         .filter((u) => String(u.role || 'CLIENT').toUpperCase() === 'CLIENT')

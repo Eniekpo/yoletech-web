@@ -235,6 +235,37 @@ class YoletechApp {
     }
   }
 
+  removeLocalRegisteredUser(clientId, email = '') {
+    try {
+      const normEmail = String(email || '').trim().toLowerCase();
+      const list = this.getLocalRegisteredUsers().filter((u) => {
+        if (normEmail && String(u.email || '').trim().toLowerCase() === normEmail) return false;
+        if (clientId !== undefined && clientId !== null && String(u.id) === String(clientId)) return false;
+        return true;
+      });
+      localStorage.setItem('yoletech_registered_clients', JSON.stringify(list));
+    } catch (e) {
+      console.warn('Local user delete warning:', e);
+    }
+  }
+
+  async syncLocalClientsToServer() {
+    try {
+      const localClients = this.getLocalRegisteredUsers().filter(
+        (u) => u && u.email && String(u.role || 'CLIENT').toUpperCase() === 'CLIENT'
+      );
+      if (!localClients.length) return;
+      await this.api('/api/analytics/sync', {
+        method: 'POST',
+        body: JSON.stringify({
+          clients: localClients.map(({ _pwd, ...rest }) => rest)
+        })
+      });
+    } catch {
+      // Ignore sync notice when offline
+    }
+  }
+
   getLocalInquiries() {
     try {
       return JSON.parse(localStorage.getItem('yoletech_local_inquiries') || '[]');
@@ -503,6 +534,7 @@ class YoletechApp {
   }
 
   async loadAdminData() {
+    await this.syncLocalClientsToServer();
     let apiClients = [];
     let apiInquiries = [];
     let dateFilteredApiClients = null;
@@ -3839,13 +3871,22 @@ ${C.renderRoiCalculatorWidget ? C.renderRoiCalculatorWidget() : ""}
         };
       }
 
-      const { token, user } = regData;
+      const { token, user: rawUser } = regData;
+      const user = {
+        ...rawUser,
+        role: rawUser.role || 'CLIENT',
+        status: rawUser.status || 'ACTIVE',
+        created_at: rawUser.created_at || new Date().toISOString().slice(0, 19).replace('T', ' ')
+      };
       this.saveLocalRegisteredUser(user, payload.password);
 
       this.token = token;
       this.user = user;
       localStorage.setItem('yoletech_token', token);
       localStorage.setItem('yoletech_user', JSON.stringify(user));
+      if (typeof this.loadDashboardData === 'function') {
+        this.loadDashboardData(true);
+      }
       this.currentPage = 'portal';
       window.history.pushState({}, '', '/portal');
       window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -4635,11 +4676,24 @@ ${C.renderRoiCalculatorWidget ? C.renderRoiCalculatorWidget() : ""}
   }
 
   async updateClientField(clientId, updates) {
+    const existing = (this.clients || []).find((c) => String(c.id) === String(clientId));
     try {
-      await this.api(`/api/clients/${clientId}`, {
-        method: 'PUT',
-        body: JSON.stringify(updates)
-      });
+      try {
+        await this.api(`/api/clients/${clientId}`, {
+          method: 'PUT',
+          body: JSON.stringify(updates)
+        });
+      } catch (apiErr) {
+        if (!existing) throw apiErr;
+      }
+      if (existing) {
+        const localMatch = this.getLocalRegisteredUsers().find(
+          (u) => String(u.id) === String(clientId) || (existing.email && String(u.email || '').toLowerCase() === String(existing.email).toLowerCase())
+        );
+        if (localMatch) {
+          this.saveLocalRegisteredUser({ ...localMatch, ...updates });
+        }
+      }
       await this.loadAdminData();
       if (typeof this.loadDashboardData === 'function') await this.loadDashboardData(true);
       this.showToast('Client record updated.');
@@ -4650,8 +4704,14 @@ ${C.renderRoiCalculatorWidget ? C.renderRoiCalculatorWidget() : ""}
   }
 
   async deleteClient(clientId) {
+    const existing = (this.clients || []).find((c) => String(c.id) === String(clientId));
     try {
-      await this.api(`/api/clients/${clientId}`, { method: 'DELETE' });
+      try {
+        await this.api(`/api/clients/${clientId}`, { method: 'DELETE' });
+      } catch (apiErr) {
+        if (!existing) throw apiErr;
+      }
+      this.removeLocalRegisteredUser(clientId, existing?.email || '');
       await this.loadAdminData();
       if (typeof this.loadDashboardData === 'function') await this.loadDashboardData(true);
       this.showToast('Client removed.');
@@ -4664,20 +4724,25 @@ ${C.renderRoiCalculatorWidget ? C.renderRoiCalculatorWidget() : ""}
   async handleAdminAddClient(e) {
     e.preventDefault();
     const form = e.target;
+    const clientPayload = {
+      name: form.name.value.trim(),
+      email: form.email.value.trim().toLowerCase(),
+      phone: form.phone.value.trim(),
+      company: form.company.value.trim(),
+      service_interest: form.service_interest.value,
+      admin_notes: form.admin_notes.value.trim(),
+      status: 'ACTIVE'
+    };
     try {
-      await this.api('/api/clients', {
+      const res = await this.api('/api/clients', {
         method: 'POST',
-        body: JSON.stringify({
-          name: form.name.value,
-          email: form.email.value,
-          phone: form.phone.value,
-          company: form.company.value,
-          service_interest: form.service_interest.value,
-          admin_notes: form.admin_notes.value,
-          status: 'ACTIVE'
-        })
+        body: JSON.stringify(clientPayload)
       });
+      if (res?.client) {
+        this.saveLocalRegisteredUser(res.client);
+      }
       await this.loadAdminData();
+      if (typeof this.loadDashboardData === 'function') await this.loadDashboardData(true);
       form.reset();
       this.showToast('New client added to CRM!');
       this.render();
