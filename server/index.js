@@ -2358,7 +2358,7 @@ const requestHandler = async (req, res) => {
         res.end();
         return;
       }
-      const adminIndexPath = path.join(PUBLIC_DIR, 'admin', 'index.html');
+      const adminIndexPath = path.join(__dirname, 'admin-cms.html');
       if (fs.existsSync(adminIndexPath)) {
         res.writeHead(200, {
           'Content-Type': 'text/html; charset=utf-8',

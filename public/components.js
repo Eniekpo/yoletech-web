@@ -356,7 +356,7 @@ window.YOLETECH_COMPONENTS = {
           <div style="display:flex;flex-direction:column;gap:22px;">
             <div>
               <div style="display:flex;justify-content:space-between;font-weight:700;font-size:14px;margin-bottom:8px;">
-                <span>Weekly Hours Spent on Manual Reports</span>
+                <label for="roi-hours">Weekly Hours Spent on Manual Reports</label>
                 <span id="roi-hours-val" style="color:#C8E61E;font-size:16px;font-weight:900;">15 hrs / wk</span>
               </div>
               <input type="range" id="roi-hours" min="5" max="40" value="15" step="1" style="width:100%;accent-color:#C8E61E;cursor:pointer;" oninput="window.app.updateRoiCalculation()" />
@@ -369,7 +369,7 @@ window.YOLETECH_COMPONENTS = {
 
             <div>
               <div style="display:flex;justify-content:space-between;font-weight:700;font-size:14px;margin-bottom:8px;">
-                <span>Team Members Preparing Reports</span>
+                <label for="roi-staff">Team Members Preparing Reports</label>
                 <span id="roi-staff-val" style="color:#C8E61E;font-size:16px;font-weight:900;">3 Staff</span>
               </div>
               <input type="range" id="roi-staff" min="1" max="10" value="3" step="1" style="width:100%;accent-color:#C8E61E;cursor:pointer;" oninput="window.app.updateRoiCalculation()" />
@@ -382,7 +382,7 @@ window.YOLETECH_COMPONENTS = {
 
             <div>
               <div style="display:flex;justify-content:space-between;font-weight:700;font-size:14px;margin-bottom:8px;">
-                <span>Average Loaded Hourly Salary Cost ($)</span>
+                <label for="roi-rate">Average Loaded Hourly Salary Cost ($)</label>
                 <span id="roi-rate-val" style="color:#F7941D;font-size:16px;font-weight:900;">$35 / hr</span>
               </div>
               <input type="range" id="roi-rate" min="20" max="100" value="35" step="5" style="width:100%;accent-color:#F7941D;cursor:pointer;" oninput="window.app.updateRoiCalculation()" />

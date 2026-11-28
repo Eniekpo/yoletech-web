@@ -314,9 +314,14 @@ test('Phase 5: Legacy ?page=... queries and /signup return HTTP 301 on Node and 
     assert.equal(vercelRes.headers.location, expectedDest);
   }
 
-  // Verify admin/index.html no longer links to legacy ?page= URLs
-  const adminHtml = fs.readFileSync(path.join(process.cwd(), 'public', 'admin', 'index.html'), 'utf8');
-  assert.ok(!adminHtml.includes('?page='), 'public/admin/index.html still contains legacy ?page= links');
+  // Verify server/admin-cms.html no longer links to legacy ?page= URLs
+  const adminHtml = fs.readFileSync(path.join(process.cwd(), 'server', 'admin-cms.html'), 'utf8');
+  assert.ok(!adminHtml.includes('?page='), 'server/admin-cms.html still contains legacy ?page= links');
+  assert.equal(
+    fs.existsSync(path.join(process.cwd(), 'public', 'admin', 'index.html')),
+    false,
+    'public/admin/index.html must not exist statically so Vercel always enforces server-side auth on /admin/'
+  );
 });
 
 test('Phase 6: Security hardening (no hardcoded secrets, auth-gated /analytics and /admin/, HttpOnly cookie, CSRF, security headers)', async () => {
