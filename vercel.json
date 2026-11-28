@@ -14,7 +14,21 @@
       "has": [{ "type": "host", "value": "yolestica.com" }],
       "destination": "https://www.yolestica.com/:path*",
       "permanent": true
-    }
+    },
+    { "source": "/signup", "destination": "/register", "permanent": true },
+    { "source": "/signup/", "destination": "/register", "permanent": true },
+    { "source": "/", "has": [{ "type": "query", "key": "page", "value": "portfolio" }], "destination": "/portfolio", "permanent": true },
+    { "source": "/", "has": [{ "type": "query", "key": "page", "value": "blog" }], "destination": "/blog", "permanent": true },
+    { "source": "/", "has": [{ "type": "query", "key": "page", "value": "services" }], "destination": "/services", "permanent": true },
+    { "source": "/", "has": [{ "type": "query", "key": "page", "value": "about" }], "destination": "/about", "permanent": true },
+    { "source": "/", "has": [{ "type": "query", "key": "page", "value": "learn" }], "destination": "/learn", "permanent": true },
+    { "source": "/", "has": [{ "type": "query", "key": "page", "value": "contact" }], "destination": "/contact", "permanent": true },
+    { "source": "/", "has": [{ "type": "query", "key": "page", "value": "admin-dashboard" }], "destination": "/admin-dashboard", "permanent": true },
+    { "source": "/", "has": [{ "type": "query", "key": "page", "value": "login" }], "destination": "/login", "permanent": true },
+    { "source": "/", "has": [{ "type": "query", "key": "page", "value": "register" }], "destination": "/register", "permanent": true },
+    { "source": "/", "has": [{ "type": "query", "key": "page", "value": "signup" }], "destination": "/register", "permanent": true },
+    { "source": "/", "has": [{ "type": "query", "key": "page", "value": "portal" }], "destination": "/portal", "permanent": true },
+    { "source": "/", "has": [{ "type": "query", "key": "page", "value": "dashboard" }], "destination": "/dashboard", "permanent": true }
   ],
   "rewrites": [
     { "source": "/api/(.*)", "destination": "/api/index.js" },
@@ -45,6 +59,7 @@
     { "source": "/login", "destination": "/api/blog-page?route=/login" },
     { "source": "/register", "destination": "/api/blog-page?route=/register" },
     { "source": "/portal", "destination": "/api/blog-page?route=/portal" },
-    { "source": "/admin-dashboard", "destination": "/api/blog-page?route=/admin-dashboard" }
+    { "source": "/admin-dashboard", "destination": "/api/blog-page?route=/admin-dashboard" },
+    { "source": "/(.*)", "destination": "/api/blog-page?route=/$1" }
   ]
 }

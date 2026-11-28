@@ -11,6 +11,7 @@ const {
   renderSitemapXml,
   renderRssFeedXml
 } = require('./blog-page.js');
+const { LEGACY_QUERY_REDIRECTS, BLOG_SLUG_REDIRECTS } = require('./site-config.js');
 let learnModule = null;
 try {
   learnModule = require('./learn/index.js');
@@ -1088,6 +1089,33 @@ const requestHandler = async (req, res) => {
   if (rawHost === 'yolestica.com') {
     res.writeHead(301, { Location: `https://www.yolestica.com${req.url}` });
     return res.end();
+  }
+
+  // Phase 5: 301 redirects for legacy ?page=... query URLs and /signup -> /register
+  if (pathname === '/' && parsedUrl.searchParams.has('page')) {
+    const legacyPage = String(parsedUrl.searchParams.get('page') || '').replace(/^\/+|\/+$/g, '').toLowerCase();
+    if (legacyPage.startsWith('blog/')) {
+      const legacySlug = legacyPage.slice('blog/'.length);
+      const targetSlug = BLOG_SLUG_REDIRECTS[legacySlug] || legacySlug;
+      res.writeHead(301, { Location: `/blog/${encodeURIComponent(targetSlug)}` });
+      return res.end();
+    }
+    const target = LEGACY_QUERY_REDIRECTS[legacyPage];
+    if (target) {
+      res.writeHead(301, { Location: target });
+      return res.end();
+    }
+  }
+  if (pathname === '/signup' || pathname === '/signup/') {
+    res.writeHead(301, { Location: '/register' });
+    return res.end();
+  }
+  if (pathname.startsWith('/blog/') && (req.method === 'GET' || req.method === 'HEAD')) {
+    const rawSlug = decodeURIComponent(pathname.slice('/blog/'.length)).replace(/\/+$/, '');
+    if (BLOG_SLUG_REDIRECTS[rawSlug]) {
+      res.writeHead(301, { Location: `/blog/${BLOG_SLUG_REDIRECTS[rawSlug]}` });
+      return res.end();
+    }
   }
 
   // Direct Sitemap, RSS Feed & Robots routes

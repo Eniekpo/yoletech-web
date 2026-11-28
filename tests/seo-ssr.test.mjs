@@ -288,3 +288,31 @@ test('Phase 4: Canonical host 301 redirect, SEO limits, JSON-LD, sitemap.xml, an
   assert.ok(!sitemap.text.includes('/admin'));
   assert.ok(!sitemap.text.includes('/login'));
 });
+
+test('Phase 5: Legacy ?page=... queries and /signup return HTTP 301 on Node and Vercel', async () => {
+  const legacyCases = [
+    ['/?page=portfolio', '/portfolio'],
+    ['/?page=admin-dashboard', '/admin-dashboard'],
+    ['/?page=blog', '/blog'],
+    ['/?page=services', '/services'],
+    ['/?page=learn', '/learn'],
+    ['/?page=signup', '/register'],
+    ['/signup', '/register']
+  ];
+  for (const [fromUrl, expectedDest] of legacyCases) {
+    const nodeRes = await invokeHandler(requestHandler, fromUrl);
+    assert.equal(nodeRes.status, 301, `Expected 301 from Node for ${fromUrl}`);
+    assert.equal(nodeRes.headers.location, expectedDest, `Expected Location ${expectedDest} for ${fromUrl}`);
+
+    const vercelUrl = fromUrl.startsWith('/?page=')
+      ? `/api/blog-page?route=/&${fromUrl.slice(2)}`
+      : `/api/blog-page?route=${fromUrl}`;
+    const vercelRes = await invokeHandler(vercelBlogHandler, vercelUrl);
+    assert.equal(vercelRes.status, 301, `Expected 301 from Vercel for ${fromUrl}`);
+    assert.equal(vercelRes.headers.location, expectedDest);
+  }
+
+  // Verify admin/index.html no longer links to legacy ?page= URLs
+  const adminHtml = fs.readFileSync(path.join(process.cwd(), 'public', 'admin', 'index.html'), 'utf8');
+  assert.ok(!adminHtml.includes('?page='), 'public/admin/index.html still contains legacy ?page= links');
+});

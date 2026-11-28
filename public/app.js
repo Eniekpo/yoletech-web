@@ -172,8 +172,12 @@ class YoletechApp {
       'testimonials',
       'blog',
       'contact',
+      'privacy',
+      'terms',
+      'cookies',
       'login',
       'register',
+      'signup',
       'portal',
       'admin-dashboard'
     ];
@@ -194,17 +198,20 @@ class YoletechApp {
         window.history.replaceState({}, '', `/blog/${this.activeBlogSlug}`);
       }
     } else if (validPages.includes(path)) {
-      if (path === 'register') {
+      if (path === 'register' || path === 'signup') {
         this.currentPage = 'login';
         this.authMode = 'register';
+        if (path === 'signup' || queryPage || hashPage) {
+          window.history.replaceState({}, '', '/register');
+        }
       } else {
         this.currentPage = path;
-      }
-      if (queryPage || hashPage) {
-        window.history.replaceState({}, '', path === 'home' ? '/' : `/${path}`);
+        if (queryPage || hashPage) {
+          window.history.replaceState({}, '', path === 'home' ? '/' : `/${path}`);
+        }
       }
     } else {
-      this.currentPage = 'home';
+      this.currentPage = 'not-found';
     }
   }
 
@@ -7252,6 +7259,29 @@ class YoletechApp {
     ldScript.textContent = JSON.stringify(schemaPayload);
   }
 
+  renderNotFoundPage() {
+    const requestedPath = typeof window !== 'undefined' ? window.location.pathname : '';
+    return `
+      <section class="section">
+        <div class="container" style="max-width:640px;text-align:center;">
+          <div class="glass-card">
+            <div class="eyebrow" style="justify-content:center;"><span class="eyebrow-dot"></span> ERROR 404</div>
+            <h1 style="font-size:clamp(28px,4vw,40px);font-weight:900;margin-bottom:12px;">Page Not Found</h1>
+            <p style="color:var(--yole-text-muted);margin-bottom:24px;">
+              We could not find <code>${this.escapeHtml ? this.escapeHtml(requestedPath) : requestedPath.replace(/</g, '&lt;')}</code>. The page may have moved or the URL may contain a typo.
+            </p>
+            <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">
+              <a href="/" class="btn btn-lime" onclick="event.preventDefault();window.app.navigate('home')">Go to Home →</a>
+              <a href="/services" class="btn btn-outline" onclick="event.preventDefault();window.app.navigate('services')">Explore Services</a>
+              <a href="/blog" class="btn btn-outline" onclick="event.preventDefault();window.app.navigate('blog')">Read Blog</a>
+              <a href="/contact" class="btn btn-outline" onclick="event.preventDefault();window.app.navigate('contact')">Contact Us</a>
+            </div>
+          </div>
+        </div>
+      </section>
+    `;
+  }
+
   // ==========================================================================
   // MASTER RENDER
   // ==========================================================================
@@ -7316,13 +7346,17 @@ class YoletechApp {
       case 'admin-dashboard':
         pageContent = this.renderAdminDashboardPage();
         break;
+      case 'not-found':
+        pageContent = this.renderNotFoundPage();
+        break;
       default:
-        pageContent = this.renderHomePage();
+        pageContent = this.renderNotFoundPage();
     }
 
     root.innerHTML = `
+      <a href="#main-content" class="skip-link">Skip to main content</a>
       ${this.renderHeader()}
-      <main class="${pageChanged ? 'page-enter' : ''}">${this.currentPage === 'home' ? this.renderServicesTicker() : ''}${pageContent}</main>
+      <main id="main-content" class="${pageChanged ? 'page-enter' : ''}">${this.currentPage === 'home' ? this.renderServicesTicker() : ''}${pageContent}</main>
       ${this.renderFooter()}
       <div id="toast-container"></div>
     `;

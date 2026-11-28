@@ -6,6 +6,7 @@ const {
   renderSitemapXml,
   renderRssFeedXml
 } = require('../server/blog-page.js');
+const { LEGACY_QUERY_REDIRECTS, BLOG_SLUG_REDIRECTS } = require('../server/site-config.js');
 
 module.exports = (req, res) => {
   if (req.method !== 'GET' && req.method !== 'HEAD') {
@@ -28,6 +29,48 @@ module.exports = (req, res) => {
   const reqOrigin = hostHeader ? `${protoHeader}://${hostHeader}` : undefined;
 
   const { searchParams, pathname } = new URL(req.url, 'https://localhost');
+
+  // Legacy ?page=... 301 redirects
+  if (searchParams.has('page')) {
+    const legacyPage = String(searchParams.get('page') || '').replace(/^\/+|\/+$/g, '').toLowerCase();
+    if (legacyPage.startsWith('blog/')) {
+      const legacySlug = legacyPage.slice('blog/'.length);
+      const targetSlug = BLOG_SLUG_REDIRECTS[legacySlug] || legacySlug;
+      res.setHeader('Location', `/blog/${encodeURIComponent(targetSlug)}`);
+      res.statusCode = 301;
+      res.end();
+      return;
+    }
+    const target = LEGACY_QUERY_REDIRECTS[legacyPage];
+    if (target) {
+      res.setHeader('Location', target);
+      res.statusCode = 301;
+      res.end();
+      return;
+    }
+  }
+
+  const slug = searchParams.get('slug');
+  const route = searchParams.get('route');
+  const targetRoute = route || pathname;
+
+  if (targetRoute === '/signup' || targetRoute === '/signup/') {
+    res.setHeader('Location', '/register');
+    res.statusCode = 301;
+    res.end();
+    return;
+  }
+
+  if (slug) {
+    const cleanSlug = decodeURIComponent(slug).replace(/\/+$/, '');
+    if (BLOG_SLUG_REDIRECTS[cleanSlug]) {
+      res.setHeader('Location', `/blog/${BLOG_SLUG_REDIRECTS[cleanSlug]}`);
+      res.statusCode = 301;
+      res.end();
+      return;
+    }
+  }
+
   if (
     searchParams.get('rss') === '1' ||
     pathname === '/rss.xml' ||
@@ -54,9 +97,6 @@ module.exports = (req, res) => {
     return;
   }
 
-  const slug = searchParams.get('slug');
-  const route = searchParams.get('route');
-  const targetRoute = route || pathname;
   const html = slug ? renderBlogPage(slug, reqOrigin) : renderRouteSeoHtml(targetRoute, reqOrigin);
   if (!html) {
     res.setHeader('Content-Type', 'text/html; charset=utf-8');
