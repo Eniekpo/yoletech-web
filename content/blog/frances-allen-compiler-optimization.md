@@ -1,13 +1,15 @@
 ---
 title: "Frances Allen: The Computer Scientist Who Helped Make Software Run Faster"
-date: 2026-11-16
-category: Tech Tutorials & Mentorship
-coverImage: /assets/blog/frances-allen-the-computer-scientist-who-helped-make-software-run-faster.png
-summary: Frances Allen pioneered compiler optimization and automatic
-  parallelization, helping computers execute programs faster and use processing
-  resources more efficiently.
+date: "2026-11-16"
+updated: "2026-11-28"
+category: "Tech History"
+author: "John Oruebi Eniekpo"
+coverImage: "/assets/blog/frances-allen-the-computer-scientist-who-helped-make-software-run-faster.png"
+summary: "Frances Allen pioneered compiler optimization and automatic parallelization, helping computers execute programs faster and use processing resources more efficiently."
 featured: false
+tags: ["Tech History","Computing Pioneers"]
 ---
+
 ### Who Was Frances Allen?
 
 Frances Elizabeth "Fran" Allen (1932–2020) was an American computer scientist and a pioneer in compiler design and optimization.

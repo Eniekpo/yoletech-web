@@ -1,21 +1,13 @@
 ---
-readTime: 6 min read
-title: Designing Executive Power BI & Tableau Dashboards That Drive
-  Institutional Decisions
-date: 2026-10-15
-category: Data Analytics & BI
-coverImage: /assets/blog/designing-executive-power-bi-tableau-dashboards-that-drive-institutional-decisions.png
-summary: How structured data validation, SQL modeling, and KPI hierarchy
-  transform raw multi-departmental spreadsheets into actionable executive
-  Business Intelligence dashboards.
-author: John Oruebi Eniekpo
+title: "Designing Executive Power BI & Tableau Dashboards That Drive Institutional Decisions"
+date: "2026-10-15"
+updated: "2026-11-28"
+category: "Data Analytics & BI"
+author: "John Oruebi Eniekpo"
+coverImage: "/assets/blog/designing-executive-power-bi-tableau-dashboards-that-drive-institutional-decisions.png"
+summary: "How structured data validation, SQL modeling, and KPI hierarchy transform raw multi-departmental spreadsheets into actionable executive Business Intelligence dashboards."
 featured: false
-tags:
-  - Power BI
-  - Tableau
-  - SQL
-  - Business Intelligence
-  - Data Governance
+tags: ["Power BI","Tableau","SQL","Business Intelligence","Data Governance"]
 ---
 
 ## Why Most Dashboards Fail Executive Stakeholders

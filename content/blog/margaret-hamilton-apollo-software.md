@@ -1,14 +1,15 @@
 ---
-title: "Margaret Hamilton: The Software Engineer Whose Code Helped Take Humans
-  to the Moon"
-date: 2026-11-12
-category: Tech Tutorials & Mentorship
-coverImage: /assets/blog/the-software-engineer-whose-code-helped-take-humans-to-the-moon.png
-summary: Hamilton helped establish software engineering as a recognized
-  engineering discipline. Her contribution demonstrated the importance of
-  reliable software in safety-critical systems.
+title: "\"Margaret Hamilton: The Software Engineer Whose Code Helped Take Humans to the Moon\""
+date: "2026-11-12"
+updated: "2026-11-28"
+category: "Tech History"
+author: "John Oruebi Eniekpo"
+coverImage: "/assets/blog/the-software-engineer-whose-code-helped-take-humans-to-the-moon.png"
+summary: "Hamilton helped establish software engineering as a recognized engineering discipline. Her contribution demonstrated the importance of reliable software in safety-critical systems."
 featured: false
+tags: ["Tech History","Computing Pioneers"]
 ---
+
 ### Who Created It?
 
 Margaret Hamilton led the software engineering team responsible for developing the onboard flight software used in NASA's Apollo command and lunar modules.

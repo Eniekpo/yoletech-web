@@ -1,13 +1,15 @@
 ---
-title: "Radia Perlman: The Engineer Who Solved One of Ethernet's Biggest
-  Networking Problems"
-date: 2026-11-12
-category: Tech Tutorials & Mentorship
-coverImage: /assets/blog/the-engineer-who-solved-one-of-ethernet-s-biggest-networking-problems.png
-summary: Radia Perlman developed the Spanning Tree Protocol in 1985, helping
-  Ethernet networks avoid communication loops and scale reliably.
+title: "\"Radia Perlman: The Engineer Who Solved One of Ethernet's Biggest Networking Problems\""
+date: "2026-11-12"
+updated: "2026-11-28"
+category: "Tech History"
+author: "John Oruebi Eniekpo"
+coverImage: "/assets/blog/the-engineer-who-solved-one-of-ethernet-s-biggest-networking-problems.png"
+summary: "Radia Perlman developed the Spanning Tree Protocol in 1985, helping Ethernet networks avoid communication loops and scale reliably."
 featured: false
+tags: ["Tech History","Computing Pioneers"]
 ---
+
 ### Who Created It?
 
 Radia Joy Perlman is an American computer scientist and network engineer known for developing the Spanning Tree Protocol (STP).

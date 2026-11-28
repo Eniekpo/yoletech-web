@@ -1,13 +1,15 @@
 ---
 title: "Guido van Rossum: The Developer Behind Python"
-date: 2026-11-24
-category: Tech Tutorials & Mentorship
-coverImage: /assets/blog/guido-van-rossum-the-developer-behind-python.png
-summary: Guido van Rossum created Python, an open-source programming language
-  that transformed software development, artificial intelligence, data analytics
-  and automation.
+date: "2026-11-24"
+updated: "2026-11-28"
+category: "Tech History"
+author: "John Oruebi Eniekpo"
+coverImage: "/assets/blog/guido-van-rossum-the-developer-behind-python.png"
+summary: "Guido van Rossum created Python, an open-source programming language that transformed software development, artificial intelligence, data analytics and automation."
 featured: false
+tags: ["Tech History","Computing Pioneers"]
 ---
+
 ### **Guido van Rossum: The Developer Behind Python**
 
 ### **Who Created Python?**

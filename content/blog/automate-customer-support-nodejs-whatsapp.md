@@ -1,14 +1,15 @@
 ---
 title: "Automating Customer Support: Node.js WhatsApp and Email Alerts"
-date: 2026-10-30
-category: AI & Workflow Automation
-coverImage: /assets/blog/automating-customer-support.jpg
-summary: Manual webform triaging often delays customer support response times by
-  hours. This guide demonstrates how to build a Node.js and Express webhook
-  handler that routes incoming inquiry data to WhatsApp and email in under 30
-  seconds.
+date: "2026-10-30"
+updated: "2026-11-28"
+category: "AI & Workflow Automation"
+author: "John Oruebi Eniekpo"
+coverImage: "/assets/blog/automating-customer-support.jpg"
+summary: "Build a Node.js and Express webhook handler that routes incoming webform inquiries to WhatsApp and email alerts in near real-time."
 featured: false
+tags: ["Automation","Workflows","APIs"]
 ---
+
 ## Why Delayed Support Responses Cost Your Business
 
 When potential clients submit inquiries on your website, your response speed directly impacts your conversion rate. Waiting hours to address a lead often results in lost opportunities. A manual triage process where team members check mailboxes or spreadsheets introduces a major bottleneck.
@@ -132,4 +133,4 @@ If your API keys are correct, your agent's phone will instantly receive a WhatsA
 
 Manual processes check growth. We can help you build custom alert pipelines, API integrations, and workflow logic to save your team hours of manual work every week.
 
-Contact us: [yoletech@yolestica.com](https://www.google.com/search?q=mailto%3Ayoletech%40yolestica.com) | WhatsApp: +234 802 552 6389
+Contact us: [yoletech@yolestica.com](mailto:yoletech@yolestica.com) | WhatsApp: +234 802 552 6389

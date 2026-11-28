@@ -1195,8 +1195,30 @@ function renderBlogPage(slug, reqOrigin) {
   });
 
   const allPosts = loadAllBlogPosts();
+  const seriesName = stripQuotes(post.series || '');
+  const seriesPosts = seriesName
+    ? allPosts
+        .filter((p) => p.series === seriesName)
+        .sort((a, b) => (a.seriesPart || 0) - (b.seriesPart || 0))
+    : [];
   const related = allPosts.filter((p) => p.slug !== slug && p.category === category).slice(0, 3);
   const articleBodyHtml = renderMarkdownLite(post.body || '');
+
+  const seriesHtml =
+    seriesPosts.length > 1
+      ? `<aside style="margin:18px 0;padding:14px 16px;border-radius:12px;border:1px solid var(--yole-border-subtle);" aria-label="Article series">
+          <strong>Series: ${escapeHtml(seriesName)}</strong>
+          <ol style="margin:8px 0 0;padding-left:20px;">
+            ${seriesPosts
+              .map((sp) =>
+                sp.slug === slug
+                  ? `<li><strong>Part ${sp.seriesPart || ''}: ${escapeHtml(sp.title)} (Current)</strong></li>`
+                  : `<li><a href="/blog/${encodeURIComponent(sp.slug)}">Part ${sp.seriesPart || ''}: ${escapeHtml(sp.title)}</a></li>`
+              )
+              .join('')}
+          </ol>
+        </aside>`
+      : '';
 
   const ssrInner = `
     ${renderSsrHeader(`/blog/${slug}`)}
@@ -1212,6 +1234,7 @@ function renderBlogPage(slug, reqOrigin) {
         <p style="font-size:14px;color:var(--yole-text-muted);margin:10px 0 18px;">By <strong>${escapeHtml(author)}</strong> — ${escapeHtml(OWNER.jobTitle)}</p>
         ${imagePath ? `<img src="${escapeHtml(imagePath)}" alt="${escapeHtml(title)}" width="960" height="540" decoding="async" style="width:100%;height:auto;border-radius:12px;margin-bottom:20px;" />` : ''}
         <p><strong>${escapeHtml(rawSummary)}</strong></p>
+        ${seriesHtml}
         <div class="article-content">${articleBodyHtml}</div>
         ${
           tags.length

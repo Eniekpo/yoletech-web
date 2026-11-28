@@ -1,14 +1,15 @@
 ---
-title: Build a Token Bucket Rate Limiter with Python and Redis
-date: 2026-11-11
-category: AI & Workflow Automation
-coverImage: /assets/blog/build-a-token-bucket-rate-limiter-with-python-and-redis.webp
-summary: Uncontrolled traffic spikes, buggy client retry loops, and automated
-  scrapers can exhaust database connections in seconds. A Token Bucket rate
-  limiter protects your backend by enforcing a strict average request rate while
-  still allowing legitimate short bursts.
+title: "Build a Token Bucket Rate Limiter with Python and Redis"
+date: "2026-11-11"
+updated: "2026-11-28"
+category: "AI & Workflow Automation"
+author: "John Oruebi Eniekpo"
+coverImage: "/assets/blog/build-a-token-bucket-rate-limiter-with-python-and-redis.webp"
+summary: "Uncontrolled traffic spikes, buggy client retry loops, and automated scrapers can exhaust database connections in seconds. A Token Bucket rate limiter protects your backend by enforcing a strict average request rate while still allowing legitimate short bursts."
 featured: false
+tags: ["Automation","Workflows","APIs"]
 ---
+
 Build a Token Bucket Rate Limiter with Python and Redis
 
 Uncontrolled traffic spikes, buggy client retry loops, and automated scrapers can exhaust database connections in seconds. A Token Bucket rate limiter protects your backend by enforcing a strict average request rate while still allowing legitimate short bursts.

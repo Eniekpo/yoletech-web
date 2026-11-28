@@ -6,7 +6,7 @@ organization: "YOLETECH Automation Engineering"
 period: "2026"
 preview_image: "/assets/blog/automate-excel-sales-reports-with-python-and-pandas.png"
 demo_url: "/blog/how-to-automate-excel-reports-using-python-and-pandas"
-impact_metrics: "Eliminated 85% of manual copy-paste reporting time & zero formula-breakage errors"
+impact_metrics: "Repeatable Python, Pandas & OpenPyXL reporting workflow (TODO(owner): add confirmed time-saved metric if approved)"
 tech_stack: ["Python", "Pandas", "OpenPyXL", "ETL Automation", "Excel"]
 featured: true
 summary: "Automated Python and Pandas reporting pipeline that ingests multi-sheet operational spreadsheets, validates schema integrity, computes executive summaries, and exports formatted Excel workbooks on schedule."

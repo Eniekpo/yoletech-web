@@ -3096,24 +3096,22 @@ class YoletechApp {
 
   setBlogFilter(cat) {
     this.blogFilter = cat;
-    const pillsWrap = document.getElementById('blog-filter-pills');
-    const gridMount = document.getElementById('blog-grid-mount');
-    if (pillsWrap && gridMount) {
-      pillsWrap.querySelectorAll('.selector-pill').forEach((btn) => {
-        btn.classList.toggle('active', btn.getAttribute('data-cat') === cat);
-      });
-      gridMount.innerHTML = this.renderBlogCardsHtml(this.getFilteredBlogPosts());
-      window.YOLETECH_COMPONENTS?.decorateCardIcons(gridMount);
-    } else {
-      this.render();
-    }
+    this.blogPage = 1;
+    this.render();
+  }
+
+  setBlogPage(pageNum) {
+    this.blogPage = Math.max(1, Number(pageNum) || 1);
+    this.render();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
   handleBlogSearch(val) {
     this.blogSearch = val;
+    this.blogPage = 1;
     const gridMount = document.getElementById('blog-grid-mount');
     if (gridMount) {
-      gridMount.innerHTML = this.renderBlogCardsHtml(this.getFilteredBlogPosts());
+      gridMount.innerHTML = this.renderBlogCardsHtml(this.getFilteredBlogPosts().slice(0, 9));
       window.YOLETECH_COMPONENTS?.decorateCardIcons(gridMount);
     }
   }
@@ -3122,13 +3120,20 @@ class YoletechApp {
     const categories = [
       'ALL',
       'Data Analytics & BI',
-      'AI & Workflow Automation',
+      'Full-Stack Web Development',
       'Python & Machine Learning',
+      'AI & Workflow Automation',
       'Tech Tutorials & Mentorship',
-      'Full-Stack Web Development'
+      'Tech History',
+      'Tech News Digest'
     ];
 
     const filtered = this.getFilteredBlogPosts();
+    const pageSize = 9;
+    const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
+    const currentPage = Math.min(Math.max(1, Number(this.blogPage) || 1), totalPages);
+    this.blogPage = currentPage;
+    const pagePosts = filtered.slice((currentPage - 1) * pageSize, currentPage * pageSize);
 
     return `
       <section class="section">
@@ -3137,7 +3142,7 @@ class YoletechApp {
             <div class="eyebrow"><span class="eyebrow-dot"></span> INSIGHTS &amp; TUTORIALS</div>
             <h1 class="section-title">Articles on Data Analytics, BI, Python &amp; Web Engineering</h1>
             <p class="section-desc">
-              Practical guides, technical walkthroughs, and architectural insights.
+              Practical guides, technical walkthroughs, computing history, and weekly technology digests.
             </p>
             ${
               this.user?.role === 'ADMIN'
@@ -3147,6 +3152,7 @@ class YoletechApp {
                 : ''
             }
             <div style="max-width:440px;margin:20px auto 0;">
+              <label for="blog-search-input" class="sr-only">Search articles</label>
               <input
                 type="search"
                 id="blog-search-input"
@@ -3175,8 +3181,18 @@ class YoletechApp {
           </div>
 
           <div id="blog-grid-mount" class="grid-3">
-            ${this.renderBlogCardsHtml(filtered)}
+            ${this.renderBlogCardsHtml(pagePosts)}
           </div>
+
+          ${
+            totalPages > 1
+              ? `<nav aria-label="Blog pagination" style="display:flex;justify-content:center;align-items:center;gap:10px;margin-top:32px;flex-wrap:wrap;">
+                  <button type="button" class="btn btn-outline btn-sm" ${currentPage <= 1 ? 'disabled' : ''} onclick="window.app.setBlogPage(${currentPage - 1})">← Previous</button>
+                  <span style="font-size:13.5px;color:var(--yole-text-muted);">Page ${currentPage} of ${totalPages} (${filtered.length} articles)</span>
+                  <button type="button" class="btn btn-outline btn-sm" ${currentPage >= totalPages ? 'disabled' : ''} onclick="window.app.setBlogPage(${currentPage + 1})">Next →</button>
+                </nav>`
+              : ''
+          }
         </div>
       </section>
     `;
@@ -3381,24 +3397,41 @@ class YoletechApp {
   renderBlogPostDetail() {
     const post = this.activeBlogPost || this.blogPosts[0];
     if (!post) {
-      return `<section class="section"><div class="container"><p>Article not found.</p></div></section>`;
+      return this.renderNotFoundPage();
     }
+    const allPosts = this.blogPosts || [];
+    const seriesPosts = post.series
+      ? allPosts
+          .filter((p) => p.series === post.series)
+          .sort((a, b) => (a.seriesPart || 0) - (b.seriesPart || 0))
+      : [];
+    const relatedPosts = allPosts
+      .filter((p) => p.slug !== post.slug && p.category === post.category)
+      .slice(0, 3);
+    const tags = Array.isArray(post.tags) ? post.tags : [];
 
     return `
       <section class="section">
         <div class="container" style="max-width:860px;">
+          <nav aria-label="Breadcrumb" style="font-size:13px;color:var(--yole-text-muted);margin-bottom:14px;">
+            <a href="/" onclick="event.preventDefault();window.app.navigate('home')">Home</a> /
+            <a href="/blog" onclick="event.preventDefault();window.app.navigate('blog')">Blog</a> /
+            <span>${post.title}</span>
+          </nav>
+
           <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin-bottom:24px;">
             <button class="btn btn-outline btn-sm" onclick="window.app.navigate('blog')">
               ← Back to All Articles
             </button>
             <button type="button" class="btn btn-outline btn-sm" onclick="window.app.copyArticleLink(this)">
-              🔗 Copy Article Link
+              Copy Article Link
             </button>
           </div>
 
-          <div class="glass-card article-detail-card">
+          <article class="glass-card article-detail-card">
             <div style="font-size:13px;color:var(--yole-text-muted);margin-bottom:14px;">
-              Published ${post.date} • ${post.readTime}
+              <span class="tech-pill lime" style="font-size:11px;padding:2px 9px;margin-right:8px;">${post.category}</span>
+              Published <time datetime="${post.date}">${post.date}</time>${post.updated && post.updated !== post.date ? ` • Updated <time datetime="${post.updated}">${post.updated}</time>` : ''} • ${post.readTime}
             </div>
 
             <h1 style="font-size:clamp(26px,3.6vw,38px);font-weight:900;line-height:1.2;margin-bottom:16px;">
@@ -3406,28 +3439,74 @@ class YoletechApp {
             </h1>
 
             <div style="display:flex;align-items:center;gap:12px;padding-bottom:22px;margin-bottom:24px;border-bottom:1px solid rgba(255,255,255,0.12);">
-              <img src="/assets/yoletech-icon.png" alt="YOLETECH" style="width:40px;height:40px;border-radius:10px;" />
+              <img src="/assets/yoletech-icon.png" alt="YOLETECH" width="40" height="40" style="width:40px;height:40px;border-radius:10px;" />
               <div>
                 <div style="font-weight:800;font-size:14.5px;">${post.author}</div>
-                <div style="font-size:12px;color:#C8E61E;">Data Analyst | Business Intelligence Specialist | Full-Stack Web Developer</div>
+                <div style="font-size:12px;color:#C8E61E;">${window.YOLETECH_DATA?.owner?.jobTitle || 'Data Analyst, Business Intelligence Specialist & Full-Stack Web Developer'}</div>
               </div>
             </div>
 
-            ${post.coverImage ? `<div style="border-radius:14px;overflow:hidden;margin-bottom:28px;max-height:340px;border:1px solid rgba(255,255,255,0.15);"><img src="${post.coverImage}" alt="${post.title}" style="width:100%;height:100%;object-fit:cover;" /></div>` : ''}
+            ${post.coverImage ? `<div style="border-radius:14px;overflow:hidden;margin-bottom:24px;max-height:360px;border:1px solid rgba(255,255,255,0.15);"><img src="${post.coverImage}" alt="${post.title}" width="960" height="540" style="width:100%;height:100%;object-fit:cover;" /></div>` : ''}
+
+            ${
+              seriesPosts.length > 1
+                ? `<aside style="margin:0 0 22px;padding:14px 18px;border-radius:12px;border:1px solid rgba(200,230,30,0.35);background:rgba(200,230,30,0.06);" aria-label="Article series">
+                    <div style="font-size:12px;font-weight:800;text-transform:uppercase;color:#C8E61E;margin-bottom:8px;">Series: ${post.series}</div>
+                    <ol style="margin:0;padding-left:20px;font-size:14px;">
+                      ${seriesPosts
+                        .map((sp) =>
+                          sp.slug === post.slug
+                            ? `<li style="margin-bottom:4px;"><strong>Part ${sp.seriesPart || ''}: ${sp.title} (You are here)</strong></li>`
+                            : `<li style="margin-bottom:4px;"><a href="/blog/${sp.slug}" onclick="event.preventDefault();window.app.navigate('blog-detail','${sp.slug}')" style="color:#C8E61E;text-decoration:underline;">Part ${sp.seriesPart || ''}: ${sp.title}</a></li>`
+                        )
+                        .join('')}
+                    </ol>
+                  </aside>`
+                : ''
+            }
 
             <div class="article-content">
               ${this.formatMarkdownToHtml(post.body)}
             </div>
 
+            ${
+              tags.length
+                ? `<div style="margin-top:24px;display:flex;flex-wrap:wrap;gap:8px;" aria-label="Article tags">
+                    ${tags.map((t) => `<span class="tech-pill" style="font-size:11.5px;padding:3px 10px;">#${t}</span>`).join('')}
+                  </div>`
+                : ''
+            }
+
             <div style="margin-top:32px;padding-top:20px;border-top:1px solid rgba(255,255,255,0.12);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;">
               <button type="button" class="btn btn-outline btn-sm" onclick="window.app.copyArticleLink(this)">
-                🔗 Share Article
+                Share Article
               </button>
               <button class="btn btn-lime btn-sm" onclick="window.app.navigate('contact')">
-                Discuss This Topic With Yoletech →
+                Book a Discovery Call →
               </button>
             </div>
-          </div>
+          </article>
+
+          ${
+            relatedPosts.length
+              ? `<section style="margin-top:36px;" aria-labelledby="related-articles-heading">
+                  <h2 id="related-articles-heading" style="font-size:22px;font-weight:900;margin-bottom:16px;">Related Articles</h2>
+                  <div class="grid-3">
+                    ${relatedPosts
+                      .map(
+                        (rp) => `
+                      <article class="glass-card" style="cursor:pointer;" onclick="window.app.navigate('blog-detail','${rp.slug}')">
+                        <span class="tech-pill lime" style="font-size:11px;padding:2px 9px;">${rp.category}</span>
+                        <h3 style="font-size:16.5px;font-weight:800;margin:10px 0 8px;"><a href="/blog/${rp.slug}" onclick="event.preventDefault();event.stopPropagation();window.app.navigate('blog-detail','${rp.slug}')" style="color:inherit;text-decoration:none;">${rp.title}</a></h3>
+                        <p style="font-size:13px;color:var(--yole-text-muted);margin:0;">${rp.date} • ${rp.readTime}</p>
+                      </article>
+                    `
+                      )
+                      .join('')}
+                  </div>
+                </section>`
+              : ''
+          }
         </div>
       </section>
     `;

@@ -1,12 +1,15 @@
 ---
-title: Mastering SQL Window Functions for Fast Financial Reporting
-date: 2026-11-01
-category: Tech Tutorials & Mentorship
-coverImage: /assets/blog/mastering-sql-window-functions-for-fast-financial-reporting.jpeg
-summary: Junior analysts and developers often write nested subqueries and self
-  joins that slow down database performance on large transaction tables.
+title: "Mastering SQL Window Functions for Fast Financial Reporting"
+date: "2026-11-01"
+updated: "2026-11-28"
+category: "Tech Tutorials & Mentorship"
+author: "John Oruebi Eniekpo"
+coverImage: "/assets/blog/mastering-sql-window-functions-for-fast-financial-reporting.jpeg"
+summary: "Junior analysts and developers often write nested subqueries and self joins that slow down database performance on large transaction tables."
 featured: false
+tags: ["Tutorials","Engineering","SQL"]
 ---
+
 ## Why Slow Subqueries Hurt Your Database Performance
 
 When you analyze financial records during a technical interview or on a live client database, query speed matters. Many junior developers calculate running totals or monthly revenue changes by writing correlated subqueries or self joins. On a table with 2 million transaction rows, a correlated subquery forces the database engine to scan the table repeatedly, taking up to 18 seconds to return results.

@@ -1,18 +1,20 @@
 ---
-title: Predicting Real Estate Prices with Python and Scikit-learn
-date: 2026-10-31
-category: Python & Machine Learning
-coverImage: /assets/blog/predicting-real-estate-prices-with-python-and-scikit-learn.png
-summary: Manual real estate valuation models often rely on outdated market
-  comparables that fail to capture shifts in buyer demand. This guide
-  demonstrates how to build an end-to-end regression machine learning pipeline
-  using Python, Pandas, and Scikit-learn to predict property prices with
-  verified accuracy.
+title: "Predicting Real Estate Prices with Python and Scikit-Learn"
+date: "2026-10-31"
+updated: "2026-11-28"
+category: "Python & Machine Learning"
+author: "John Oruebi Eniekpo"
+coverImage: "/assets/blog/predicting-real-estate-prices-with-python-and-scikit-learn.png"
+summary: "Build an end-to-end regression pipeline with Python, Pandas, and Scikit-Learn to estimate residential property values and evaluate model error metrics."
 featured: false
+tags: ["Python","Machine Learning","Data Science"]
+series: "Real Estate Machine Learning"
+seriesPart: 1
 ---
+
 ## The Hidden Cost of Inaccurate Property Valuations
 
-When real estate investors or property agencies rely on manual spreadsheets and subjective estimates to appraise residential homes, valuation errors routinely range between 15 and 25 percent. Underestimating a property leads to lost capital, while overpricing leaves assets sitting on the market for months. 
+When property teams rely solely on ad-hoc spreadsheets and subjective estimates to appraise residential homes, manual pricing can drift significantly from market comparables. Underestimating a property leads to lost capital, while overpricing leaves assets sitting on the market for months. 
 
 At YOLETECH, we build data science pipelines that remove guesswork from property appraisal. By training machine learning regression models on historical transaction datasets, you can automate property valuations and generate precise price predictions in seconds.
 
@@ -113,6 +115,8 @@ The script downloads the housing dataset, automatically handles missing records,
 
 At YOLETECH, we help businesses implement custom predictive models, automated data pipelines, and high performance analytical solutions.
 
-Explore our data science portfolio and services: [yolestica.com](https://yolestica.com)
+Continue to **Part 2 of this series**: [Interactive Housing Price ML App with Python & Streamlit](/blog/housing-price-ml-app-python-streamlit).
 
-Contact us directly: [yoletech@yolestica.com](https://www.google.com/search?q=mailto%3Ayoletech%40yolestica.com) | WhatsApp: +234 802 552 6389
+Explore YOLETECH data science services: [www.yolestica.com](https://www.yolestica.com)
+
+Contact us directly: [yoletech@yolestica.com](mailto:yoletech@yolestica.com) | WhatsApp: +234 802 552 6389

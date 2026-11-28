@@ -1,13 +1,19 @@
 ---
-title: From Housing Data to an Interactive ML App, Predicting Real Estate Prices
-  with Python, Scikit-learn and Streamlit
-date: 2026-10-31
-category: Python & Machine Learning
-coverImage: /assets/blog/real-estate-ml-model.png
-summary: Machine learning becomes more useful when a model can move beyond a
-  notebook and become something people can interact with.
+title: "Interactive Housing Price ML App with Python & Streamlit"
+date: "2026-10-31"
+updated: "2026-11-28"
+category: "Python & Machine Learning"
+author: "John Oruebi Eniekpo"
+coverImage: "/assets/blog/real-estate-ml-model.png"
+summary: "Move a Scikit-Learn housing regression model out of a notebook and into an interactive Streamlit web app with live prediction inputs and diagnostics."
 featured: false
+tags: ["Python","Machine Learning","Data Science"]
+series: "Real Estate Machine Learning"
+seriesPart: 2
 ---
+
+> **Part 2 of the Real Estate Machine Learning series.** New to the pipeline? Start with [Part 1: Predicting Real Estate Prices with Python and Scikit-Learn](/blog/predicting-real-estate-prices-with-python-and-scikit-learn).
+
 For this project, I developed an end-to-end real estate price prediction application using Python, Scikit-learn, Pandas, Streamlit and Plotly.
 
 The objective was to build a regression model capable of estimating median house values from housing, demographic and geographical characteristics, while also creating a professional user interface where users can explore the underlying dataset, evaluate different machine-learning models and generate predictions interactively.

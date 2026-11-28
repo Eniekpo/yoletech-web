@@ -1,14 +1,15 @@
 ---
-title: Build Rest-APIs with Python and Fast-API
-date: 2026-11-11
-category: Python & Machine Learning
-coverImage: /assets/blog/build-rest-apis-with-python-and-fastapi.jpg
-summary: >-
-  Learn how to create a REST API using Python and FastAPI.
-
-  A REST API allows different software applications to exchange data through HTTP requests.
+title: "Build REST APIs with Python and FastAPI"
+date: "2026-11-11"
+updated: "2026-11-28"
+category: "Python & Machine Learning"
+author: "John Oruebi Eniekpo"
+coverImage: "/assets/blog/build-rest-apis-with-python-and-fastapi.jpg"
+summary: "Learn how to create a structured REST API using Python and FastAPI, with route handlers, JSON responses, and interactive Swagger UI testing."
 featured: true
+tags: ["Python","Machine Learning","Data Science"]
 ---
+
 Want to build applications that communicate with databases, websites and mobile apps?
 
 Learn how to create a REST API using Python and FastAPI.
@@ -84,7 +85,7 @@ What type of application would you like to build using Python APIs?
 
 #### YOLETECH | Technology Solutions
 
-Website: https://yolestica.com
+Website: https://www.yolestica.com
 
 Email: yoletech@yolestica.com
 

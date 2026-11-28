@@ -1,16 +1,15 @@
 ---
-title: How to Automate Excel Reports Using Python and Pandas
-date: 2026-10-31
-category: Data Analytics & BI
-coverImage: /assets/blog/automating-excel-reports-with-python-and-pandas.png
-summary: Manually preparing weekly Excel reports can consume several hours,
-  especially when you process multiple files, clean inconsistent records, and
-  calculate business performance metrics. This article explains how to automate
-  Excel reporting with Python and Pandas, including data consolidation,
-  cleaning, calculations, and exporting a formatted report ready for business
-  use.
+title: "How to Automate Excel Reports Using Python and Pandas"
+date: "2026-10-31"
+updated: "2026-11-28"
+category: "Data Analytics & BI"
+author: "John Oruebi Eniekpo"
+coverImage: "/assets/blog/automating-excel-reports-with-python-and-pandas.png"
+summary: "Manually preparing weekly Excel reports can consume several hours, especially when you process multiple files, clean inconsistent records, and calculate business performance metrics. This article explains how to automate Excel reporting with Python and Pandas, including data consolidation, cleaning, calculations, and exporting a formatted report ready for business use."
 featured: true
+tags: ["Data Analytics","Business Intelligence","KPIs"]
 ---
+
 # How to Automate Excel Reports Using Python and Pandas
 
 ## Introduction: The Problem with Manual Excel Reporting
@@ -338,7 +337,7 @@ Need help building automated reporting systems for your business?
 
 YOLETECH provides Python development, data analysis, business intelligence, web development, and AI workflow automation services.
 
-Visit: [https://yolestica.com](https://yolestica.com/?utm_source=chatgpt.com)
+Visit: [https://www.yolestica.com](https://www.yolestica.com/?utm_source=chatgpt.com)
 
 Email: yoletech@yolestica.com
 

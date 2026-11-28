@@ -834,17 +834,22 @@ function parseMarkdownFile(filePath) {
   const raw = fs.readFileSync(filePath, 'utf8');
   const slug = path.basename(filePath, '.md');
   const { frontmatter, body } = parseYamlFrontmatter(raw);
+  const wordCount = String(body || '').replace(/```[\s\S]*?```/g, ' ').trim().split(/\s+/).filter(Boolean).length;
+  const computedReadTime = `${Math.max(1, Math.round(wordCount / 220))} min read`;
 
   return {
     slug,
     title: frontmatter.title || slug,
     date: frontmatter.date || '2026-10-15',
+    updated: frontmatter.updated || frontmatter.date || '2026-10-15',
     category: frontmatter.category || 'Data Analytics & BI',
-    readTime: frontmatter.readTime || '5 min read',
+    readTime: frontmatter.readTime || computedReadTime,
     author: frontmatter.author || 'John Oruebi Eniekpo',
     coverImage: frontmatter.coverImage || '',
     summary: frontmatter.summary || '',
     tags: parseYamlArray(frontmatter.tags, ['Python', 'SQL', 'Power BI']),
+    series: frontmatter.series || '',
+    seriesPart: frontmatter.seriesPart ? Number(frontmatter.seriesPart) : null,
     featured: String(frontmatter.featured) === 'true',
     body
   };
@@ -892,6 +897,7 @@ const PORTFOLIO_IMAGE_MAP = {
   'executive-business-intelligence-sales-forecasting-platform': '/assets/blog/executive_bi_linkedin_carousel.png',
   'from-housing-data-to-an-interactive-ml-app-predicting-real-estate-prices-with-python-scikit-learn-and-streamlit': '/assets/blog/real-estate-ml-model.png',
   'ow-to-automate-excel-reports-using-python-and-pandas': '/assets/blog/automate-excel-sales-reports-with-python-and-pandas.png',
+  'automate-excel-reports-python-pandas': '/assets/blog/automate-excel-sales-reports-with-python-and-pandas.png',
   'how-to-automate-excel-reports-using-python-and-pandas': '/assets/blog/automate-excel-sales-reports-with-python-and-pandas.png',
   'predicting-real-estate-prices-with-python-and-scikit-learn': '/assets/blog/predicting-real-estate-prices-with-python-and-scikit-learn.png'
 };

@@ -6,7 +6,7 @@ organization: "Enterprise Retail & Operations"
 period: "2025 – 2026"
 preview_image: "/assets/blog/executive_bi_linkedin_carousel.png"
 demo_url: "https://sales-analytics-suite.streamlit.app/"
-impact_metrics: "40% faster executive reporting cycle & automated 90-day rolling revenue forecast"
+impact_metrics: "SQL warehouse modeling, Python ETL & rolling forecast KPI scorecards (TODO(owner): add verified client outcome)"
 tech_stack: ["Power BI", "Python", "SQL", "Streamlit", "Time-Series Forecasting"]
 featured: true
 summary: "End-to-end executive Business Intelligence and revenue forecasting platform combining SQL warehouse modeling, automated Python ETL pipelines, and interactive KPI scorecards for leadership decision-making."

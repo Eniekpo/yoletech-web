@@ -6,7 +6,7 @@ organization: "YOLETECH AI & Data Science"
 period: "2026"
 preview_image: "/assets/blog/real-estate-ml-model.png"
 demo_url: "https://house-price-prediction-system.streamlit.app/"
-impact_metrics: "R² > 0.88 validation accuracy with live sub-second Streamlit inference"
+impact_metrics: "Interactive Scikit-Learn & Streamlit housing valuation app (TODO(owner): add confirmed notebook R²/RMSE benchmark)"
 tech_stack: ["Python", "Scikit-Learn", "Streamlit", "Pandas", "Machine Learning"]
 featured: true
 summary: "End-to-end machine learning workflow that transforms raw housing market datasets into an interactive Streamlit web application for real-time property valuation and feature-importance exploration."

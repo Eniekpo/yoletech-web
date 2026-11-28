@@ -1,15 +1,15 @@
 ---
-title: Build an Interactive Sales Dashboard with Python and Streamlit
-date: 2026-10-31
-category: Data Analytics & BI
-coverImage: /assets/blog/streamlite-python-dashboard.png
-summary: Businesses often store thousands of sales records in Excel or CSV files
-  without an efficient way to monitor revenue, identify top-performing products,
-  or compare regional performance. This tutorial shows you how to build an
-  interactive sales dashboard using Python, Pandas, and Streamlit, with dynamic
-  charts, business KPIs, data filters, and downloadable reports.
+title: "Build an Interactive Sales Dashboard with Python and Streamlit"
+date: "2026-10-31"
+updated: "2026-11-28"
+category: "Data Analytics & BI"
+author: "John Oruebi Eniekpo"
+coverImage: "/assets/blog/streamlite-python-dashboard.png"
+summary: "Businesses often store thousands of sales records in Excel or CSV files without an efficient way to monitor revenue, identify top-performing products, or compare regional performance. This tutorial shows you how to build an interactive sales dashboard using Python, Pandas, and Streamlit, with dynamic charts, business KPIs, data filters, and downloadable reports."
 featured: false
+tags: ["Data Analytics","Business Intelligence","KPIs"]
 ---
+
 # Build an Interactive Sales Dashboard with Python and Streamlit
 
 ## Introduction: Turning Sales Data into Business Intelligence

@@ -1,20 +1,20 @@
 ---
-title: Building a Fast Client Booking Portal With Next.js and Supabase
-date: 2026-10-30
-category: Full-Stack Web Development
-coverImage: /assets/blog/building-a-fast-client-booking-portal-with-next.js-and-supabase.jpg
-summary: Service businesses lose up to 35 percent of prospective leads when
-  clients must wait for manual email confirmations to schedule consultations.
-  This guide shows you how to build a live booking portal using Next.js,
-  TypeScript, and Supabase that validates availability and locks client slots in
-  under two seconds.
+title: "Building a Fast Client Booking Portal with Next.js and Supabase"
+date: "2026-10-30"
+updated: "2026-11-28"
+category: "Full-Stack Web Development"
+author: "John Oruebi Eniekpo"
+coverImage: "/assets/blog/building-a-fast-client-booking-portal-with-next.js-and-supabase.jpg"
+summary: "Build a native client booking portal using Next.js, TypeScript, and Supabase PostgreSQL with database-level slot uniqueness and instant availability checks."
 featured: false
+tags: ["Full-Stack Web","JavaScript","Web Architecture"]
 ---
+
 ## How Slow Booking Workflows Cost Service Businesses Revenue
 
-When a founder or operations manager visits your website to schedule a consultation, speed determines whether you secure the project. Making a prospect wait 12 to 24 hours for manual email scheduling causes up to a 35 percent drop in completed bookings. External scheduling widgets often add 1.8 seconds of blocking JavaScript to your page load time and keep your lead data trapped in a separate system.
+When a founder or operations manager visits your website to schedule a consultation, speed determines whether you secure the project. Manual email back-and-forth slows down consultation booking and can cause qualified leads to drop off before confirming a slot. Heavy third-party scheduling widgets can also add extra blocking JavaScript and keep lead data fragmented across separate tools.
 
-At YOLETECH, we solve this bottleneck by engineering native booking interfaces directly inside client web platforms. By pairing a Next.js frontend with a Supabase PostgreSQL backend, you can display open time slots in under 400 milliseconds and prevent double bookings at the database level.
+At YOLETECH, we solve this bottleneck by engineering native booking interfaces directly inside client web platforms. By pairing a Next.js frontend with a Supabase PostgreSQL backend, you can display open time slots quickly and prevent double bookings at the database level.
 
 ## Step 1: Setting Up Your Supabase Database Schema
 
@@ -200,7 +200,7 @@ Start your local development server by running **\`npm run dev\`** in your termi
 
 Whether you need a high speed service platform, an interactive client portal, or automated backend workflows, YOLETECH builds production ready software tailored to your business goals.
 
-Explore our portfolio and web development services: https://yolestica.com/services
+Explore our portfolio and web development services: https://www.yolestica.com/services
 
 Contact us directly: 
 

@@ -1,14 +1,15 @@
 ---
-title: "Thomas Edison: The Inventor Who Made Electric Lighting Practical for the
-  Modern World"
-date: 2026-11-17
-category: Tech Tutorials & Mentorship
-coverImage: /assets/blog/thomas-sdison.jpg
-summary: Thomas Edison developed a commercially practical incandescent lighting
-  system in 1879, helping bring electric lighting into homes, businesses, and
-  cities.
+title: "\"Thomas Edison: The Inventor Who Made Electric Lighting Practical for the Modern World\""
+date: "2026-11-17"
+updated: "2026-11-28"
+category: "Tech History"
+author: "John Oruebi Eniekpo"
+coverImage: "/assets/blog/thomas-sdison.jpg"
+summary: "Thomas Edison developed a commercially practical incandescent lighting system in 1879, helping bring electric lighting into homes, businesses, and cities."
 featured: false
+tags: ["Tech History","Computing Pioneers"]
 ---
+
 **Who Was Thomas Edison?**
 
 Thomas Alva Edison (1847–1931) was an American inventor and businessman known for developing several influential technologies, including the phonograph, motion-picture equipment, and a practical incandescent electric lighting system.

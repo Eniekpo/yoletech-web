@@ -1,13 +1,15 @@
 ---
 title: "Mark Zuckerberg: The Programmer Who Co-Created Facebook"
-date: 2026-11-18
-category: Tech Tutorials & Mentorship
-coverImage: /assets/blog/face-book.png
-summary: Mark Zuckerberg co-founded Facebook in 2004 at Harvard, transforming a
-  university social directory into one of the world's most influential social
-  media platforms.
+date: "2026-11-18"
+updated: "2026-11-28"
+category: "Tech History"
+author: "John Oruebi Eniekpo"
+coverImage: "/assets/blog/face-book.png"
+summary: "Mark Zuckerberg co-founded Facebook in 2004 at Harvard, transforming a university social directory into one of the world's most influential social media platforms."
 featured: true
+tags: ["Tech History","Computing Pioneers"]
 ---
+
 ## Who Developed Facebook?
 
 Mark Elliot Zuckerberg is an American computer programmer, entrepreneur, and co-founder of Facebook.

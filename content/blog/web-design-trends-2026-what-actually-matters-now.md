@@ -1,14 +1,15 @@
 ---
 title: "Web Design Trends 2026: What Actually Matters Now"
-date: 2026-11-15
-category: Full-Stack Web Development
-coverImage: /assets/blog/web-design-trends-2026-what-actually-matters-now.jpg
-summary: AI personalization and adaptive interfaces are real for high-intent
-  products, but they require careful implementation to avoid cache and
-  performance issues. AI website builders and “vibe coding” accelerate early
-  versions, yet most production work still needs human refinement.
+date: "2026-11-15"
+updated: "2026-11-28"
+category: "Full-Stack Web Development"
+author: "John Oruebi Eniekpo"
+coverImage: "/assets/blog/web-design-trends-2026-what-actually-matters-now.jpg"
+summary: "AI personalization and adaptive interfaces are real for high-intent products, but they require careful implementation to avoid cache and performance issues. AI website builders and “vibe coding” accelerate early versions, yet most production work still needs human refinement."
 featured: true
+tags: ["Full-Stack Web","JavaScript","Web Architecture"]
 ---
+
 **Web Design Trends 2026: What Actually Matters Now**
 
 Web design in late 2026 is defined by two forces: relentless performance and accessibility requirements, and a visual push toward more human, expressive, and purposeful experiences. Generic AI aesthetics are already facing pushback. Sites that win combine speed, clarity, and intentional craft.

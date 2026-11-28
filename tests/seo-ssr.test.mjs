@@ -380,3 +380,46 @@ test('Phase 6: Security hardening (no hardcoded secrets, auth-gated /analytics a
   assert.equal(logoutRes.status, 200);
   assert.match(String(logoutRes.headers['set-cookie'] || ''), /Max-Age=0/);
 });
+
+test('Phase 7: Blog fixes (no >- excerpts, FastAPI title, Tech History, weekly digest + 301s, series links)', async () => {
+  const posts = loadAllBlogPosts();
+  assert.equal(posts.length, 20, 'Expected 20 blog posts after merging 2 daily news items into 1 weekly digest');
+
+  for (const post of posts) {
+    assert.ok(!post.summary.includes('>-'), `Found raw YAML >- in summary of ${post.slug}`);
+    assert.ok(post.summary.length > 10, `Empty summary in ${post.slug}`);
+    assert.ok(!post.summary.includes('35 percent'), `Unsourced 35 percent still in ${post.slug}`);
+  }
+
+  const fastapi = posts.find((p) => p.slug === 'build-rest-apis-with-python-and-fast-api');
+  assert.ok(fastapi);
+  assert.equal(fastapi.title, 'Build REST APIs with Python and FastAPI');
+
+  const techHistory = posts.filter((p) => p.category === 'Tech History');
+  assert.equal(techHistory.length, 6, 'Expected 6 biography posts in Tech History');
+
+  // Weekly digest exists and old daily news slugs 301-redirect to it
+  const digestRes = await invokeHandler(requestHandler, '/blog/tech-news-weekly-digest-nov-2026');
+  assert.equal(digestRes.status, 200);
+  assert.match(digestRes.text, /Weekly Tech News Digest/i);
+
+  for (const oldSlug of [
+    'technology-updates-12-november-2026',
+    'yoletech-tech-news-13-november-2026',
+    'from-housing-data-to-an-interactive-ml-app-predicting-real-estate-prices-with-python-scikit-learn-and-streamlit',
+    'thomas-edison-the-inventor-who-made-electric-lighting-practical-for-the-modern-world'
+  ]) {
+    const rNode = await invokeHandler(requestHandler, `/blog/${oldSlug}`);
+    assert.equal(rNode.status, 301, `Expected 301 from Node for /blog/${oldSlug}`);
+    const rVercel = await invokeHandler(vercelBlogHandler, `/api/blog-page?slug=${oldSlug}`);
+    assert.equal(rVercel.status, 301, `Expected 301 from Vercel for /blog/${oldSlug}`);
+  }
+
+  // Real Estate ML 2-part series cross-links
+  const part1 = await invokeHandler(requestHandler, '/blog/predicting-real-estate-prices-with-python-and-scikit-learn');
+  assert.equal(part1.status, 200);
+  assert.ok(part1.text.includes('/blog/housing-price-ml-app-python-streamlit'));
+  const part2 = await invokeHandler(requestHandler, '/blog/housing-price-ml-app-python-streamlit');
+  assert.equal(part2.status, 200);
+  assert.ok(part2.text.includes('/blog/predicting-real-estate-prices-with-python-and-scikit-learn'));
+});

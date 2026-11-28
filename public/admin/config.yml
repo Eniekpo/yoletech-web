@@ -79,7 +79,13 @@ collections:
           - "Python & Machine Learning"
           - "AI & Workflow Automation"
           - "Tech Tutorials & Mentorship"
+          - "Tech History"
+          - "Tech News Digest"
         default: "Data Analytics & BI"
+      - { label: "Updated Date", name: "updated", widget: "datetime", format: "YYYY-MM-DD", date_format: "YYYY-MM-DD", time_format: false, required: false }
+      - { label: "Tags", name: "tags", widget: "list", required: false }
+      - { label: "Series Name (Optional)", name: "series", widget: "string", required: false }
+      - { label: "Series Part (Optional)", name: "seriesPart", widget: "number", required: false }
       - { label: "Cover Image", name: "coverImage", widget: "image", choose_url: true, required: true, hint: "Choose an image for this article. Upload an image or insert an image URL." }
       - { label: "Executive Summary", name: "summary", widget: "text", required: true }
       - { label: "Featured Article", name: "featured", widget: "boolean", default: false }

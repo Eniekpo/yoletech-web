@@ -1,13 +1,15 @@
 ---
-title: Stop Tracking Business Performance Manually, Use Power DAX
-date: 2026-11-12
-category: Data Analytics & BI
-coverImage: /assets/blog/stop-tracking-business-performance-manually.-use-power-bi-dax-measures..jpg
-summary: How do you know whether your business is growing, losing revenue or
-  attracting more customers? Power BI DAX measures help you calculate important
-  business metrics directly from your data.
+title: "Stop Tracking Business Performance Manually: Use Power BI DAX"
+date: "2026-11-12"
+updated: "2026-11-28"
+category: "Data Analytics & BI"
+author: "John Oruebi Eniekpo"
+coverImage: "/assets/blog/stop-tracking-business-performance-manually.-use-power-bi-dax-measures..jpg"
+summary: "How do you know whether your business is growing, losing revenue or attracting more customers? Power BI DAX measures help you calculate important business metrics directly from your data."
 featured: false
+tags: ["Data Analytics","Business Intelligence","KPIs"]
 ---
+
 How do you know whether your business is growing, losing revenue or attracting more customers?
 
 Power BI DAX measures help you calculate important business metrics directly from your data.
@@ -54,7 +56,7 @@ Which business KPI would you prioritise on your dashboard?
 
 **YOLETECH | Solutions**
 
-Website: <https://yolestica.com>
+Website: <https://www.yolestica.com>
 
 
 Email: [yoletech@yolestica.com](mailto:yoletech@yolestica.com)
