@@ -1670,6 +1670,10 @@ async function handleLearnApiRequest(ctx) {
       }
     }).catch(() => {
     });
+    const extraHeaders = { "Cache-Control": "no-store" };
+    if (typeof ctx.buildSessionCookie === "function") {
+      extraHeaders["Set-Cookie"] = ctx.buildSessionCookie(token, req);
+    }
     sendJson(
       res,
       201,
@@ -1679,7 +1683,7 @@ async function handleLearnApiRequest(ctx) {
         profile: result.profile,
         enrollment: result.enrollment
       },
-      { "Cache-Control": "no-store" }
+      extraHeaders
     );
     return true;
   }

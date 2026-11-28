@@ -8,6 +8,8 @@ import { createRequire } from 'node:module';
 
 const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'yoletech-seo-ssr-test-'));
 process.env.YOLETECH_DB_PATH = path.join(tmpDir, 'test.db');
+process.env.JWT_SECRET = 'test-only-seo-jwt-secret-2026';
+process.env.ADMIN_PASSWORD = 'TestSeoAdmin#2026Password';
 delete process.env.RESEND_API_KEY;
 
 const require = createRequire(import.meta.url);
@@ -315,4 +317,66 @@ test('Phase 5: Legacy ?page=... queries and /signup return HTTP 301 on Node and 
   // Verify admin/index.html no longer links to legacy ?page= URLs
   const adminHtml = fs.readFileSync(path.join(process.cwd(), 'public', 'admin', 'index.html'), 'utf8');
   assert.ok(!adminHtml.includes('?page='), 'public/admin/index.html still contains legacy ?page= links');
+});
+
+test('Phase 6: Security hardening (no hardcoded secrets, auth-gated /analytics and /admin/, HttpOnly cookie, CSRF, security headers)', async () => {
+  // 1. No hardcoded admin password or JWT fallback in source
+  const serverSrc = fs.readFileSync(path.join(process.cwd(), 'server', 'index.js'), 'utf8');
+  const appSrc = fs.readFileSync(path.join(process.cwd(), 'public', 'app.js'), 'utf8');
+  assert.ok(!serverSrc.includes('YoleTech@2026#Admin'), 'Hardcoded admin password found in server/index.js');
+  assert.ok(!appSrc.includes('YoleTech@2026#Admin'), 'Hardcoded admin password found in public/app.js');
+  assert.ok(!serverSrc.includes('yoletech-super-secret-jwt-key'), 'Hardcoded JWT secret found in server/index.js');
+
+  // 2. Security headers present on HTML responses
+  const homeRes = await invokeHandler(requestHandler, '/');
+  assert.ok(homeRes.headers['strict-transport-security'], 'Missing HSTS header');
+  assert.equal(homeRes.headers['x-content-type-options'], 'nosniff');
+  assert.equal(homeRes.headers['x-frame-options'], 'SAMEORIGIN');
+  assert.equal(homeRes.headers['referrer-policy'], 'strict-origin-when-cross-origin');
+  assert.ok(homeRes.headers['permissions-policy'], 'Missing Permissions-Policy header');
+  assert.ok(homeRes.headers['content-security-policy'], 'Missing CSP header');
+
+  // 3. Unauthenticated /api/analytics, /api/analytics/sync, and /admin/ are blocked
+  assert.equal((await invokeHandler(requestHandler, '/api/analytics')).status, 401);
+  assert.equal(
+    (await invokeHandler(requestHandler, '/api/analytics/sync', { method: 'POST', body: '{}' })).status,
+    401
+  );
+
+  const unauthAdmin = await invokeHandler(requestHandler, '/admin/');
+  assert.equal(unauthAdmin.status, 302);
+  assert.equal(unauthAdmin.headers.location, '/login?next=/admin/');
+  assert.equal(unauthAdmin.headers['x-robots-tag'], 'noindex, nofollow');
+
+  // 4. Cross-origin CSRF attempt on POST /api/inquiries is blocked with 403
+  const csrfAttempt = await invokeHandler(requestHandler, '/api/inquiries', {
+    method: 'POST',
+    headers: { 'content-type': 'application/json', origin: 'https://evil-attacker.example' },
+    body: JSON.stringify({ name: 'Test', email: 't@example.com', message: 'Hello world testing csrf', consent: true })
+  });
+  assert.equal(csrfAttempt.status, 403);
+
+  // 5. Admin login sets HttpOnly SameSite cookie, cookie grants access to /admin/ and /api/analytics, logout clears cookie
+  const loginRes = await invokeHandler(requestHandler, '/api/auth/login', {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ email: 'yoletech@yolestica.com', password: process.env.ADMIN_PASSWORD })
+  });
+  assert.equal(loginRes.status, 200);
+  const setCookie = String(loginRes.headers['set-cookie'] || '');
+  assert.match(setCookie, /yoletech_session=/);
+  assert.match(setCookie, /HttpOnly/i);
+  assert.match(setCookie, /SameSite=Lax/i);
+
+  const cookiePair = setCookie.split(';')[0];
+  const authedAdmin = await invokeHandler(requestHandler, '/admin/', { headers: { cookie: cookiePair } });
+  assert.equal(authedAdmin.status, 200);
+  assert.equal(authedAdmin.headers['x-robots-tag'], 'noindex, nofollow');
+
+  const authedAnalytics = await invokeHandler(requestHandler, '/api/analytics', { headers: { cookie: cookiePair } });
+  assert.equal(authedAnalytics.status, 200);
+
+  const logoutRes = await invokeHandler(requestHandler, '/api/auth/logout', { method: 'POST' });
+  assert.equal(logoutRes.status, 200);
+  assert.match(String(logoutRes.headers['set-cookie'] || ''), /Max-Age=0/);
 });

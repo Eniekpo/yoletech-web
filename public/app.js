@@ -74,16 +74,17 @@ class YoletechApp {
     this.render();
     this.startSlideshow();
     await this.loadPublicData();
-    if (this.token) {
-      await this.verifySession();
-    }
+    await this.verifySession();
     this.render();
-    if (typeof this.loadDashboardData === 'function') {
+    if (
+      this.currentPage === 'dashboard' &&
+      this.user &&
+      this.getUserRole(this.user) === 'ADMIN' &&
+      typeof this.loadDashboardData === 'function'
+    ) {
       try {
         await this.loadDashboardData(true);
-        if (this.currentPage === 'dashboard') {
-          this.render();
-        }
+        this.render();
       } catch (e) {
         console.warn('Dashboard pre-load notice:', e);
       }
@@ -220,7 +221,7 @@ class YoletechApp {
     if (this.token) {
       headers.Authorization = `Bearer ${this.token}`;
     }
-    const res = await fetch(endpoint, { ...options, headers });
+    const res = await fetch(endpoint, { credentials: 'same-origin', ...options, headers });
     const data = await res.json().catch(() => ({}));
     if (!res.ok) {
       throw new Error(data.error || 'Request failed');
@@ -1198,6 +1199,7 @@ class YoletechApp {
     }
     localStorage.removeItem('yoletech_token');
     localStorage.removeItem('yoletech_user');
+    fetch('/api/auth/logout', { method: 'POST', credentials: 'same-origin' }).catch(() => {});
     if (showNotification) {
       this.showToast('Signed out successfully.');
       this.navigate('home');
@@ -1342,12 +1344,16 @@ class YoletechApp {
   // ==========================================================================
   renderHeader() {
     const C = window.YOLETECH_COMPONENTS;
+    const isAdmin = Boolean(this.user && this.getUserRole(this.user) === 'ADMIN');
     const navItems = [
-      { id: 'dashboard', label: 'Dashboard' },
-      { id: 'about', label: 'About' },
-      { id: 'services', label: 'Services' },
-      { id: 'learn', label: 'Learn' },
-      { id: 'contact', label: 'Contact' }
+      { id: 'home', label: 'Home', path: '/' },
+      { id: 'services', label: 'Services', path: '/services' },
+      { id: 'portfolio', label: 'Portfolio', path: '/portfolio' },
+      { id: 'learn', label: 'Learn', path: '/learn' },
+      { id: 'blog', label: 'Blog', path: '/blog' },
+      { id: 'about', label: 'About', path: '/about' },
+      { id: 'contact', label: 'Contact', path: '/contact' },
+      ...(isAdmin ? [{ id: 'dashboard', label: 'Dashboard', path: '/dashboard' }] : [])
     ];
 
     let authButtons = '';
@@ -1389,7 +1395,7 @@ class YoletechApp {
               .map(
                 (item) => `
               <li>
-                <a href="/${item.id}" class="nav-link ${
+                <a href="${item.path || `/${item.id}`}" class="nav-link ${
                   this.currentPage === item.id ||
                   (item.id === 'learn' && this.currentPage === 'learn-dashboard') ||
                   (item.id === 'blog' && this.currentPage === 'blog-detail')
@@ -3877,31 +3883,14 @@ class YoletechApp {
   }
 
   authenticateLocalFallback(email, password) {
+    // Admin credentials are NEVER stored or verified client-side.
+    // Only locally cached non-admin portal registrations may fall back when offline.
     const normEmail = String(email || '').trim().toLowerCase();
-    // 1. Check Master Admin credentials (both yoletech@yoletica.com and yoletech@yolestica.com)
-    if (
-      (normEmail === 'yoletech@yoletica.com' || normEmail === 'yoletech@yolestica.com') &&
-      password === 'YoleTech@2026#Admin'
-    ) {
-      return {
-        token: 'local-admin-jwt-' + Date.now(),
-        user: {
-          id: 1,
-          name: 'John Oruebi Eniekpo',
-          email: normEmail,
-          phone: '+234 802 552 6389',
-          company: 'YOLETECH Headquarters',
-          service_interest: 'Full-Stack, BI & AI Architecture',
-          role: 'ADMIN',
-          status: 'ACTIVE',
-          created_at: '2026-01-10 09:00:00'
-        }
-      };
-    }
-
-    // 2. Check locally registered clients & learners in browser storage
     const localUsers = this.getLocalRegisteredUsers().filter(
-      (u) => u && String(u.email || '').toLowerCase() !== 'client@example.com'
+      (u) =>
+        u &&
+        String(u.email || '').toLowerCase() !== 'client@example.com' &&
+        String(u.role || 'CLIENT').toUpperCase() !== 'ADMIN'
     );
     const matched = localUsers.find(
       (u) => String(u.email || '').toLowerCase() === normEmail && u._pwd === password
@@ -3987,6 +3976,11 @@ class YoletechApp {
       });
       this.showToast(`Welcome back, ${user.name}!`);
       if (userRole === 'ADMIN') {
+        const nextParam = new URLSearchParams(window.location.search || '').get('next') || '';
+        if (nextParam === '/admin/' || nextParam === '/admin') {
+          window.location.assign('/admin/');
+          return;
+        }
         await this.loadAdminData();
         await this.navigate('admin-dashboard');
       } else if (userRole === 'LEARNER') {

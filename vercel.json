@@ -8,6 +8,25 @@
       "includeFiles": "{content/**,server/**,public/**}"
     }
   },
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        { "key": "Strict-Transport-Security", "value": "max-age=31536000; includeSubDomains; preload" },
+        { "key": "X-Content-Type-Options", "value": "nosniff" },
+        { "key": "X-Frame-Options", "value": "SAMEORIGIN" },
+        { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" },
+        { "key": "Permissions-Policy", "value": "camera=(), microphone=(), geolocation=(), payment=()" }
+      ]
+    },
+    {
+      "source": "/admin/(.*)",
+      "headers": [
+        { "key": "X-Robots-Tag", "value": "noindex, nofollow" },
+        { "key": "Cache-Control", "value": "no-store" }
+      ]
+    }
+  ],
   "redirects": [
     {
       "source": "/:path*",
@@ -38,8 +57,9 @@
     { "source": "/feed", "destination": "/api/blog-page?rss=1" },
     { "source": "/blog/rss.xml", "destination": "/api/blog-page?rss=1" },
     { "source": "/blog/feed", "destination": "/api/blog-page?rss=1" },
-    { "source": "/admin", "destination": "/admin/index.html" },
-    { "source": "/admin/", "destination": "/admin/index.html" },
+    { "source": "/admin", "destination": "/api/index.js" },
+    { "source": "/admin/", "destination": "/api/index.js" },
+    { "source": "/admin/index.html", "destination": "/api/index.js" },
     { "source": "/", "destination": "/api/blog-page?route=/" },
     { "source": "/portfolio", "destination": "/api/blog-page?route=/portfolio" },
     { "source": "/blog", "destination": "/api/blog-page?route=/blog" },

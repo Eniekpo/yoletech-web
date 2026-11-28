@@ -9,6 +9,8 @@ import { createRequire } from 'node:module';
 const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'yoletech-learn-test-'));
 const tmpDbPath = path.join(tmpDir, 'test.db');
 process.env.YOLETECH_DB_PATH = tmpDbPath;
+process.env.JWT_SECRET = 'test-only-ephemeral-jwt-secret-key-2026';
+process.env.ADMIN_PASSWORD = 'TestAdmin#2026Password';
 delete process.env.RESEND_API_KEY;
 
 const require = createRequire(import.meta.url);
@@ -207,7 +209,7 @@ test('Admin Learn endpoints manage courses, registrations, bulk updates, CSV exp
     method: 'POST',
     body: JSON.stringify({
       email: 'yoletech@yoletica.com',
-      password: 'YoleTech@2026#Admin'
+      password: process.env.ADMIN_PASSWORD
     })
   });
   assert.equal(adminLogin.status, 200);
@@ -408,9 +410,23 @@ test('Unified login differentiates CLIENT, LEARNER, and ADMIN roles and Learn he
   });
   assert.equal(demoLogin.status, 401);
 
-  const analyticsRes = await invokeApp('/api/analytics');
+  // Public unauthenticated access to /api/analytics is blocked (401)
+  const unauthAnalytics = await invokeApp('/api/analytics');
+  assert.equal(unauthAnalytics.status, 401);
+
+  // Admin access returns only real records (0 synthetic records)
+  const adminRes = await invokeApp('/api/auth/login', {
+    method: 'POST',
+    body: JSON.stringify({
+      email: 'yoletech@yolestica.com',
+      password: process.env.ADMIN_PASSWORD
+    })
+  });
+  assert.equal(adminRes.status, 200);
+  const analyticsRes = await invokeApp('/api/analytics', {
+    headers: { Authorization: `Bearer ${adminRes.json.token}` }
+  });
   assert.equal(analyticsRes.status, 200);
-  // Only the single real client created in this test above should exist (0 synthetic records)
   assert.equal(analyticsRes.json.clients.length, 1);
   assert.equal(analyticsRes.json.clients[0].name, 'Ngozi Client');
   assert.equal(analyticsRes.json.inquiries.length, 0);

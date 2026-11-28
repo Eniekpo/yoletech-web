@@ -9,6 +9,16 @@ const {
 const { LEGACY_QUERY_REDIRECTS, BLOG_SLUG_REDIRECTS } = require('../server/site-config.js');
 
 module.exports = (req, res) => {
+  res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains; preload');
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('X-Frame-Options', 'SAMEORIGIN');
+  res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+  res.setHeader('Permissions-Policy', 'camera=(), microphone=(), geolocation=(), payment=()');
+  res.setHeader(
+    'Content-Security-Policy',
+    "default-src 'self'; script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://app.chatwoot.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: https:; connect-src 'self' https://www.google-analytics.com https://app.chatwoot.com wss://app.chatwoot.com https://formsubmit.co; frame-src 'self' https://app.chatwoot.com; frame-ancestors 'self'; base-uri 'self'; object-src 'none'"
+  );
+
   if (req.method !== 'GET' && req.method !== 'HEAD') {
     res.setHeader('Allow', 'GET, HEAD');
     res.statusCode = 405;

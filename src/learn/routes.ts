@@ -55,6 +55,7 @@ export interface LearnRouteContext {
   getAuthUser: (req: IncomingMessage) => AuthUserLike | null;
   hashPassword: (password: string) => string;
   signToken: (payload: Record<string, unknown>) => string;
+  buildSessionCookie?: (token: string, req: IncomingMessage) => string;
   sendEmailToYoletech: (args: {
     subject: string;
     replyTo?: string;
@@ -436,6 +437,11 @@ export async function handleLearnApiRequest(ctx: LearnRouteContext): Promise<boo
       // Admin notification relay failure does not block learner signup
     });
 
+    const extraHeaders: Record<string, string> = { 'Cache-Control': 'no-store' };
+    if (typeof ctx.buildSessionCookie === 'function') {
+      extraHeaders['Set-Cookie'] = ctx.buildSessionCookie(token, req);
+    }
+
     sendJson(
       res,
       201,
@@ -445,7 +451,7 @@ export async function handleLearnApiRequest(ctx: LearnRouteContext): Promise<boo
         profile: result.profile,
         enrollment: result.enrollment
       },
-      { 'Cache-Control': 'no-store' }
+      extraHeaders
     );
     return true;
   }

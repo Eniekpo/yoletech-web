@@ -393,6 +393,9 @@
     },
 
     async loadDashboardData(force = false) {
+      if (!this.user || (typeof this.getUserRole === 'function' ? this.getUserRole(this.user) : String(this.user.role || '').toUpperCase()) !== 'ADMIN') {
+        return;
+      }
       const st = this.getDashboardState();
       if (st.loading || (st.raw && !force)) return;
       st.loading = true;
@@ -405,15 +408,8 @@
         const data = await this.api(`/api/analytics?_t=${Date.now()}`, { cache: 'no-store' });
         st.raw = this.normaliseDashboardRaw(this.mergeLocalIntoAnalytics(data), 'live');
       } catch (err) {
-        console.warn('Analytics API unavailable, using fallback dataset:', err);
-        try {
-          st.raw = this.buildDashboardFallback();
-          st.error = null;
-        } catch (fallbackErr) {
-          console.error('Analytics fallback failed:', fallbackErr);
-          st.raw = null;
-          st.error = 'Analytics data could not be loaded. Please check your connection and try again.';
-        }
+        st.raw = null;
+        st.error = err?.message || 'Admin authentication is required to view live analytics.';
       } finally {
         st.loading = false;
         if (this.currentPage === 'dashboard') this.updateDashboardBody();
@@ -768,16 +764,39 @@
 
     // ---- Rendering ------------------------------------------------------------
     renderDashboardPage() {
+      const role = this.user
+        ? typeof this.getUserRole === 'function'
+          ? this.getUserRole(this.user)
+          : String(this.user.role || '').toUpperCase()
+        : '';
+      if (!this.user || role !== 'ADMIN') {
+        return `
+          <section class="section dash-page" aria-labelledby="dash-auth-title">
+            <div class="container" style="max-width:580px;text-align:center;">
+              <div class="glass-card">
+                <div class="eyebrow" style="justify-content:center;"><span class="eyebrow-dot"></span> RESTRICTED ANALYTICS</div>
+                <h1 id="dash-auth-title" style="font-size:28px;font-weight:900;margin-bottom:10px;">Admin Sign-In Required</h1>
+                <p style="color:var(--yole-text-muted);margin-bottom:22px;">
+                  The YOLETECH operations analytics dashboard displays live client and inquiry records and is restricted to authenticated administrators.
+                </p>
+                <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">
+                  <button type="button" class="btn btn-lime" onclick="window.app.navigate('login')">Sign In →</button>
+                  <button type="button" class="btn btn-outline" onclick="window.app.navigate('home')">Return Home</button>
+                </div>
+              </div>
+            </div>
+          </section>
+        `;
+      }
       return `
-        ${this.renderServicesTicker()}
         <section class="section dash-page" aria-labelledby="dash-title">
           <div class="container">
             <header class="dash-header">
               <div>
-                <div class="eyebrow"><span class="eyebrow-dot"></span> BUSINESS INTELLIGENCE</div>
+                <div class="eyebrow"><span class="eyebrow-dot"></span> ADMIN ANALYTICS</div>
                 <h1 id="dash-title" class="section-title" style="margin-bottom:8px;">Client &amp; Delivery <span class="accent-lime">Analytics Dashboard</span></h1>
                 <p class="section-desc" style="max-width:720px;">
-                  Live KPIs, lifecycle funnel, rating and testimonial analysis computed directly from YOLETECH's client, inquiry and testimonial records.
+                  Live KPIs, lifecycle funnel, and inquiry metrics computed directly from authenticated YOLETECH records.
                 </p>
               </div>
               <div class="dash-header-actions">

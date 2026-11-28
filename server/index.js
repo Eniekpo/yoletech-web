@@ -26,7 +26,14 @@ try {
 }
 
 const PORT = process.env.PORT || 4000;
-const JWT_SECRET = process.env.JWT_SECRET || 'yoletech-super-secret-jwt-key-2026-eniekpo';
+const JWT_SECRET =
+  process.env.JWT_SECRET ||
+  (() => {
+    if (process.env.NODE_ENV !== 'test' && !process.env.NODE_TEST_CONTEXT) {
+      console.warn('[YOLETECH Security] JWT_SECRET env var is not set; using an ephemeral per-process secret.');
+    }
+    return crypto.randomBytes(32).toString('hex');
+  })();
 const ADMIN_NOTIFY_EMAIL = process.env.ADMIN_NOTIFY_EMAIL || 'yoletech@yolestica.com';
 const DB_PATH = process.env.YOLETECH_DB_PATH || path.join(__dirname, 'yoletech.db');
 const PUBLIC_DIR = path.join(__dirname, '..', 'public');
@@ -648,32 +655,33 @@ function purgeSyntheticRecords(dbInstance) {
 }
 
 function seedDatabase() {
-  // Always ensure Master Admin accounts (both yoletech@yoletica.com and yoletech@yolestica.com) exist
-  ensureAccount({
-    name: 'John Oruebi Eniekpo',
-    email: 'yoletech@yoletica.com',
-    password: 'YoleTech@2026#Admin',
-    phone: '+234 802 552 6389',
-    company: 'YOLETECH Headquarters',
-    service_interest: 'Full-Stack, BI & AI Architecture',
-    role: 'ADMIN',
-    status: 'ACTIVE',
-    admin_notes: 'Master Administrator & Founder Account.',
-    created_at: '2026-01-10 09:00:00'
-  });
-
-  ensureAccount({
-    name: 'John Oruebi Eniekpo',
-    email: 'yoletech@yolestica.com',
-    password: 'YoleTech@2026#Admin',
-    phone: '+234 802 552 6389',
-    company: 'YOLETECH Headquarters',
-    service_interest: 'Full-Stack, BI & AI Architecture',
-    role: 'ADMIN',
-    status: 'ACTIVE',
-    admin_notes: 'Master Administrator & Founder Account.',
-    created_at: '2026-01-10 09:00:00'
-  });
+  // Seed or rotate admin credentials only when explicitly supplied via environment variables
+  const envAdminPassword = process.env.ADMIN_PASSWORD || '';
+  const envAdminHash = process.env.ADMIN_PASSWORD_HASH || '';
+  if (envAdminPassword || envAdminHash) {
+    const adminEmails = ['yoletech@yolestica.com', 'yoletech@yoletica.com'];
+    for (const adminEmail of adminEmails) {
+      const existing = db.prepare('SELECT id FROM users WHERE email = ?').get(adminEmail);
+      const pwHash = envAdminHash || hashPassword(envAdminPassword);
+      if (!existing) {
+        db.prepare(
+          `INSERT INTO users (name, email, password_hash, phone, company, service_interest, role, status, admin_notes, created_at)
+           VALUES (?, ?, ?, ?, ?, ?, 'ADMIN', 'ACTIVE', ?, ?)`
+        ).run(
+          'John Oruebi Eniekpo',
+          adminEmail,
+          pwHash,
+          '+234 802 552 6389',
+          'YOLETECH Headquarters',
+          'Full-Stack, BI & AI Architecture',
+          'Master Administrator & Founder Account.',
+          '2026-01-10 09:00:00'
+        );
+      } else if (process.env.ADMIN_FORCE_SYNC === '1') {
+        db.prepare('UPDATE users SET password_hash = ? WHERE id = ?').run(pwHash, existing.id);
+      }
+    }
+  }
 
   // Ensure any previously seeded synthetic or demo records are removed
   purgeSyntheticRecords(db);
@@ -968,14 +976,82 @@ function getAllPortfolioProjects() {
 }
 
 // ============================================================================
-// 4. HTTP HELPERS & REQUEST PARSING
+// 4. HTTP HELPERS, SESSION COOKIES, CSRF & REQUEST PARSING
 // ============================================================================
+const SESSION_COOKIE_NAME = 'yoletech_session';
+
+function parseCookies(req) {
+  const header = String(req.headers.cookie || '');
+  const map = {};
+  if (!header) return map;
+  for (const part of header.split(';')) {
+    const idx = part.indexOf('=');
+    if (idx === -1) continue;
+    const k = part.slice(0, idx).trim();
+    const v = part.slice(idx + 1).trim();
+    if (k) {
+      try {
+        map[k] = decodeURIComponent(v);
+      } catch {
+        map[k] = v;
+      }
+    }
+  }
+  return map;
+}
+
+function isSecureRequest(req) {
+  const proto = String(req.headers['x-forwarded-proto'] || '').split(',')[0].trim().toLowerCase();
+  return proto === 'https' || Boolean(process.env.VERCEL) || process.env.NODE_ENV === 'production';
+}
+
+function buildSessionCookie(token, req, maxAgeSec = 60 * 60 * 24 * 7) {
+  const secureAttr = isSecureRequest(req) ? '; Secure' : '';
+  return `${SESSION_COOKIE_NAME}=${encodeURIComponent(token)}; HttpOnly; SameSite=Lax; Path=/; Max-Age=${maxAgeSec}${secureAttr}`;
+}
+
+function buildClearSessionCookie(req) {
+  const secureAttr = isSecureRequest(req) ? '; Secure' : '';
+  return `${SESSION_COOKIE_NAME}=; HttpOnly; SameSite=Lax; Path=/; Max-Age=0${secureAttr}`;
+}
+
+function isAllowedOrigin(originHeader, req) {
+  if (!originHeader) return true;
+  try {
+    const originUrl = new URL(originHeader);
+    const originHost = originUrl.hostname.toLowerCase();
+    const reqHost = String(req.headers['x-forwarded-host'] || req.headers.host || '')
+      .split(',')[0]
+      .trim()
+      .toLowerCase()
+      .replace(/:\d+$/, '');
+    if (originHost === reqHost) return true;
+    if (originHost === 'www.yolestica.com' || originHost === 'yolestica.com') return true;
+    if (originHost === 'localhost' || originHost === '127.0.0.1') return true;
+    if (originHost.endsWith('.vercel.app') && originHost.includes('yoletech')) return true;
+    return false;
+  } catch {
+    return false;
+  }
+}
+
+function applySecurityHeaders(res, pathname = '') {
+  res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains; preload');
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('X-Frame-Options', 'SAMEORIGIN');
+  res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+  res.setHeader('Permissions-Policy', 'camera=(), microphone=(), geolocation=(), payment=()');
+  const isCms = pathname === '/admin' || pathname.startsWith('/admin/');
+  const csp = isCms
+    ? "default-src 'self' https://unpkg.com https://auth.decapbridge.com https://gateway.decapbridge.com; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://unpkg.com; style-src 'self' 'unsafe-inline' https://unpkg.com https://fonts.googleapis.com; img-src 'self' data: blob: https:; font-src 'self' https://fonts.gstatic.com data:; connect-src 'self' https://auth.decapbridge.com https://gateway.decapbridge.com https://api.github.com; frame-ancestors 'self'; base-uri 'self'; object-src 'none'"
+    : "default-src 'self'; script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://app.chatwoot.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: https:; connect-src 'self' https://www.google-analytics.com https://app.chatwoot.com wss://app.chatwoot.com https://formsubmit.co; frame-src 'self' https://app.chatwoot.com; frame-ancestors 'self'; base-uri 'self'; object-src 'none'";
+  res.setHeader('Content-Security-Policy', csp);
+}
+
 function sendJson(res, status, data, headers = {}) {
   res.writeHead(status, {
     'Content-Type': 'application/json; charset=utf-8',
-    'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-    'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+    'Cache-Control': 'no-store',
     ...headers
   });
   res.end(JSON.stringify(data));
@@ -1002,8 +1078,16 @@ function parseBody(req) {
 
 function getAuthUser(req) {
   const authHeader = req.headers.authorization || '';
-  if (!authHeader.startsWith('Bearer ')) return null;
-  const token = authHeader.slice(7);
+  let token = '';
+  if (authHeader.startsWith('Bearer ')) {
+    token = authHeader.slice(7).trim();
+  } else {
+    const cookies = parseCookies(req);
+    if (cookies[SESSION_COOKIE_NAME]) {
+      token = cookies[SESSION_COOKIE_NAME];
+    }
+  }
+  if (!token) return null;
   const payload = verifyToken(token);
   if (!payload) return null;
   let user =
@@ -1071,18 +1155,39 @@ function checkRateLimit(ip, action, limit = 15, windowMs = 15 * 60 * 1000) {
 // 5. MAIN SERVER & API ROUTER
 // ============================================================================
 const requestHandler = async (req, res) => {
-  // Enterprise Security Headers
-  res.setHeader('X-Content-Type-Options', 'nosniff');
-  res.setHeader('X-Frame-Options', 'SAMEORIGIN');
-  res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
-
-  if (req.method === 'OPTIONS') {
-    return sendJson(res, 200, { ok: true });
-  }
-
   const parsedUrl = new URL(req.url, `http://${req.headers.host || 'localhost'}`);
   const pathname = parsedUrl.pathname;
   const clientIp = (req.headers['x-forwarded-for'] || '').split(',')[0].trim() || req.socket?.remoteAddress || '127.0.0.1';
+
+  // Enterprise Security Headers
+  applySecurityHeaders(res, pathname);
+
+  const originHeader = String(req.headers.origin || '').trim();
+  if (originHeader && isAllowedOrigin(originHeader, req)) {
+    res.setHeader('Access-Control-Allow-Origin', originHeader);
+    res.setHeader('Access-Control-Allow-Credentials', 'true');
+    res.setHeader('Vary', 'Origin');
+  }
+
+  if (req.method === 'OPTIONS') {
+    if (originHeader && !isAllowedOrigin(originHeader, req)) {
+      return sendJson(res, 403, { error: 'Origin not allowed.' });
+    }
+    return sendJson(res, 200, { ok: true }, {
+      'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+      'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS'
+    });
+  }
+
+  // CSRF Origin validation on all state-changing API requests
+  if (
+    pathname.startsWith('/api/') &&
+    ['POST', 'PUT', 'PATCH', 'DELETE'].includes(String(req.method || '').toUpperCase()) &&
+    originHeader &&
+    !isAllowedOrigin(originHeader, req)
+  ) {
+    return sendJson(res, 403, { error: 'Forbidden cross-origin request.' });
+  }
 
   // Enforce single canonical host https://www.yolestica.com (301 redirect apex -> www)
   const rawHost = String(req.headers['x-forwarded-host'] || req.headers.host || '').split(',')[0].trim().toLowerCase().replace(/:\d+$/, '');
@@ -1187,12 +1292,16 @@ const requestHandler = async (req, res) => {
         getAuthUser,
         hashPassword,
         signToken,
+        buildSessionCookie,
         sendEmailToYoletech
       });
       if (handled) return;
     }
 
     // --- AUTH ENDPOINTS ---
+    if (pathname === '/api/auth/logout' && req.method === 'POST') {
+      return sendJson(res, 200, { ok: true }, { 'Set-Cookie': buildClearSessionCookie(req) });
+    }
     if (pathname === '/api/auth/register' && req.method === 'POST') {
       const body = await parseBody(req);
       const { name, email, password, phone, company, service_interest } = body;
@@ -1248,7 +1357,7 @@ const requestHandler = async (req, res) => {
           'Registered At': user.created_at
         }
       });
-      return sendJson(res, 201, { token, user, notifiedEmail: ADMIN_NOTIFY_EMAIL });
+      return sendJson(res, 201, { token, user, notifiedEmail: ADMIN_NOTIFY_EMAIL }, { 'Set-Cookie': buildSessionCookie(token, req) });
     }
 
     if (pathname === '/api/auth/login' && req.method === 'POST') {
@@ -1287,7 +1396,7 @@ const requestHandler = async (req, res) => {
         status: user.status,
         created_at: user.created_at
       });
-      return sendJson(res, 200, { token, user });
+      return sendJson(res, 200, { token, user }, { 'Set-Cookie': buildSessionCookie(token, req) });
     }
 
     if (pathname === '/api/auth/me' && req.method === 'GET') {
@@ -1706,14 +1815,17 @@ const requestHandler = async (req, res) => {
       return sendJson(res, 200, { deleted: true });
     }
 
-    // --- ANALYTICS DASHBOARD SYNC & READ ENDPOINTS ---
+    // --- ANALYTICS DASHBOARD SYNC & READ ENDPOINTS (ADMIN ONLY) ---
     if (pathname === '/api/analytics/sync' && req.method === 'POST') {
+      const syncViewer = getAuthUser(req);
+      if (!syncViewer) return sendJson(res, 401, { error: 'Authentication required.' });
+      if (syncViewer.role !== 'ADMIN') return sendJson(res, 403, { error: 'Admin access required.' });
       const body = await parseBody(req);
       const incomingClients = Array.isArray(body.clients) ? body.clients.slice(0, 100) : [];
       const incomingInquiries = Array.isArray(body.inquiries) ? body.inquiries.slice(0, 100) : [];
       let synced = 0;
       let syncedInquiries = 0;
-      const defaultSyncHash = hashPassword('Client@2026');
+      const defaultSyncHash = hashPassword(crypto.randomBytes(16).toString('hex'));
       for (const c of incomingClients) {
         const email = String(c?.email || '').trim().toLowerCase();
         const name = String(c?.name || '').trim();
@@ -1804,11 +1916,12 @@ const requestHandler = async (req, res) => {
       return sendJson(res, 200, { ok: true, synced, syncedInquiries }, { 'Cache-Control': 'no-store' });
     }
 
-    // Public visitors receive anonymised client records (no names, emails, phones or notes).
-    // Admins receive client names and companies for operational use.
+    // Analytics dashboard API is authenticated Admin-only (never expose client data publicly).
     if (pathname === '/api/analytics' && req.method === 'GET') {
       const viewer = getAuthUser(req);
-      const isAdmin = !!viewer && viewer.role === 'ADMIN';
+      if (!viewer) return sendJson(res, 401, { error: 'Authentication required.' });
+      if (viewer.role !== 'ADMIN') return sendJson(res, 403, { error: 'Admin access required.' });
+      const isAdmin = true;
       const normName = (v) => String(v || '').trim().toLowerCase().replace(/\s+/g, ' ');
 
       const userRows = db
@@ -2218,11 +2331,41 @@ const requestHandler = async (req, res) => {
       return sendJson(res, 404, { error: 'API endpoint not found.' });
     }
 
-    // Redirect /admin to /admin/ so Decap CMS resolves relative config.yml cleanly
-    if (pathname === '/admin') {
-      res.writeHead(302, { Location: '/admin/' });
-      res.end();
-      return;
+    // Server-side Admin auth gate on /admin, /admin/, /admin/index.html
+    if (pathname === '/admin' || pathname === '/admin/' || pathname === '/admin/index.html') {
+      const adminViewer = getAuthUser(req);
+      if (!adminViewer || adminViewer.role !== 'ADMIN') {
+        res.writeHead(302, {
+          Location: '/login?next=/admin/',
+          'X-Robots-Tag': 'noindex, nofollow',
+          'Cache-Control': 'no-store'
+        });
+        res.end();
+        return;
+      }
+      if (pathname === '/admin') {
+        res.writeHead(302, {
+          Location: '/admin/',
+          'X-Robots-Tag': 'noindex, nofollow',
+          'Cache-Control': 'no-store'
+        });
+        res.end();
+        return;
+      }
+      const adminIndexPath = path.join(PUBLIC_DIR, 'admin', 'index.html');
+      if (fs.existsSync(adminIndexPath)) {
+        res.writeHead(200, {
+          'Content-Type': 'text/html; charset=utf-8',
+          'X-Robots-Tag': 'noindex, nofollow',
+          'Cache-Control': 'no-store'
+        });
+        if (req.method === 'HEAD') {
+          res.end();
+          return;
+        }
+        fs.createReadStream(adminIndexPath).pipe(res);
+        return;
+      }
     }
 
     const hostHeader = String(req.headers['x-forwarded-host'] || req.headers.host || '').split(',')[0].trim();
