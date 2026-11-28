@@ -447,3 +447,18 @@ test('Phase 8: Legal pages, consent-gated GTM, full crawlable footer, and clean 
   assert.ok(!homeRes.text.includes('href="/testimonials"'), 'Testimonials should be hidden from nav/footer');
   assert.ok(!homeRes.text.includes('href="/dashboard"'), 'Dashboard should be hidden from public nav/footer');
 });
+
+test('Phase 9: Accessibility (skip link, focus-visible, reduced motion) and performance (deferred scripts, display=swap)', async () => {
+  const indexHtml = fs.readFileSync(path.join(process.cwd(), 'public', 'index.html'), 'utf8');
+  assert.ok(indexHtml.includes('<script defer src="/app.js"></script>'), 'Expected defer on /app.js');
+  assert.ok(indexHtml.includes('<script defer src="/learn.js"></script>'), 'Expected defer on /learn.js');
+  assert.ok(indexHtml.includes('display=swap'), 'Expected font-display swap on Google Fonts');
+
+  const css = fs.readFileSync(path.join(process.cwd(), 'public', 'styles.css'), 'utf8');
+  assert.ok(css.includes(':focus-visible'), 'Expected global focus-visible styles');
+  assert.ok(css.includes('@media (prefers-reduced-motion: reduce)'), 'Expected prefers-reduced-motion rules');
+  assert.ok(css.includes('.skip-link'), 'Expected skip-link styles');
+
+  const homeRes = await invokeHandler(requestHandler, '/');
+  assert.ok(homeRes.text.includes('class="skip-link"'), 'Expected skip-to-content link in SSR HTML');
+});

@@ -1029,12 +1029,23 @@ class YoletechApp {
       await this.loadDashboardData(true);
     }
 
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    const reducedMotion =
+      typeof window !== 'undefined' &&
+      window.matchMedia &&
+      window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    window.scrollTo({ top: 0, behavior: reducedMotion ? 'auto' : 'smooth' });
     this.render();
   }
 
   startSlideshow() {
     if (this.slideInterval) clearInterval(this.slideInterval);
+    if (
+      typeof window !== 'undefined' &&
+      window.matchMedia &&
+      window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    ) {
+      return;
+    }
     this.slideInterval = setInterval(() => {
       if (this.currentPage === 'home' && !this.slidePaused) {
         const slides = window.YOLETECH_DATA.heroSlides;
@@ -1133,7 +1144,11 @@ class YoletechApp {
     const prefix = el.getAttribute('data-kpi-prefix') || '';
     const suffix = el.getAttribute('data-kpi-suffix') || '';
 
-    if (target <= 0) {
+    const reducedMotion =
+      typeof window !== 'undefined' &&
+      window.matchMedia &&
+      window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (target <= 0 || reducedMotion) {
       el.textContent = this.formatKpiValue(target, decimals, useComma, prefix, suffix);
       return;
     }
@@ -1836,8 +1851,8 @@ class YoletechApp {
             .join('')}
         </div>
         <div class="slide-arrows">
-          <button class="slide-arrow-btn" title="Previous Slide" onclick="window.app.setSlide(${this.currentSlide - 1})">←</button>
-          <button class="slide-arrow-btn" title="Next Slide" onclick="window.app.setSlide(${this.currentSlide + 1})">→</button>
+          <button type="button" class="slide-arrow-btn" aria-label="Previous slide" title="Previous Slide" onclick="window.app.setSlide(${this.currentSlide - 1})">←</button>
+          <button type="button" class="slide-arrow-btn" aria-label="Next slide" title="Next Slide" onclick="window.app.setSlide(${this.currentSlide + 1})">→</button>
         </div>
       </div>
     `;
@@ -1986,7 +2001,7 @@ class YoletechApp {
               <div class="glass-card" style="display:flex;flex-direction:column;justify-content:space-between;">
                 <div>
                   <div style="border-radius:12px;overflow:hidden;margin-bottom:16px;border:1px solid rgba(255,255,255,0.12);height:175px;cursor:pointer;" onclick="window.app.openPortfolioModal('${p.slug}')">
-                    <img src="${this.resolvePortfolioImage(p.preview_image, p.slug)}" alt="${p.title}" onerror="this.onerror=null;this.src='/assets/dashboard-preview.jpg';" style="width:100%;height:100%;object-fit:cover;" />
+                    <img src="${this.resolvePortfolioImage(p.preview_image, p.slug)}" alt="${p.title}" width="640" height="360" loading="lazy" decoding="async" onerror="this.onerror=null;this.src='/assets/dashboard-preview.jpg';" style="width:100%;height:100%;object-fit:cover;" />
                   </div>
                   <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:10px;">
                     <span class="tech-pill lime" style="font-size:11px;padding:3px 10px;">${p.category || 'Data Analytics & BI'}</span>

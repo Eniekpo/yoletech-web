@@ -21,8 +21,8 @@
   --yole-orange: #F7941D;
   --yole-orange-glow: rgba(247, 148, 29, 0.35);
   --yole-white: #FFFFFF;
-  --yole-text-muted: rgba(255, 255, 255, 0.78);
-  --yole-text-subtle: rgba(255, 255, 255, 0.58);
+  --yole-text-muted: rgba(255, 255, 255, 0.85);
+  --yole-text-subtle: rgba(255, 255, 255, 0.78);
   --yole-border: rgba(200, 230, 30, 0.24);
   --yole-border-subtle: rgba(255, 255, 255, 0.14);
   --radius-lg: 18px;
@@ -8214,5 +8214,35 @@ h1, h2, h3, h4, h5, h6, .hero-title, .section-title, .brand-wordmark {
   .footer-columns {
     grid-template-columns: 1fr;
     gap: 24px;
+  }
+}
+
+/* ============================================================================
+   PHASE 9: WCAG 2.1 AA FOCUS VISIBILITY & GLOBAL REDUCED MOTION
+   ============================================================================ */
+:where(a, button, input, select, textarea, summary, [tabindex]):focus-visible {
+  outline: 3px solid #C8E61E;
+  outline-offset: 2px;
+}
+
+[data-theme="light"] :where(a, button, input, select, textarea, summary, [tabindex]):focus-visible {
+  outline-color: #1E1B54;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  .services-ticker-track,
+  .testimonial-slider-track,
+  .page-enter {
+    animation: none !important;
+    transform: none !important;
   }
 }
