@@ -18,6 +18,7 @@
     { "source": "/blog/feed", "destination": "/api/blog-page?rss=1" },
     { "source": "/admin", "destination": "/admin/index.html" },
     { "source": "/admin/", "destination": "/admin/index.html" },
+    { "source": "/", "destination": "/api/blog-page?route=/" },
     { "source": "/portfolio", "destination": "/api/blog-page?route=/portfolio" },
     { "source": "/blog", "destination": "/api/blog-page?route=/blog" },
     { "source": "/blog/(.*)", "destination": "/api/blog-page?slug=$1" },
@@ -28,11 +29,14 @@
     { "source": "/contact", "destination": "/api/blog-page?route=/contact" },
     { "source": "/learn", "destination": "/api/blog-page?route=/learn" },
     { "source": "/learn/", "destination": "/api/blog-page?route=/learn" },
-    { "source": "/learn/dashboard", "destination": "/index.html" },
-    { "source": "/learn/dashboard/", "destination": "/index.html" },
-    { "source": "/login", "destination": "/index.html" },
-    { "source": "/register", "destination": "/index.html" },
-    { "source": "/portal", "destination": "/index.html" },
-    { "source": "/admin-dashboard", "destination": "/index.html" }
+    { "source": "/privacy", "destination": "/api/blog-page?route=/privacy" },
+    { "source": "/terms", "destination": "/api/blog-page?route=/terms" },
+    { "source": "/cookies", "destination": "/api/blog-page?route=/cookies" },
+    { "source": "/learn/dashboard", "destination": "/api/blog-page?route=/learn/dashboard" },
+    { "source": "/learn/dashboard/", "destination": "/api/blog-page?route=/learn/dashboard" },
+    { "source": "/login", "destination": "/api/blog-page?route=/login" },
+    { "source": "/register", "destination": "/api/blog-page?route=/register" },
+    { "source": "/portal", "destination": "/api/blog-page?route=/portal" },
+    { "source": "/admin-dashboard", "destination": "/api/blog-page?route=/admin-dashboard" }
   ]
 }

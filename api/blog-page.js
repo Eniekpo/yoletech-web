@@ -1,4 +1,11 @@
-const { renderBlogPage, renderRouteSeoHtml, renderSitemapXml, renderRssFeedXml } = require('../server/blog-page.js');
+const {
+  ROUTE_SEO_CONFIG,
+  renderBlogPage,
+  renderRouteSeoHtml,
+  renderNotFoundHtml,
+  renderSitemapXml,
+  renderRssFeedXml
+} = require('../server/blog-page.js');
 
 module.exports = (req, res) => {
   if (req.method !== 'GET' && req.method !== 'HEAD') {
@@ -41,13 +48,21 @@ module.exports = (req, res) => {
 
   const slug = searchParams.get('slug');
   const route = searchParams.get('route');
-  const html = slug ? renderBlogPage(slug, reqOrigin) : renderRouteSeoHtml(route || pathname, reqOrigin);
+  const targetRoute = route || pathname;
+  const html = slug ? renderBlogPage(slug, reqOrigin) : renderRouteSeoHtml(targetRoute, reqOrigin);
   if (!html) {
+    res.setHeader('Content-Type', 'text/html; charset=utf-8');
+    res.setHeader('X-Robots-Tag', 'noindex, nofollow');
     res.statusCode = 404;
-    res.end('Article not found');
+    res.end(req.method === 'HEAD' ? undefined : renderNotFoundHtml(slug ? `/blog/${slug}` : targetRoute, reqOrigin));
     return;
   }
 
+  const cleanRoute = targetRoute === '/' ? '/' : `/${String(targetRoute || '').replace(/^\/+|\/+$/g, '')}`;
+  const cfg = ROUTE_SEO_CONFIG[cleanRoute];
+  if (cfg && cfg.indexable === false) {
+    res.setHeader('X-Robots-Tag', 'noindex, nofollow');
+  }
   res.setHeader('Content-Type', 'text/html; charset=utf-8');
   res.setHeader('Cache-Control', 'public, max-age=0, s-maxage=300, stale-while-revalidate=3600');
   res.statusCode = 200;

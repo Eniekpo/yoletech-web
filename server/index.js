@@ -3,7 +3,14 @@ const fs = require('node:fs');
 const path = require('node:path');
 const crypto = require('node:crypto');
 const os = require('node:os');
-const { renderBlogPage, renderRouteSeoHtml, renderSitemapXml, renderRssFeedXml } = require('./blog-page.js');
+const {
+  ROUTE_SEO_CONFIG,
+  renderBlogPage,
+  renderRouteSeoHtml,
+  renderNotFoundHtml,
+  renderSitemapXml,
+  renderRssFeedXml
+} = require('./blog-page.js');
 let learnModule = null;
 try {
   learnModule = require('./learn/index.js');
@@ -2197,25 +2204,27 @@ const requestHandler = async (req, res) => {
       return;
     }
 
-    // SPA fallback to route-aware SEO HTML (or index.html)
-    const indexHtml = path.join(PUBLIC_DIR, 'index.html');
-    if (fs.existsSync(indexHtml)) {
-      const seoHtml = renderRouteSeoHtml(pathname, reqOrigin);
-      if (seoHtml) {
-        res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
-        res.end(req.method === 'HEAD' ? undefined : seoHtml);
-        return;
+    // Route-aware SSR HTML (or genuine 404 for unknown routes)
+    const seoHtml = renderRouteSeoHtml(pathname, reqOrigin);
+    if (seoHtml) {
+      const cleanRoute = pathname === '/' ? '/' : `/${String(pathname || '').replace(/^\/+|\/+$/g, '')}`;
+      const routeCfg = ROUTE_SEO_CONFIG[cleanRoute];
+      const headers = { 'Content-Type': 'text/html; charset=utf-8' };
+      if (routeCfg && routeCfg.indexable === false) {
+        headers['X-Robots-Tag'] = 'noindex, nofollow';
       }
-      res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
-      if (req.method === 'HEAD') {
-        res.end();
-        return;
-      }
-      fs.createReadStream(indexHtml).pipe(res);
+      res.writeHead(200, headers);
+      res.end(req.method === 'HEAD' ? undefined : seoHtml);
       return;
     }
 
-    sendJson(res, 404, { error: 'Not Found' });
+    const notFoundHtml = renderNotFoundHtml(pathname, reqOrigin);
+    res.writeHead(404, {
+      'Content-Type': 'text/html; charset=utf-8',
+      'X-Robots-Tag': 'noindex, nofollow'
+    });
+    res.end(req.method === 'HEAD' ? undefined : notFoundHtml);
+    return;
   } catch (err) {
     console.error('Server error:', err);
     sendJson(res, 500, { error: err.message || 'Internal Server Error' });

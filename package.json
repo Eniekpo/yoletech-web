@@ -6,7 +6,9 @@
   "scripts": {
     "start": "node server/index.js",
     "dev": "node server/index.js",
+    "build": "node scripts/build-learn.js",
     "build:learn": "node scripts/build-learn.js",
+    "lint": "node scripts/lint.js",
     "typecheck": "tsc -p tsconfig.json",
     "db:migrate": "node scripts/migrate.js",
     "db:seed:learn": "node scripts/seed-learn.js",
