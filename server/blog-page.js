@@ -1255,6 +1255,7 @@ function renderBlogPage(slug, reqOrigin) {
   `;
 
   html = replaceAppRootHtml(html, ssrInner);
+  html = html.replace(/<link rel="preload" as="image" href="\/assets\/home-hero-analyst\.jpg"[^>]*>\s*/i, '');
   return html;
 }
 
@@ -1472,6 +1473,15 @@ function renderRouteSeoHtml(pathname, reqOrigin) {
 
   const ssrInner = `${renderSsrHeader(cleanPath)}\n${mainHtml}\n${renderSsrFooter()}`;
   html = replaceAppRootHtml(html, ssrInner);
+  if (cleanPath !== '/') {
+    html = html.replace(/<link rel="preload" as="image" href="\/assets\/home-hero-analyst\.jpg"[^>]*>\s*/i, '');
+  }
+  if (cleanPath === '/learn' || cleanPath === '/learn/dashboard' || cleanPath === '/admin-dashboard') {
+    html = html.replace(
+      '<script defer src="/dashboard.js"></script>',
+      '<script defer src="/dashboard.js"></script>\n  <script defer src="/learn.js"></script>'
+    );
+  }
   return html;
 }
 
@@ -1479,6 +1489,7 @@ function renderNotFoundHtml(pathname, reqOrigin) {
   const origin = resolveSiteOrigin(reqOrigin);
   let html = fs.readFileSync(INDEX_PATH, 'utf8');
   html = removeMeta(html, 'name', 'keywords');
+  html = html.replace(/<link rel="preload" as="image" href="\/assets\/home-hero-analyst\.jpg"[^>]*>\s*/i, '');
   html = replaceMeta(html, 'name', 'robots', 'noindex, nofollow');
   html = replaceMeta(html, 'name', 'description', 'The requested page could not be found on YOLETECH.');
   html = html.replace(/<title>[^<]*<\/title>/, '<title>Page Not Found | YOLETECH</title>');

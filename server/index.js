@@ -1405,6 +1405,11 @@ const requestHandler = async (req, res) => {
       return sendJson(res, 200, { token, user }, { 'Set-Cookie': buildSessionCookie(token, req) });
     }
 
+    if (pathname === '/api/auth/session' && req.method === 'GET') {
+      const user = getAuthUser(req);
+      return sendJson(res, 200, { authenticated: Boolean(user), user: user || null });
+    }
+
     if (pathname === '/api/auth/me' && req.method === 'GET') {
       const user = getAuthUser(req);
       if (!user) return sendJson(res, 401, { error: 'Unauthorized' });

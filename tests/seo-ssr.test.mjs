@@ -453,11 +453,20 @@ test('Phase 8: Legal pages, consent-gated GTM, full crawlable footer, and clean 
   assert.ok(!homeRes.text.includes('href="/dashboard"'), 'Dashboard should be hidden from public nav/footer');
 });
 
-test('Phase 9: Accessibility (skip link, focus-visible, reduced motion) and performance (deferred scripts, display=swap)', async () => {
+test('Phase 9: Accessibility (skip link, focus-visible, reduced motion) and performance (deferred scripts, scoped learn bundle, display=swap)', async () => {
   const indexHtml = fs.readFileSync(path.join(process.cwd(), 'public', 'index.html'), 'utf8');
   assert.ok(indexHtml.includes('<script defer src="/app.js"></script>'), 'Expected defer on /app.js');
-  assert.ok(indexHtml.includes('<script defer src="/learn.js"></script>'), 'Expected defer on /learn.js');
+  assert.ok(!indexHtml.includes('<script defer src="/learn.js"></script>'), 'Expected /learn.js to be lazy-loaded off non-learn pages');
   assert.ok(indexHtml.includes('display=swap'), 'Expected font-display swap on Google Fonts');
+
+  const learnRes = await invokeHandler(requestHandler, '/learn');
+  assert.ok(learnRes.text.includes('<script defer src="/learn.js"></script>'), 'Expected /learn SSR HTML to include deferred /learn.js');
+
+  const sessionRes = await invokeHandler(requestHandler, '/api/auth/session');
+  assert.equal(sessionRes.status, 200);
+  const sessionJson = JSON.parse(sessionRes.text);
+  assert.equal(sessionJson.authenticated, false);
+  assert.equal(sessionJson.user, null);
 
   const css = fs.readFileSync(path.join(process.cwd(), 'public', 'styles.css'), 'utf8');
   assert.ok(css.includes(':focus-visible'), 'Expected global focus-visible styles');

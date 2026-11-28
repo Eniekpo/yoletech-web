@@ -60,9 +60,10 @@ Brand theme color preserved: `#1e1b54`, existing logo and typography (`Inter`, `
 - Updated primary nav to `Home`, `Services`, `Portfolio`, `Learn`, `Blog`, `About`, `Contact`, plus `Client Login` and `Create Account` (hiding `/testimonials` and `/dashboard` from public nav/footer/sitemap).
 
 ## Phase 9 — Accessibility (WCAG 2.1 AA), Performance & Verification
-- Improved dark-theme muted/subtle text contrast (`--yole-text-muted`, `--yole-text-subtle`), added universal `:focus-visible` outlines for dark and light themes, and added a keyboard skip-to-content link.
+- Improved dark- and light-theme contrast (`--yole-text-muted`, `--yole-text-subtle`, `--yole-link-accent`, `.scope-tab-num`, `.bi-range-pill.active`, `.services-ticker`), added explicit `<label for="...">` tags on interactive ROI sliders, added universal `:focus-visible` outlines, and added a keyboard skip-to-content link.
 - Enforced global `@media (prefers-reduced-motion: reduce)` across CSS animations/marquees and JS slideshow/KPI/scroll routines.
-- Added `defer` to all 5 client scripts in `public/index.html`, verified `font-display: swap` + `preconnect`, and added `width`/`height`/`loading="lazy"` on below-fold imagery.
+- Added `defer` to client scripts, scoped the 660 KB `/learn.js` bundle strictly to `/learn`, `/learn/dashboard`, and `/admin-dashboard` (with on-demand lazy loading for SPA navigation), added non-throwing `GET /api/auth/session` to eliminate anonymous `401` console noise, added `preload` for the Home LCP hero image, and optimized 24 oversized hero/blog/icon assets in-place (**32.7 MB → 2.7 MB**, 92% reduction).
+- Moved `public/admin/index.html` → `server/admin-cms.html` so Vercel enforces the server-side `/admin/` auth gate (`302 /login?next=/admin/`), switched `vercel.json` redirects to exact HTTP `301` (`statusCode: 301`), and added CSP headers for static `/` while excluding `/admin/`.
 
 ---
 

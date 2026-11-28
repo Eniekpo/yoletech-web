@@ -16,6 +16,7 @@
   --yole-indigo-card: rgba(47, 43, 115, 0.52);
   --yole-indigo-surface: #1F1C52;
   --yole-lime: #C8E61E;
+  --yole-link-accent: #C8E61E;
   --yole-lime-hover: #d8f338;
   --yole-lime-glow: rgba(200, 230, 30, 0.32);
   --yole-orange: #F7941D;
@@ -3635,7 +3636,8 @@ details > summary {
   --yole-indigo-surface: #F1F5F9;
   --yole-white: #0F172A; /* Remaps main text reference to deep legible slate */
   --yole-text-muted: #475569;
-  --yole-text-subtle: #64748B;
+  --yole-text-subtle: #475569;
+  --yole-link-accent: #3F6212;
   --yole-border: rgba(30, 27, 84, 0.14);
   --yole-border-subtle: rgba(30, 27, 84, 0.08);
   --shadow-card: 0 10px 30px rgba(15, 23, 42, 0.06), 0 1px 3px rgba(15, 23, 42, 0.04);
@@ -4293,7 +4295,7 @@ details > summary {
 
 [data-theme="light"] .scope-tab-num {
   background: rgba(30, 27, 84, 0.08);
-  color: #4D7C0F;
+  color: #365314;
 }
 
 [data-theme="light"] .scope-tab-btn.active .scope-tab-num {
@@ -4536,6 +4538,13 @@ details > summary {
   background: #1E1B54;
   color: #C8E61E;
   border-color: rgba(30, 27, 84, 0.2);
+}
+
+[data-theme="light"] .services-ticker-track,
+[data-theme="light"] .services-ticker-group,
+[data-theme="light"] .services-ticker-item {
+  background: #1E1B54;
+  color: #C8E61E;
 }
 
 [data-theme="light"] .services-ticker-item span {
@@ -5402,7 +5411,7 @@ h1, h2, h3, h4, h5, h6, .hero-title, .section-title, .brand-wordmark {
 }
 
 [data-theme="light"] .bi-range-pill.active {
-  background: #65A30D;
+  background: #1E1B54;
   color: #FFFFFF;
 }
 

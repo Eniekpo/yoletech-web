@@ -65,12 +65,36 @@ class YoletechApp {
     this.theme = savedTheme || (prefersLight ? 'light' : 'dark');
   }
 
+  async ensureLearnBundle() {
+    if (typeof this.renderLearnPage === 'function') return true;
+    if (this._learnBundlePromise) return this._learnBundlePromise;
+    this._learnBundlePromise = new Promise((resolve) => {
+      const existing = document.querySelector('script[src="/learn.js"]');
+      if (existing) {
+        if (typeof this.renderLearnPage === 'function') return resolve(true);
+        existing.addEventListener('load', () => resolve(true), { once: true });
+        existing.addEventListener('error', () => resolve(false), { once: true });
+        return;
+      }
+      const script = document.createElement('script');
+      script.src = '/learn.js';
+      script.async = true;
+      script.onload = () => resolve(true);
+      script.onerror = () => resolve(false);
+      document.body.appendChild(script);
+    });
+    return this._learnBundlePromise;
+  }
+
   async init() {
     this.bindPopState();
     this.bindScrollProgress();
     this.applyTheme(this.theme, false);
     this.bindThemeListener();
     this.resolveInitialRoute();
+    if (['learn', 'learn-dashboard', 'admin-dashboard'].includes(this.currentPage)) {
+      await this.ensureLearnBundle();
+    }
     this.render();
     this.startSlideshow();
     await this.loadPublicData();
@@ -569,9 +593,13 @@ class YoletechApp {
   async verifySession() {
     try {
       await this.syncLocalClientsToServer();
-      const { user } = await this.api('/api/auth/me');
-      this.user = { ...user, role: this.getUserRole(user) };
-      localStorage.setItem('yoletech_user', JSON.stringify(this.user));
+      const { authenticated, user } = await this.api('/api/auth/session');
+      if (authenticated && user) {
+        this.user = { ...user, role: this.getUserRole(user) };
+        localStorage.setItem('yoletech_user', JSON.stringify(this.user));
+      } else if (!this.user) {
+        return;
+      }
     } catch {
       // Preserve locally stored authenticated session if serverless container restarted
       if (!this.user) {
@@ -591,8 +619,10 @@ class YoletechApp {
     }
     const role = this.getUserRole(this.user);
     if (role === 'ADMIN') {
+      await this.ensureLearnBundle();
       await this.loadAdminData();
     } else if (role === 'LEARNER') {
+      await this.ensureLearnBundle();
       if (this.currentPage === 'portal') {
         this.currentPage = 'learn-dashboard';
         window.history.replaceState({}, '', '/learn/dashboard');
@@ -1009,6 +1039,10 @@ class YoletechApp {
       if (targetPage === 'login' && !extra) this.authMode = 'login';
       const url = targetPage === 'home' ? '/' : `/${targetPage}`;
       window.history.pushState({}, '', url);
+    }
+
+    if (['learn', 'learn-dashboard', 'admin-dashboard'].includes(this.currentPage)) {
+      await this.ensureLearnBundle();
     }
 
     if (this.currentPage === 'admin-dashboard' && role === 'ADMIN') {
@@ -1624,7 +1658,7 @@ class YoletechApp {
               <h2 style="font-size:20px;margin:20px 0 8px;">3. Intellectual Property</h2>
               <p style="color:var(--yole-text-muted);">Site articles, tutorials, and training curriculum remain the intellectual property of YOLETECH unless ownership is explicitly transferred in a signed client contract.</p>
               <h2 style="font-size:20px;margin:20px 0 8px;">4. Contact</h2>
-              <p style="color:var(--yole-text-muted);">Questions about these terms can be sent to <a href="mailto:${D.email}" style="color:var(--yole-lime);text-decoration:underline;">${D.email}</a>.</p>
+              <p style="color:var(--yole-text-muted);">Questions about these terms can be sent to <a href="mailto:${D.email}" style="color:var(--yole-link-accent);text-decoration:underline;">${D.email}</a>.</p>
             </div>
           </div>
         </section>
@@ -3758,9 +3792,9 @@ class YoletechApp {
                     <input id="contact-consent" type="checkbox" name="consent" required />
                     <span>
                       I agree to YOLETECH's
-                      <a href="/terms" onclick="event.preventDefault();window.app.navigate('terms');" style="text-decoration:underline;color:var(--yole-lime);">Terms of Service</a>
+                      <a href="/terms" onclick="event.preventDefault();window.app.navigate('terms');" style="text-decoration:underline;color:var(--yole-link-accent);">Terms of Service</a>
                       and
-                      <a href="/privacy" onclick="event.preventDefault();window.app.navigate('privacy');" style="text-decoration:underline;color:var(--yole-lime);">Privacy Policy</a>
+                      <a href="/privacy" onclick="event.preventDefault();window.app.navigate('privacy');" style="text-decoration:underline;color:var(--yole-link-accent);">Privacy Policy</a>
                       so you can respond to my inquiry.
                     </span>
                   </label>
