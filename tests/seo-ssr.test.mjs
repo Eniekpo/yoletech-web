@@ -423,3 +423,27 @@ test('Phase 7: Blog fixes (no >- excerpts, FastAPI title, Tech History, weekly d
   assert.equal(part2.status, 200);
   assert.ok(part2.text.includes('/blog/predicting-real-estate-prices-with-python-and-scikit-learn'));
 });
+
+test('Phase 8: Legal pages, consent-gated GTM, full crawlable footer, and clean nav', async () => {
+  const indexHtml = fs.readFileSync(path.join(process.cwd(), 'public', 'index.html'), 'utf8');
+  assert.ok(
+    !indexHtml.includes('<script async src="https://www.googletagmanager.com/gtm.js'),
+    'GTM must be gated behind cookie consent, not loaded unconditionally'
+  );
+  assert.ok(indexHtml.includes('yoletech_cookie_consent'), 'Expected consent check for analytics');
+
+  for (const legalRoute of ['/privacy', '/terms', '/cookies']) {
+    const res = await invokeHandler(requestHandler, legalRoute);
+    assert.equal(res.status, 200, `Expected 200 for ${legalRoute}`);
+    assert.ok(res.text.includes('footer-columns'), `Expected crawlable multi-column footer on ${legalRoute}`);
+    assert.ok(res.text.includes('href="/privacy"'));
+    assert.ok(res.text.includes('href="/terms"'));
+    assert.ok(res.text.includes('href="/cookies"'));
+  }
+
+  const homeRes = await invokeHandler(requestHandler, '/');
+  assert.ok(homeRes.text.includes('Create Account'), 'Expected Create Account CTA in nav');
+  assert.ok(!homeRes.text.includes('Register Portal'), 'Old Register Portal label should be replaced');
+  assert.ok(!homeRes.text.includes('href="/testimonials"'), 'Testimonials should be hidden from nav/footer');
+  assert.ok(!homeRes.text.includes('href="/dashboard"'), 'Dashboard should be hidden from public nav/footer');
+});

@@ -1380,7 +1380,7 @@ class YoletechApp {
           Client Login
         </button>
         <button class="btn btn-lime btn-sm" onclick="window.app.navigate('register')">
-          Register Portal
+          Create Account
         </button>
       `;
     }
@@ -1390,29 +1390,31 @@ class YoletechApp {
         <div id="scroll-progress-bar" class="scroll-progress-bar" aria-hidden="true"></div>
         <div class="container nav-inner">
           ${C.renderBrandLogo()}
-          <ul class="nav-links ${this.mobileMenuOpen ? 'mobile-open' : ''}">
-            ${navItems
-              .map(
-                (item) => `
-              <li>
-                <a href="${item.path || `/${item.id}`}" class="nav-link ${
-                  this.currentPage === item.id ||
-                  (item.id === 'learn' && this.currentPage === 'learn-dashboard') ||
-                  (item.id === 'blog' && this.currentPage === 'blog-detail')
-                    ? 'active'
-                    : ''
-                }" onclick="event.preventDefault(); window.app.navigate('${item.id}')">${item.label}</a>
-              </li>
-            `
-              )
-              .join('')}
-            <li class="mobile-nav-theme">${this.renderThemeToggle('mobile')}</li>
-            <li class="mobile-nav-auth">${authButtons}</li>
-          </ul>
+          <nav aria-label="Primary navigation">
+            <ul class="nav-links ${this.mobileMenuOpen ? 'mobile-open' : ''}">
+              ${navItems
+                .map(
+                  (item) => `
+                <li>
+                  <a href="${item.path || `/${item.id}`}" class="nav-link ${
+                    this.currentPage === item.id ||
+                    (item.id === 'learn' && this.currentPage === 'learn-dashboard') ||
+                    (item.id === 'blog' && this.currentPage === 'blog-detail')
+                      ? 'active'
+                      : ''
+                  }" onclick="event.preventDefault(); window.app.navigate('${item.id}')">${item.label}</a>
+                </li>
+              `
+                )
+                .join('')}
+              <li class="mobile-nav-theme">${this.renderThemeToggle('mobile')}</li>
+              <li class="mobile-nav-auth">${authButtons}</li>
+            </ul>
+          </nav>
           <div class="nav-actions">
             <div class="nav-auth-group">${authButtons}</div>
             ${this.renderThemeToggle('desktop')}
-            <button class="mobile-menu-btn" onclick="window.app.mobileMenuOpen = !window.app.mobileMenuOpen; window.app.render();">
+            <button type="button" class="mobile-menu-btn" aria-label="Toggle navigation menu" aria-expanded="${Boolean(this.mobileMenuOpen)}" onclick="window.app.mobileMenuOpen = !window.app.mobileMenuOpen; window.app.render();">
               ☰
             </button>
           </div>
@@ -1423,94 +1425,216 @@ class YoletechApp {
 
   renderFooter() {
     const D = window.YOLETECH_DATA.owner;
+    const services = window.YOLETECH_DATA.eightServicesStrip || [];
     const C = window.YOLETECH_COMPONENTS;
-    const tabs = [
-      {
-        id: 'overview',
-        icon: 'users',
-        label: 'Connect with YOLETECH',
-        detail: 'Follow the work, explore projects, or start a conversation.'
-      },
-      { id: 'services', icon: 'briefcase', label: 'Services', detail: 'What we do' },
-      { id: 'explore', icon: 'globe', label: 'Explore', detail: 'Useful links' },
-      { id: 'contact', icon: 'message', label: 'Contact', detail: 'Get in touch' }
-    ];
-    const activeTab = tabs.some((tab) => tab.id === this.footerTab) ? this.footerTab : 'overview';
+    const showCtaBanner = this.currentPage !== 'contact';
 
     return `
       <footer class="site-footer">
         <div class="container">
-          <div class="footer-cta-banner">
-            <div class="footer-cta-copy">
-              <span class="footer-kicker"><span class="eyebrow-dot"></span> LET'S BUILD SOMETHING BETTER</span>
-              <h2>Ready to move your next idea forward?</h2>
-              <p>
-                Thoughtful web, data, and automation solutions built around the way your business works.
-              </p>
-            </div>
-            <div class="footer-cta-actions">
-              <a href="${D.whatsappUrl}" target="_blank" rel="noopener" class="btn btn-lime">
-                Start a WhatsApp chat <span aria-hidden="true">↗</span>
-              </a>
-              <button class="btn btn-outline" onclick="window.app.navigate('contact')">
-                Tell me about your project
-              </button>
-            </div>
-          </div>
+          ${
+            showCtaBanner
+              ? `<div class="footer-cta-banner">
+                  <div class="footer-cta-copy">
+                    <span class="footer-kicker"><span class="eyebrow-dot"></span> LET'S BUILD SOMETHING BETTER</span>
+                    <h2>Ready to move your next idea forward?</h2>
+                    <p>
+                      Practical web, data analytics, business intelligence, and automation solutions built around how your team works.
+                    </p>
+                  </div>
+                  <div class="footer-cta-actions">
+                    <button type="button" class="btn btn-lime" onclick="window.app.navigate('contact')">
+                      Book a Discovery Call →
+                    </button>
+                    <a href="/learn" class="btn btn-outline" onclick="event.preventDefault();window.app.navigate('learn')">
+                      Explore Training Programs
+                    </a>
+                  </div>
+                </div>`
+              : ''
+          }
 
-          <div class="footer-information">
-            <div class="footer-section-heading">
-              <div>
-                <span class="footer-kicker"><span class="eyebrow-dot"></span> YOLETECH</span>
-                <h2>Good work starts with a good conversation.</h2>
+          <div class="footer-columns">
+            <div class="footer-col">
+              ${C ? C.renderBrandLogo() : '<strong>YOLETECH</strong>'}
+              <p class="footer-col-desc">
+                Data analytics, executive business intelligence, workflow automation, full-stack web engineering, and hands-on tech training.
+              </p>
+              <p class="footer-col-meta">${D.serviceArea}</p>
+              <div class="social-icon-row" style="margin-top:14px;">
+                <a href="${D.socials.github}" target="_blank" rel="noopener noreferrer" class="social-btn" aria-label="GitHub">${this.renderSocialIcon('github')}<span>GitHub</span></a>
+                <a href="${D.socials.linkedin}" target="_blank" rel="noopener noreferrer" class="social-btn" aria-label="LinkedIn">${this.renderSocialIcon('linkedin')}<span>LinkedIn</span></a>
+                <a href="${D.socials.kaggle}" target="_blank" rel="noopener noreferrer" class="social-btn" aria-label="Kaggle">${this.renderSocialIcon('kaggle')}<span>Kaggle</span></a>
+                <a href="${D.socials.youtube}" target="_blank" rel="noopener noreferrer" class="social-btn" aria-label="YouTube">${this.renderSocialIcon('youtube')}<span>YouTube</span></a>
               </div>
             </div>
 
-            <div class="footer-tabs-nav" role="tablist" aria-label="Footer information">
-              ${tabs
-                .map(
-                  (tab) => `
-                <button
-                  type="button"
-                  id="footer-tab-${tab.id}"
-                  class="footer-tab-btn ${activeTab === tab.id ? 'active' : ''}"
-                  role="tab"
-                  aria-selected="${activeTab === tab.id}"
-                  aria-controls="footer-tab-panel"
-                  tabindex="${activeTab === tab.id ? '0' : '-1'}"
-                  onclick="window.app.selectFooterTab('${tab.id}')"
-                  onkeydown="window.app.handleFooterTabKeydown(event, '${tab.id}')"
-                >
-                  <span class="footer-tab-icon" aria-hidden="true">${C ? C.getIcon(tab.icon) : ''}</span>
-                  <span class="footer-tab-copy">
-                    <span class="footer-tab-label">${tab.label}</span>
-                    <span class="footer-tab-detail">${tab.detail}</span>
-                  </span>
-                </button>
-              `
-                )
-                .join('')}
+            <div class="footer-col">
+              <h2 class="footer-col-title">Quick Links</h2>
+              <ul class="footer-plain-links">
+                <li><a href="/" onclick="event.preventDefault();window.app.navigate('home')">Home</a></li>
+                <li><a href="/services" onclick="event.preventDefault();window.app.navigate('services')">Services</a></li>
+                <li><a href="/portfolio" onclick="event.preventDefault();window.app.navigate('portfolio')">Portfolio</a></li>
+                <li><a href="/learn" onclick="event.preventDefault();window.app.navigate('learn')">Learn</a></li>
+                <li><a href="/blog" onclick="event.preventDefault();window.app.navigate('blog')">Blog</a></li>
+                <li><a href="/about" onclick="event.preventDefault();window.app.navigate('about')">About</a></li>
+                <li><a href="/contact" onclick="event.preventDefault();window.app.navigate('contact')">Contact</a></li>
+                <li><a href="/cv.html" target="_blank" rel="noopener noreferrer">Curriculum Vitae ↗</a></li>
+              </ul>
             </div>
 
-            <div
-              id="footer-tab-panel"
-              class="footer-tab-panel"
-              role="tabpanel"
-              aria-labelledby="footer-tab-${activeTab}"
-              tabindex="0"
-            >
-              ${this.renderFooterTabContent(activeTab, D)}
+            <div class="footer-col">
+              <h2 class="footer-col-title">Services</h2>
+              <ul class="footer-plain-links">
+                ${services
+                  .map(
+                    (s) =>
+                      `<li><a href="/services#${s.id}" onclick="event.preventDefault();window.app.navigate('services')">${s.title}</a></li>`
+                  )
+                  .join('')}
+              </ul>
+            </div>
+
+            <div class="footer-col">
+              <h2 class="footer-col-title">Legal &amp; Contact</h2>
+              <ul class="footer-plain-links">
+                <li><a href="/privacy" onclick="event.preventDefault();window.app.navigate('privacy')">Privacy Policy</a></li>
+                <li><a href="/terms" onclick="event.preventDefault();window.app.navigate('terms')">Terms of Service</a></li>
+                <li><a href="/cookies" onclick="event.preventDefault();window.app.navigate('cookies')">Cookie Notice</a></li>
+                <li><button type="button" class="footer-cookie-btn" onclick="window.app.openCookiePreferences()">Cookie Settings</button></li>
+                <li><a href="mailto:${D.email}">${D.email}</a></li>
+                <li><span class="footer-col-meta">${D.workingHours}</span></li>
+              </ul>
             </div>
           </div>
 
           <div class="footer-legal">
             <span>© ${new Date().getFullYear()} YOLETECH. All rights reserved.</span>
-            <a class="footer-location-link" href="${D.locationUrl || `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(D.location)}`}" target="_blank" rel="noopener noreferrer" aria-label="Open ${D.location} in Google Maps">${D.location} ↗</a>
+            <a class="footer-location-link" href="${D.locationUrl}" target="_blank" rel="noopener noreferrer" aria-label="Open ${D.location} in Google Maps">${D.location} ↗</a>
           </div>
         </div>
       </footer>
+    `;
+  }
 
+  getCookieConsentState() {
+    try {
+      return localStorage.getItem('yoletech_cookie_consent') || '';
+    } catch {
+      return '';
+    }
+  }
 
+  setCookieConsent(choice) {
+    try {
+      localStorage.setItem('yoletech_cookie_consent', choice);
+    } catch {}
+    this.showCookieSettingsModal = false;
+    if (choice === 'accepted' && typeof window.yoletechLoadAnalytics === 'function') {
+      window.yoletechLoadAnalytics();
+    }
+    this.showToast(choice === 'accepted' ? 'Analytics cookies enabled.' : 'Essential cookies only saved.');
+    this.render();
+  }
+
+  openCookiePreferences() {
+    this.showCookieSettingsModal = true;
+    this.render();
+  }
+
+  renderCookieConsentBanner() {
+    const consent = this.getCookieConsentState();
+    if (consent && !this.showCookieSettingsModal) return '';
+    return `
+      <aside class="cookie-consent-banner" role="dialog" aria-label="Cookie preferences" aria-live="polite">
+        <div class="cookie-consent-inner container">
+          <div class="cookie-consent-copy">
+            <strong>Cookie &amp; Privacy Preferences</strong>
+            <p>
+              YOLETECH uses essential session and theme storage to keep portals working. Optional analytics (Google Tag Manager) loads only with your consent.
+              <a href="/cookies" onclick="event.preventDefault();window.app.showCookieSettingsModal=false;window.app.navigate('cookies')">Read Cookie Notice</a>.
+            </p>
+          </div>
+          <div class="cookie-consent-actions">
+            <button type="button" class="btn btn-outline btn-sm" onclick="window.app.setCookieConsent('essential')">Essential Only</button>
+            <button type="button" class="btn btn-lime btn-sm" onclick="window.app.setCookieConsent('accepted')">Accept Analytics</button>
+          </div>
+        </div>
+      </aside>
+    `;
+  }
+
+  renderLegalPage(kind) {
+    const D = window.YOLETECH_DATA.owner;
+    const currentConsent = this.getCookieConsentState() || 'Not set yet';
+    if (kind === 'privacy') {
+      return `
+        <section class="section">
+          <div class="container" style="max-width:840px;">
+            <div class="glass-card">
+              <div class="eyebrow"><span class="eyebrow-dot"></span> LEGAL — DRAFT FOR OWNER REVIEW</div>
+              <h1 style="font-size:clamp(28px,3.6vw,40px);font-weight:900;margin-bottom:14px;">Privacy Policy</h1>
+              <p style="color:var(--yole-text-muted);margin-bottom:20px;">
+                Draft prepared for YOLETECH (https://www.yolestica.com) referencing the <strong>Nigeria Data Protection Act (NDPA) 2023</strong>.
+                <strong>TODO(owner):</strong> Confirm legal business registration details and Data Protection Officer contact prior to formal legal sign-off.
+              </p>
+              <h2 style="font-size:20px;margin:20px 0 8px;">1. Information We Collect</h2>
+              <p style="color:var(--yole-text-muted);">When you submit a contact inquiry, register for the Client Portal, or enroll on the Learn page, we collect only the details you submit (name, email address, optional phone number, location, organization, and inquiry or course selection).</p>
+              <h2 style="font-size:20px;margin:20px 0 8px;">2. Lawful Basis &amp; Use of Data</h2>
+              <p style="color:var(--yole-text-muted);">We process your personal data with your consent or to fulfill requested services and course enrollments, respond to inquiries, and protect platform security. We do not sell personal data.</p>
+              <h2 style="font-size:20px;margin:20px 0 8px;">3. Your Rights Under the NDPA (2023)</h2>
+              <p style="color:var(--yole-text-muted);">You may request access, correction, portability, restriction, or deletion of your personal data by emailing <a href="mailto:${D.email}" style="color:var(--yole-lime);text-decoration:underline;">${D.email}</a>.</p>
+              <h2 style="font-size:20px;margin:20px 0 8px;">4. Security &amp; Retention</h2>
+              <p style="color:var(--yole-text-muted);">Account passwords are stored using salted scrypt hashing. Session cookies use HttpOnly and SameSite protections. Data is retained only as long as needed to deliver services or satisfy legal obligations.</p>
+            </div>
+          </div>
+        </section>
+      `;
+    }
+    if (kind === 'terms') {
+      return `
+        <section class="section">
+          <div class="container" style="max-width:840px;">
+            <div class="glass-card">
+              <div class="eyebrow"><span class="eyebrow-dot"></span> LEGAL — DRAFT FOR OWNER REVIEW</div>
+              <h1 style="font-size:clamp(28px,3.6vw,40px);font-weight:900;margin-bottom:14px;">Terms of Service</h1>
+              <p style="color:var(--yole-text-muted);margin-bottom:20px;">
+                Draft prepared for YOLETECH (https://www.yolestica.com).
+                <strong>TODO(owner):</strong> Review governing jurisdiction, payment milestones, and refund terms with legal counsel.
+              </p>
+              <h2 style="font-size:20px;margin:20px 0 8px;">1. Digital Services &amp; Training</h2>
+              <p style="color:var(--yole-text-muted);">Project scopes, timelines, deliverables, and fees for web development, data analytics, business intelligence, automation, IT support, and training are confirmed in writing before work commences.</p>
+              <h2 style="font-size:20px;margin:20px 0 8px;">2. User Accounts &amp; Acceptable Use</h2>
+              <p style="color:var(--yole-text-muted);">You agree to provide accurate registration information, safeguard your login credentials, and refrain from unauthorized access or automated abuse of YOLETECH services.</p>
+              <h2 style="font-size:20px;margin:20px 0 8px;">3. Intellectual Property</h2>
+              <p style="color:var(--yole-text-muted);">Site articles, tutorials, and training curriculum remain the intellectual property of YOLETECH unless ownership is explicitly transferred in a signed client contract.</p>
+              <h2 style="font-size:20px;margin:20px 0 8px;">4. Contact</h2>
+              <p style="color:var(--yole-text-muted);">Questions about these terms can be sent to <a href="mailto:${D.email}" style="color:var(--yole-lime);text-decoration:underline;">${D.email}</a>.</p>
+            </div>
+          </div>
+        </section>
+      `;
+    }
+    return `
+      <section class="section">
+        <div class="container" style="max-width:840px;">
+          <div class="glass-card">
+            <div class="eyebrow"><span class="eyebrow-dot"></span> LEGAL — DRAFT FOR OWNER REVIEW</div>
+            <h1 style="font-size:clamp(28px,3.6vw,40px);font-weight:900;margin-bottom:14px;">Cookie Notice</h1>
+            <p style="color:var(--yole-text-muted);margin-bottom:20px;">
+              This notice explains how YOLETECH uses cookies and browser storage on https://www.yolestica.com.
+            </p>
+            <h2 style="font-size:20px;margin:20px 0 8px;">1. Essential Cookies &amp; Storage</h2>
+            <p style="color:var(--yole-text-muted);">We use an HttpOnly session cookie (<code>yoletech_session</code>) for authenticated Client, Learner, and Admin portals, plus local storage for your dark/light theme preference and cookie consent choice.</p>
+            <h2 style="font-size:20px;margin:20px 0 8px;">2. Optional Analytics Cookies</h2>
+            <p style="color:var(--yole-text-muted);">Google Tag Manager is disabled by default and loads only if you click <strong>Accept Analytics</strong>. Current preference: <strong>${currentConsent}</strong>.</p>
+            <div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:20px;">
+              <button type="button" class="btn btn-outline btn-sm" onclick="window.app.setCookieConsent('essential')">Use Essential Cookies Only</button>
+              <button type="button" class="btn btn-lime btn-sm" onclick="window.app.setCookieConsent('accepted')">Accept Analytics Cookies</button>
+            </div>
+          </div>
+        </div>
+      </section>
     `;
   }
 
@@ -7410,6 +7534,15 @@ class YoletechApp {
       case 'contact':
         pageContent = this.renderContactPage();
         break;
+      case 'privacy':
+        pageContent = this.renderLegalPage('privacy');
+        break;
+      case 'terms':
+        pageContent = this.renderLegalPage('terms');
+        break;
+      case 'cookies':
+        pageContent = this.renderLegalPage('cookies');
+        break;
       case 'login':
         pageContent = this.renderAuthPage();
         break;
@@ -7431,6 +7564,7 @@ class YoletechApp {
       ${this.renderHeader()}
       <main id="main-content" class="${pageChanged ? 'page-enter' : ''}">${this.currentPage === 'home' ? this.renderServicesTicker() : ''}${pageContent}</main>
       ${this.renderFooter()}
+      ${this.renderCookieConsentBanner()}
       <div id="toast-container"></div>
     `;
     this.renderedPage = this.currentPage;

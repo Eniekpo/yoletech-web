@@ -8013,3 +8013,206 @@ h1, h2, h3, h4, h5, h6, .hero-title, .section-title, .brand-wordmark {
     text-align: left;
   }
 }
+
+/* ============================================================================
+   SKIP LINK, MULTI-COLUMN CRAWLABLE FOOTER & COOKIE CONSENT BANNER
+   ============================================================================ */
+.skip-link {
+  position: fixed;
+  top: -120px;
+  left: 16px;
+  z-index: 100000;
+  padding: 10px 18px;
+  border-radius: 999px;
+  background: #C8E61E;
+  color: #17143A;
+  font-weight: 800;
+  font-size: 14px;
+  text-decoration: none;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+  transition: top 0.15s ease;
+}
+
+.skip-link:focus {
+  top: 14px;
+  outline: 3px solid #F7941D;
+  outline-offset: 2px;
+}
+
+.footer-columns {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr 1.15fr 1fr;
+  gap: 32px;
+  padding: 36px 0 28px;
+  border-top: 1px solid var(--yole-border-subtle);
+}
+
+.footer-col-title {
+  font-size: 13px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #C8E61E;
+  margin: 0 0 14px;
+}
+
+.footer-col-desc {
+  font-size: 14px;
+  color: var(--yole-text-muted);
+  margin: 12px 0 10px;
+  line-height: 1.6;
+}
+
+.footer-col-meta {
+  font-size: 13px;
+  color: var(--yole-text-muted);
+  margin: 0;
+}
+
+.footer-plain-links {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+
+.footer-plain-links a,
+.footer-cookie-btn {
+  color: var(--yole-text-muted);
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 500;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  text-align: left;
+  font-family: inherit;
+  transition: color 0.15s ease;
+}
+
+.footer-plain-links a:hover,
+.footer-plain-links a:focus-visible,
+.footer-cookie-btn:hover,
+.footer-cookie-btn:focus-visible {
+  color: #C8E61E;
+  text-decoration: underline;
+}
+
+[data-theme="light"] .footer-col-title {
+  color: #1E1B54;
+}
+
+[data-theme="light"] .footer-plain-links a:hover,
+[data-theme="light"] .footer-plain-links a:focus-visible,
+[data-theme="light"] .footer-cookie-btn:hover,
+[data-theme="light"] .footer-cookie-btn:focus-visible {
+  color: #1E1B54;
+}
+
+.cookie-consent-banner {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 9500;
+  background: rgba(23, 20, 58, 0.97);
+  border-top: 2px solid #C8E61E;
+  padding: 16px 0;
+  backdrop-filter: blur(12px);
+  box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.35);
+}
+
+.cookie-consent-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.cookie-consent-copy {
+  flex: 1 1 320px;
+}
+
+.cookie-consent-copy strong {
+  display: block;
+  font-size: 14.5px;
+  color: #FFFFFF;
+  margin-bottom: 4px;
+}
+
+.cookie-consent-copy p {
+  margin: 0;
+  font-size: 13px;
+  color: #CBD5E1;
+  line-height: 1.5;
+}
+
+.cookie-consent-copy a {
+  color: #C8E61E;
+  text-decoration: underline;
+}
+
+.cookie-consent-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+[data-theme="light"] .cookie-consent-banner {
+  background: rgba(255, 255, 255, 0.98);
+  border-top-color: #1E1B54;
+  box-shadow: 0 -8px 24px rgba(15, 23, 42, 0.14);
+}
+
+[data-theme="light"] .cookie-consent-copy strong {
+  color: #1E1B54;
+}
+
+[data-theme="light"] .cookie-consent-copy p {
+  color: #334155;
+}
+
+[data-theme="light"] .cookie-consent-copy a {
+  color: #1E1B54;
+}
+
+.dash-a11y-table {
+  margin-top: 12px;
+  font-size: 13px;
+  color: var(--yole-text-muted);
+}
+
+.dash-a11y-table summary {
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.dash-a11y-table table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 8px;
+}
+
+.dash-a11y-table th,
+.dash-a11y-table td {
+  padding: 6px 8px;
+  border-bottom: 1px solid var(--yole-border-subtle);
+  text-align: left;
+}
+
+@media (max-width: 960px) {
+  .footer-columns {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 640px) {
+  .footer-columns {
+    grid-template-columns: 1fr;
+    gap: 24px;
+  }
+}

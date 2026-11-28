@@ -2,12 +2,19 @@
 <html lang="en">
 
 <head>
-  <!-- Google tag -->
-  <script async src="https://www.googletagmanager.com/gtm.js?id=G-XB50V6V6LG"></script>
+  <!-- Consent-gated analytics loader (loads ONLY if user opted in on site) -->
   <script>
     window.dataLayer = window.dataLayer || [];
     function gtag() { dataLayer.push(arguments); }
-    gtag('js', new Date());
+    try {
+      if (localStorage.getItem('yoletech_cookie_consent') === 'accepted') {
+        gtag('js', new Date());
+        var s = document.createElement('script');
+        s.async = true;
+        s.src = 'https://www.googletagmanager.com/gtm.js?id=G-XB50V6V6LG';
+        document.head.appendChild(s);
+      }
+    } catch (e) {}
   </script>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />

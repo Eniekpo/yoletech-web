@@ -2,12 +2,24 @@
 <html lang="en">
 
 <head>
-  <!-- Google tag -->
-  <script async src="https://www.googletagmanager.com/gtm.js?id=G-XB50V6V6LG"></script>
+  <!-- Consent-gated analytics loader (Google Tag Manager loads ONLY after explicit consent) -->
   <script>
     window.dataLayer = window.dataLayer || [];
     function gtag(){dataLayer.push(arguments);}
-    gtag('js', new Date());
+    window.yoletechLoadAnalytics = function () {
+      if (window.__yoletechGtmLoaded) return;
+      window.__yoletechGtmLoaded = true;
+      gtag('js', new Date());
+      var s = document.createElement('script');
+      s.async = true;
+      s.src = 'https://www.googletagmanager.com/gtm.js?id=G-XB50V6V6LG';
+      document.head.appendChild(s);
+    };
+    try {
+      if (localStorage.getItem('yoletech_cookie_consent') === 'accepted') {
+        window.yoletechLoadAnalytics();
+      }
+    } catch (e) {}
   </script>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
