@@ -122,19 +122,19 @@ window.YOLETECH_COMPONENTS = {
 
     return `
       <div class="portrait-orbit-card">
-        <img src="${imgSrc}" alt="${imgAlt}" />
+        <img src="${imgSrc}" alt="${imgAlt}" width="960" height="640" decoding="async" />
         <div class="portrait-floating-badge">
           <div>
             <div style="font-weight:800;font-size:14px;color:#FFFFFF;">${badgeTitle}</div>
             <div style="font-size:12px;color:#C8E61E;font-weight:600;">${badgeSub}</div>
           </div>
-          <span class="tech-pill lime" style="font-size:11px;padding:4px 10px;" data-kpi-target="5" data-kpi-suffix="+ Yrs Exp">5+ Yrs Exp</span>
+          <span class="tech-pill lime" style="font-size:11px;padding:4px 10px;">Nigeria &amp; Remote</span>
         </div>
       </div>
     `;
   },
 
-  // 2. Interactive Data Overview Dashboard Widget (Matches Sample f2e39467.jpg)
+  // 2. Interactive Data Overview Dashboard Widget (Illustrative UI Preview)
   renderDataOverviewWidget() {
     return `
       <div class="ui-mockup-frame bi-overview-widget">
@@ -146,7 +146,7 @@ window.YOLETECH_COMPONENTS = {
               <span class="window-dot green"></span>
             </div>
             <span style="font-size:12px;font-weight:800;color:#FFFFFF;letter-spacing:0.06em;">
-              YOLE<span style="color:#C8E61E;">TECH</span> • BI &amp; DATA OVERVIEW
+              YOLE<span style="color:#C8E61E;">TECH</span> • SAMPLE BI UI PREVIEW (ILLUSTRATIVE DATA)
             </span>
           </div>
           <div class="bi-widget-range-group" role="group" aria-label="Dashboard timeframe">
@@ -248,7 +248,7 @@ window.YOLETECH_COMPONENTS = {
           <div class="code-editor-pane">
             <div style="color:rgba(255,255,255,0.45);">// Register automated SQL &amp; Web API sync hook</div>
             <div><span style="color:#F7941D;">export async function</span> <span style="color:#C8E61E;">handleDataSync</span>(departmentId) {</div>
-            <div style="padding-left:14px;">const endpoint = <span style="color:#C8E61E;">'https://api.yoletica.com/v2/sync'</span>;</div>
+            <div style="padding-left:14px;">const endpoint = <span style="color:#C8E61E;">'https://www.yolestica.com/api/v2/sync'</span>;</div>
             <div style="padding-left:14px;">const response = <span style="color:#F7941D;">await</span> fetch(endpoint, { method: <span style="color:#C8E61E;">'POST'</span> });</div>
             <div style="padding-left:14px;margin-top:6px;"><span style="color:#F7941D;">if</span> (!response.ok) <span style="color:#F7941D;">return</span> { valid: <span style="color:#F7941D;">false</span> };</div>
             <div style="padding-left:14px;margin-top:6px;">const payload = <span style="color:#F7941D;">await</span> response.json();</div>
@@ -260,7 +260,7 @@ window.YOLETECH_COMPONENTS = {
             <div>
               <div style="background:#2F2B73;border:1px solid rgba(200,230,30,0.4);border-radius:10px;padding:9px 12px;font-size:11.5px;display:flex;align-items:center;gap:8px;margin-bottom:14px;">
                 <span style="background:#C8E61E;color:#17143A;font-weight:900;padding:2px 7px;border-radius:6px;">API</span>
-                <span style="color:#FFFFFF;overflow:hidden;text-overflow:ellipsis;">https://api.yoletica.com/v2/sync</span>
+                <span style="color:#FFFFFF;overflow:hidden;text-overflow:ellipsis;">https://www.yolestica.com/api/v2/sync</span>
               </div>
               <div style="font-size:11px;font-weight:800;color:var(--yole-text-muted);letter-spacing:0.08em;margin-bottom:8px;">
                 WORKFLOW STATUS
@@ -329,7 +329,7 @@ window.YOLETECH_COMPONENTS = {
 
         <div class="workflow-inspector-bar" style="margin-top:14px;padding:10px 14px;border-radius:10px;background:rgba(15,13,44,0.65);border:1px solid rgba(200,230,30,0.28);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;font-size:12px;">
           <span class="workflow-inspector-text" style="color:var(--yole-text-muted);"><strong style="color:#C8E61E;">Stage 00 — Source Ingestion:</strong> Pulling departmental REST APIs, Excel workbooks &amp; relational SQL tables.</span>
-          <span class="workflow-inspector-metric" style="color:#C8E61E;font-weight:800;">99.9% Schema Match</span>
+          <span class="workflow-inspector-metric" style="color:#C8E61E;font-weight:800;">Illustrative Pipeline Preview</span>
         </div>
       </div>
     `;
@@ -414,10 +414,10 @@ window.YOLETECH_COMPONENTS = {
 
             <div>
               <div style="font-size:12.5px;color:var(--yole-text-muted);margin-bottom:14px;">
-                Estimated Implementation Payback: <strong style="color:#C8E61E;">3–5 Weeks</strong> • Enforces 99.9% audit accuracy
+                Illustrative estimate based on your slider inputs — actual savings and timeline depend on project scope.
               </div>
               <button type="button" class="btn btn-lime" style="width:100%;padding:14px 20px;font-size:15px;font-weight:800;border-radius:10px;" onclick="window.app.applyRoiEstimateToInquiry()">
-                Claim Custom Pipeline Proposal →
+                Book a Discovery Call →
               </button>
             </div>
           </div>

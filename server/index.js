@@ -1475,9 +1475,31 @@ const requestHandler = async (req, res) => {
     if (pathname === '/api/inquiries' && req.method === 'POST') {
       const authUser = getAuthUser(req);
       const body = await parseBody(req);
-      const { name, email, phone, service_category, budget, message } = body;
-      if (!name || !email || !message) {
-        return sendJson(res, 400, { error: 'Name, email, and project details are required.' });
+      // Silent honeypot drop for bots
+      if (body && typeof body.website === 'string' && body.website.trim().length > 0) {
+        return sendJson(res, 200, { accepted: true, message: 'Thank you for your inquiry.' });
+      }
+      if (!checkRateLimit(clientIp, 'inquiry-ip', 10, 15 * 60 * 1000)) {
+        return sendJson(res, 429, { error: 'Too many inquiries submitted from this address. Please try again shortly.' });
+      }
+      const { name, email, phone, service_category, budget, message, consent } = body || {};
+      const cleanName = String(name || '').trim();
+      const cleanEmail = String(email || '').trim().toLowerCase();
+      const cleanMessage = String(message || '').trim();
+      if (cleanName.length < 2) {
+        return sendJson(res, 400, { error: 'Please provide your full name (at least 2 characters).' });
+      }
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cleanEmail)) {
+        return sendJson(res, 400, { error: 'Please provide a valid email address.' });
+      }
+      if (cleanMessage.length < 10) {
+        return sendJson(res, 400, { error: 'Please provide at least 10 characters of project details.' });
+      }
+      if (!authUser && consent !== true && consent !== 'true' && consent !== 'on') {
+        return sendJson(res, 400, { error: 'Please agree to the Terms of Service and Privacy Policy before submitting.' });
+      }
+      if (!checkRateLimit(cleanEmail, 'inquiry-email', 5, 15 * 60 * 1000)) {
+        return sendJson(res, 429, { error: 'Too many inquiries submitted for this email. Please wait before trying again.' });
       }
       const info = db
         .prepare(
@@ -1486,12 +1508,12 @@ const requestHandler = async (req, res) => {
         )
         .run(
           authUser ? authUser.id : null,
-          name.trim(),
-          email.trim().toLowerCase(),
-          (phone || '').trim(),
-          service_category || 'Data Analytics & Dashboards',
-          budget || service_category || 'Data Analysis & Analytics',
-          message.trim()
+          cleanName,
+          cleanEmail,
+          String(phone || '').trim(),
+          service_category || 'Data Analysis & Executive BI',
+          budget || service_category || 'Data Analysis & Executive BI',
+          cleanMessage
         );
       const inquiry = db.prepare('SELECT * FROM inquiries WHERE id = ?').get(info.lastInsertRowid);
       await sendEmailToYoletech({

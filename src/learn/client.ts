@@ -762,7 +762,8 @@ function attachLearnClientMethods(proto: Record<string, unknown>): void {
     const subheadline =
       content?.subheadline ||
       'Hands-on training in web development, data analytics, AI automation, and IT—guided step by step from day one.';
-    const ctaLabel = content?.cta_label || 'Register Now';
+    const ctaLabel =
+      !content?.cta_label || content.cta_label === 'Register Now' ? 'Enroll Now' : content.cta_label;
     const faqs = content?.faq || [];
 
     const hasCountry = Boolean(st.form.countryCode);
@@ -867,7 +868,7 @@ function attachLearnClientMethods(proto: Record<string, unknown>): void {
                     </div>
                     <div class="learn-course-card-actions">
                       <button type="button" class="btn btn-lime btn-sm" onclick="window.app.scrollToLearnRegistration(${course.id})">
-                        Register for this Course
+                        Enroll Now
                       </button>
                       <button type="button" class="btn btn-outline btn-sm" onclick="window.app.openCourseDetailsModal(${course.id})">
                         Course Details
@@ -1504,18 +1505,24 @@ function renderCourseDetailsModal(course: CourseRecord | null): string {
         `
             : ''
         }
-        <div class="learn-course-badges" style="margin-bottom:4px;">
+        <div class="learn-course-badges" style="margin-bottom:8px;">
           <span class="tech-pill lime">${escHtml(course.level)}</span>
           <span class="tech-pill orange">${formatModeLabel(course.mode)}</span>
           ${course.duration ? `<span class="tech-pill">${escHtml(course.duration)}</span>` : ''}
           ${course.price ? `<span class="tech-pill">${escHtml(course.price)}</span>` : ''}
         </div>
+        <dl class="learn-detail-list" style="margin:10px 0 14px;">
+          <div><dt>Mode</dt><dd>${formatModeLabel(course.mode)}</dd></div>
+          <div><dt>Duration</dt><dd>${course.duration ? escHtml(course.duration) : 'TODO(owner): Confirm program duration'}</dd></div>
+          <div><dt>Schedule</dt><dd>TODO(owner): Confirm upcoming cohort schedule</dd></div>
+          <div><dt>Program Fee</dt><dd>${course.price ? escHtml(course.price) : 'TODO(owner): Confirm program fee'}</dd></div>
+        </dl>
         <p class="learn-course-modal-desc">${escHtml(course.short_description)}</p>
         ${
           course.outcomes.length > 0
             ? `
           <div class="learn-outcomes-block">
-            <div class="learn-outcomes-label">What you will learn</div>
+            <div class="learn-outcomes-label">Curriculum &amp; What You Will Learn</div>
             <ul class="learn-outcomes-list">
               ${course.outcomes
                 .map((outcome) => `<li><span class="learn-check" aria-hidden="true">✓</span><span>${escHtml(outcome)}</span></li>`)
@@ -1528,7 +1535,7 @@ function renderCourseDetailsModal(course: CourseRecord | null): string {
       </div>
       <div class="learn-course-modal-footer">
         <button type="button" class="btn btn-lime btn-sm" onclick="window.app.registerFromCourseModal(${course.id})">
-          Register for this Course →
+          Enroll Now →
         </button>
         <button type="button" class="btn btn-outline btn-sm" onclick="window.app.closeCourseDetailsModal()">
           Close

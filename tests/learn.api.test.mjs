@@ -437,9 +437,9 @@ test('Unified login differentiates CLIENT, LEARNER, and ADMIN roles and Learn he
   assert.match(learnBundle, /learn-hero-grid/);
   assert.match(learnBundle, /\/assets\/learn-hero-learner\.jpg/);
 
-  // 5. Course cards show title, image, "Register for this Course", "Course Details" modal trigger, and admin image field
+  // 5. Course cards show title, image, "Enroll Now", "Course Details" modal trigger, and admin image field
   assert.match(learnBundle, /learn-course-media/);
-  assert.match(learnBundle, /Register for this Course/);
+  assert.match(learnBundle, /Enroll Now/);
   assert.match(learnBundle, /Course Details/);
   assert.match(learnBundle, /openCourseDetailsModal/);
   assert.match(learnBundle, /learn-course-details-modal/);

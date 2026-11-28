@@ -196,7 +196,7 @@ var LEGACY_DEFAULT_LEARN_SUBHEADLINE = "Explore structured training programs acr
 var DEFAULT_LEARN_PAGE_CONTENT = {
   headline: "Build In-Demand Tech Skills. Learn by Doing.",
   subheadline: "Hands-on training in web development, data analytics, AI automation, and IT\u2014guided step by step from day one.",
-  cta_label: "Register Now",
+  cta_label: "Enroll Now",
   faq: [
     {
       question: "Who can register for a Yoletech training program?",

@@ -1,17 +1,23 @@
 // ============================================================================
-// YOLETECH — STRUCTURED CV, BRAND & SERVICES DATA
+// YOLETECH — STRUCTURED BRAND, SERVICES & PROFILE DATA
 // ============================================================================
 
 window.YOLETECH_DATA = {
   owner: {
     name: "John Oruebi Eniekpo",
+    credentials: "B.Sc. Computer Science (M.Sc. IT in progress)",
+    jobTitle: "Data Analyst, Business Intelligence Specialist & Full-Stack Web Developer",
     roles: ["Data Analyst", "Business Intelligence Specialist", "Full-Stack Web Developer"],
     location: "Yenagoa, Bayelsa State, Nigeria",
+    serviceArea: "Yenagoa, Bayelsa State, Nigeria & Remote Worldwide",
     locationUrl: "https://www.google.com/maps/search/?api=1&query=Yenagoa%2C+Bayelsa+State%2C+Nigeria",
     phone: "+234 802 552 6389",
+    phoneE164: "+2348025526389",
     whatsappUrl: "https://wa.me/2348025526389",
     email: "yoletech@yolestica.com",
-    workingHours: "Mon - Fri, 9 AM - 6 PM (GMT+1)",
+    bookingUrlPlaceholder: "TODO(owner): Add your Calendly or Cal.com discovery call booking URL",
+    workingHours: "Monday – Friday, 9:00 AM – 6:00 PM WAT (UTC+1)",
+    responseTimeStatement: "We respond to all project and training inquiries within 1 business day (24 hours on working days).",
     socials: {
       linkedin: "https://linkedin.com/in/yolestica",
       github: "https://github.com/Eniekpo",
@@ -21,19 +27,18 @@ window.YOLETECH_DATA = {
       whatsapp: "https://wa.me/2348025526389"
     },
     summary:
-      "To leverage 5+ years of expertise in data analytics, business intelligence, and full-stack development to build reliable, data-driven solutions that strengthen decisions and deliver measurable impact."
+      "Founder of YOLETECH, focused on data analytics, executive business intelligence, workflow automation, full-stack web engineering, and practical technology training."
   },
 
-  // 6 Dynamic Hero Slideshow Slides (Showcasing Services + Brand Overview)
   heroSlides: [
     {
       id: "brand-partner",
-      eyebrow: "YOUR TECH PARTNER",
-      titleHtml: `Build better.<br/>Work smarter.<br/><span class="accent-lime">Grow your skills.</span>`,
+      eyebrow: "DATA ANALYTICS, BI & FULL-STACK ENGINEERING",
+      titleHtml: `Data Analytics, <span class="accent-lime">Executive BI</span> &amp; Full-Stack Web Solutions.`,
       subtitle:
-        "Practical digital services for businesses, professionals, and learners—delivering full-stack web applications, executive business intelligence, and automated workflows.",
-      primaryCta: { label: "View Services →", page: "services" },
-      secondaryCta: { label: "Contact Us", page: "contact" },
+        "Practical digital services for businesses, professionals, and learners—delivering full-stack web applications, interactive BI dashboards, and automated workflows.",
+      primaryCta: { label: "Book a Discovery Call →", page: "contact" },
+      secondaryCta: { label: "View Case Studies", page: "portfolio" },
       visualType: "portrait"
     },
     {
@@ -41,9 +46,9 @@ window.YOLETECH_DATA = {
       eyebrow: "DATA ANALYSIS & BUSINESS INTELLIGENCE",
       titleHtml: `Turn Complex Datasets Into <span class="accent-lime">Executive Clarity.</span>`,
       subtitle:
-        "End-to-end data cleaning, statistical auditing, and interactive Power BI & Tableau dashboards that empower leadership to make fast, high-confidence decisions.",
-      primaryCta: { label: "Explore BI Services →", page: "services" },
-      secondaryCta: { label: "View Portfolio", page: "portfolio" },
+        "End-to-end data cleaning, statistical auditing, and interactive Power BI & Tableau dashboards built for clear leadership decisions.",
+      primaryCta: { label: "Book a Discovery Call →", page: "contact" },
+      secondaryCta: { label: "Explore Services", page: "services" },
       visualType: "dashboard"
     },
     {
@@ -51,173 +56,241 @@ window.YOLETECH_DATA = {
       eyebrow: "FULL-STACK WEB DEVELOPMENT",
       titleHtml: `Modern Full-Stack <span class="accent-lime">Web Applications</span> &amp; Portals.`,
       subtitle:
-        "Responsive frontend and backend systems built with React.js, modern JavaScript, HTML/CSS, WordPress, and relational SQL databases—engineered for speed, security, and scalability.",
-      primaryCta: { label: "Start a Web Project →", page: "contact" },
-      secondaryCta: { label: "See Web Projects", page: "portfolio" },
+        "Responsive frontend and backend systems built with React.js, Node.js, JavaScript, WordPress, and relational SQL databases.",
+      primaryCta: { label: "Book a Discovery Call →", page: "contact" },
+      secondaryCta: { label: "View Case Studies", page: "portfolio" },
       visualType: "codesync"
     },
     {
       id: "ai-automation",
-      eyebrow: "AI, MACHINE LEARNING & WORKFLOW AUTOMATION",
+      eyebrow: "AI & WORKFLOW AUTOMATION",
       titleHtml: `Eliminate Bottlenecks With <span class="accent-lime">AI &amp; Automation.</span>`,
       subtitle:
-        "Predictive machine learning models for forecasting outcomes, automated Excel VBA macros, and custom Python scripts that cut manual reporting time from hours to seconds.",
-      primaryCta: { label: "Automate Your Workflow →", page: "contact" },
+        "Automated reporting pipelines, scheduled Python scripts, Excel VBA macros, and API workflows that reduce repetitive manual effort.",
+      primaryCta: { label: "Book a Discovery Call →", page: "contact" },
       secondaryCta: { label: "Explore Services", page: "services" },
       visualType: "workflow"
-    },
-    {
-      id: "tech-tutorials",
-      eyebrow: "TECH TUTORIALS, TRAINING & MENTORSHIP",
-      titleHtml: `Practical Training in <span class="accent-lime">Python, SQL &amp; Data Analytics.</span>`,
-      subtitle:
-        "Backed by proven experience training and mentoring over 200 interns and corporate staff in Python programming, SQL database querying, Power BI, and data governance standards.",
-      primaryCta: { label: "Book Training →", page: "contact" },
-      secondaryCta: { label: "Read Blog", page: "blog" },
-      visualType: "portrait"
-    },
-    {
-      id: "creative-it-support",
-      eyebrow: "GRAPHIC DESIGN, VIDEO EDITING & IT SUPPORT",
-      titleHtml: `Visual Branding, Media &amp; <span class="accent-lime">Reliable IT Support.</span>`,
-      subtitle:
-        "From cohesive brand visuals and video editing to database administration, system setup, troubleshooting, and responsive customer support that keeps your organization running.",
-      primaryCta: { label: "Request Support →", page: "contact" },
-      secondaryCta: { label: "View All Services", page: "services" },
-      visualType: "dashboard"
     }
   ],
 
-  // 8-Service Feature Strip (Exact Match to YOLETECH Hero Banner 850cf543.png)
+  // 7 Confirmed Core & Extended Services (aligned with server/site-config.js and /learn)
   eightServicesStrip: [
     {
-      id: "web-dev",
-      title: "Web Development",
-      sub: "React JS · WordPress · Python",
+      id: "full-stack-web-development",
+      title: "Full-Stack Web Development",
+      sub: "React.js · Node.js · JavaScript · SQL · WordPress",
       icon: "code",
       category: "Full-Stack Web",
       description:
-        "Custom full-stack web applications, responsive corporate platforms, client portals, and frontend/backend system implementation built with React.js, JavaScript, HTML/CSS, WordPress, and Python/SQL backends.",
-      deliverables: ["React.js & Full-Stack Web Apps", "Custom WordPress Platforms", "Role-Based Client Portals & APIs", "Database-Driven Web Systems"]
+        "Custom websites, role-based client portals, web applications, and relational database backends built for speed, security, and maintainability.",
+      deliverables: [
+        "Responsive interfaces with WCAG 2.1 AA accessibility",
+        "REST API backends with validation and secure authentication",
+        "Relational SQL database design and parameterized queries",
+        "Production deployment, SSL setup, and handover docs"
+      ],
+      tools: ["JavaScript", "TypeScript", "React.js", "Node.js", "HTML5/CSS3", "SQL", "WordPress"],
+      process: "Discovery and wireframing, iterative frontend/backend build, QA testing, and documented launch.",
+      faq: {
+        q: "Can you modernize an existing website or build a custom client portal from scratch?",
+        a: "Yes. We audit existing sites for performance, SEO, and usability or architect new full-stack applications tailored to your workflow."
+      }
     },
     {
-      id: "data-analytics",
-      title: "Data Analysis & Analytics",
-      sub: "Python · Excel · Power BI · SQL · Tableau",
+      id: "data-analysis-executive-bi",
+      title: "Data Analysis & Executive BI",
+      sub: "Power BI · Tableau · Python · SQL · Excel · SPSS",
       icon: "chart",
       category: "Data Analytics & BI",
       description:
-        "End-to-end data cleaning, statistical auditing (Python, R, SPSS), predictive modeling, and interactive Power BI & Tableau dashboards that communicate key performance metrics to executive stakeholders.",
-      deliverables: ["Interactive Power BI & Tableau Dashboards", "Statistical Auditing (Python, R, SPSS)", "Predictive Performance & Resource Models", "Multi-Departmental Data Validation"]
+        "Structured data cleaning, statistical auditing, KPI modeling, and interactive Power BI and Tableau dashboards built for clear leadership decisions.",
+      deliverables: [
+        "Cleaned, validated, and documented datasets",
+        "SQL reporting views and KPI data models",
+        "Interactive Power BI and Tableau executive dashboards",
+        "Stakeholder walkthrough and metric dictionary"
+      ],
+      tools: ["Power BI", "Tableau", "Python (Pandas)", "SQL", "Microsoft Excel", "R", "SPSS"],
+      process: "Data source audit, cleaning and validation rules, KPI modeling, dashboard build, and executive review.",
+      faq: {
+        q: "What data sources can be connected to my BI dashboard?",
+        a: "We work with Excel/CSV files, SQL Server, MySQL, PostgreSQL, SQLite, and REST APIs, standardizing schemas before visualization."
+      }
     },
     {
-      id: "tech-tutorials",
-      title: "Tech Tutorials",
-      sub: "Learn · Build · Grow",
-      icon: "video",
-      category: "Tech Tutorials & Training",
-      description:
-        "Hands-on technical instruction, corporate staff training on data entry/governance standards, and structured mentorship in Python, Pandas, SQL, Excel VBA, and Business Intelligence (200+ interns trained).",
-      deliverables: ["1-on-1 & Cohort Data Analytics Mentorship", "Python, Pandas & SQL Practical Bootcamps", "Corporate Staff Data Standards Training", "YouTube Video Tutorials & Guides"]
-    },
-    {
-      id: "ai-automation",
-      title: "AI Automation",
-      sub: "Automate · Save Time · Do More",
+      id: "ai-workflow-automation",
+      title: "AI & Workflow Automation",
+      sub: "Python ETL · Excel VBA · APIs · AI Workflows",
       icon: "cpu",
       category: "AI & Workflow Automation",
       description:
-        "Automated data processing workflows using Excel VBA macros, custom Python scripts, and machine learning pipelines that eliminate repetitive manual compilation and enforce strict data accuracy.",
-      deliverables: ["Excel VBA Macros & Automated Reporting", "Python & SQL ETL Data Pipelines", "Machine Learning Forecasting Models", "Cross-Departmental Sync Automation"]
+        "Automated reporting pipelines, scheduled Python scripts, Excel VBA macros, and AI-assisted operational workflows that eliminate repetitive manual tasks.",
+      deliverables: [
+        "Process audit identifying high-effort manual bottlenecks",
+        "Automated Python/SQL ETL pipelines or Excel VBA workbooks",
+        "API and webhook integrations connecting forms, sheets, and email",
+        "Error handling, logging, and team handover guides"
+      ],
+      tools: ["Python", "Pandas", "OpenPyXL", "Excel VBA", "Node.js", "REST APIs", "Scikit-Learn"],
+      process: "Workflow mapping, prototype automation on real sample files, edge-case testing, and scheduled rollout.",
+      faq: {
+        q: "Will my team be able to run the automation without writing code?",
+        a: "Yes. Automations are delivered with one-click triggers or scheduled runs plus clear step-by-step operating instructions."
+      }
     },
     {
-      id: "graphic-design",
-      title: "Graphic Design",
-      sub: "Branding · Social Media · Visual Content",
-      icon: "brush",
-      category: "Creative & Media",
+      id: "tech-training-mentorship",
+      title: "Tech Training & Mentorship",
+      sub: "Python · SQL · Power BI · Excel · Web Dev",
+      icon: "video",
+      category: "Tech Tutorials & Training",
       description:
-        "Clean, high-impact brand identity systems, executive report layouts, data visualization graphics, and social media visual assets that communicate your message with clarity.",
-      deliverables: ["Brand Identity & Visual Assets", "Social Media & Campaign Graphics", "Executive Report & Presentation Design", "UI & Dashboard Visual Styling"]
+        "Structured, hands-on training programs and staff upskilling in data analytics, SQL, Python, business intelligence, and practical web engineering.",
+      deliverables: [
+        "Structured curriculum with guided practical exercises",
+        "Hands-on project feedback and code/dashboard reviews",
+        "Corporate staff data-standards and reporting workshops",
+        "Self-paced reference materials and templates"
+      ],
+      tools: ["Python", "SQL", "Power BI", "Microsoft Excel", "Git", "JavaScript"],
+      process: "Skill-level assessment, structured module delivery, guided capstone projects, and progress check-ins.",
+      faq: {
+        q: "Do beginners need prior coding experience to enroll?",
+        a: "No. Beginner tracks start with foundational concepts and build step by step through practical exercises."
+      }
     },
     {
-      id: "video-editing",
-      title: "Video Editing",
-      sub: "Edit · Enhance · Tell Your Story",
-      icon: "film",
-      category: "Creative & Media",
-      description:
-        "Crisp video production and editing for technical tutorials, product demonstrations, corporate presentations, and digital marketing storytelling.",
-      deliverables: ["Educational & Tech Tutorial Editing", "Corporate & Product Demo Videos", "Audio Enhancement & Motion Titles", "Social Video Formatting"]
-    },
-    {
-      id: "customer-support",
-      title: "Customer Support",
-      sub: "Reliable · Friendly · Results",
+      id: "customer-support-solutions",
+      title: "Customer Support Solutions",
+      sub: "AI Assistants · Chatbots · Help Desk Workflows",
       icon: "headset",
       category: "Support & Operations",
       description:
-        "Dedicated, detail-oriented client and customer support operations backed by clear communication, CRM tracking, and fast resolution turnaround.",
-      deliverables: ["Client Onboarding & CRM Management", "Technical Ticket & Inquiry Resolution", "Documentation & FAQ Structuring", "SLA-Driven Response Workflows"]
+        "Structured customer support workflows, FAQ knowledge bases, and AI-assisted chat experiences configured with clear escalation to human agents.",
+      deliverables: [
+        "Organized FAQ and support knowledge base structure",
+        "Web chat widget and automated triage workflows",
+        "Human handoff rules for complex customer inquiries",
+        "Response quality review and workflow documentation"
+      ],
+      tools: ["Chatwoot", "Node.js", "Webhooks", "WhatsApp Business", "CRM Workflows"],
+      process: "Common inquiry audit, knowledge base setup, chat flow integration, escalation testing, and live monitoring.",
+      faq: {
+        q: "Can customers still reach a real person when a chatbot cannot help?",
+        a: "Yes. Every support setup includes clear escalation paths to email, WhatsApp, or live agent handoff."
+      }
     },
     {
       id: "it-support",
-      title: "IT Support",
-      sub: "Setup · Troubleshoot · Keep You Running",
+      title: "IT Support & Database Administration",
+      sub: "SQL Admin · System Setup · Troubleshooting · Backups",
       icon: "settings",
       category: "Support & Operations",
       description:
-        "Database administration (SQL Server, MySQL, MS Access), software deployment leadership, system troubleshooting, and multi-departmental IT coordination.",
-      deliverables: ["SQL Server, MySQL & MS Access Admin", "Data Management System Deployment", "System Auditing & Troubleshooting", "Cross-Departmental Data Integrity"]
+        "Practical IT support, relational database administration, workstation setup, routine backups, and multi-departmental system troubleshooting.",
+      deliverables: [
+        "SQL Server, MySQL, and MS Access administration and maintenance",
+        "Workstation, user account, and office software configuration",
+        "Data backup routines and basic security hygiene checks",
+        "Incident tracking and clear troubleshooting documentation"
+      ],
+      tools: ["SQL Server", "MySQL", "SQLite", "MS Access", "Windows/macOS", "Cloud Storage"],
+      process: "System health check, issue triage and remediation, backup verification, and ongoing support cadence.",
+      faq: {
+        q: "Do you support remote troubleshooting as well as local setups?",
+        a: "Yes. Most database administration, software setup, and technical support tasks are handled remotely, with on-site options in Bayelsa State."
+      }
+    },
+    {
+      id: "ai-content-creation-graphic-design",
+      title: "AI-Powered Content Creation & Graphic Design",
+      sub: "Brand Graphics · Report Layouts · Video & Visual Media",
+      icon: "brush",
+      category: "Creative & Media",
+      description:
+        "Clean brand graphics, presentation and report layouts, social media templates, and edited tutorial or explainer media enhanced with modern AI tools.",
+      deliverables: [
+        "Consistent brand graphics and reusable social media templates",
+        "Executive presentation decks and visual report layouts",
+        "Edited tutorial, demo, and promotional video assets",
+        "Web-ready and print-ready exported source files"
+      ],
+      tools: ["Graphic Design Suites", "AI Creative Tools", "Video Editing Suites", "Presentation Tools"],
+      process: "Brand brief, layout concepts, feedback revisions, and final multi-format asset export.",
+      faq: {
+        q: "Will we receive editable files or reusable templates?",
+        a: "Yes. Projects include web-optimized exports along with reusable templates where agreed in scope."
+      }
     }
   ],
 
-  // Service Delivery Scope Table (from Sample 6584d141.jpg)
+  deliveryProcess: [
+    {
+      step: "01",
+      title: "Discovery",
+      detail: "Clarify business goals, audit existing data or web systems, confirm scope, and agree on measurable deliverables."
+    },
+    {
+      step: "02",
+      title: "Build",
+      detail: "Implement clean architectures, validated data pipelines, dashboards, or web features with regular progress checkpoints."
+    },
+    {
+      step: "03",
+      title: "Delivery",
+      detail: "Run quality assurance, accessibility and security checks, deploy to production, and provide clear handover guides."
+    },
+    {
+      step: "04",
+      title: "Support",
+      detail: "Provide post-launch troubleshooting, staff walkthroughs, and iterative improvements as your needs evolve."
+    }
+  ],
+
   serviceScopeTable: [
     {
       track: "Full-Stack Web Development",
-      stack: ["React.js", "JavaScript", "HTML/CSS", "WordPress", "SQL"],
-      timeline: "1 – 3 Weeks",
-      deliverables: "Responsive frontend & backend systems, client portals, database integration, fast load speed"
+      stack: ["React.js", "Node.js", "JavaScript", "HTML/CSS", "WordPress", "SQL"],
+      timeline: "Scoped during discovery",
+      deliverables: "Responsive frontend & backend systems, client portals, database integration, handover documentation"
     },
     {
-      track: "Data Analytics & BI Dashboards",
-      stack: ["Power BI", "Tableau", "Python", "R", "SPSS"],
-      timeline: "3 – 10 Days",
-      deliverables: "Cleaned & validated datasets, statistical audit reports, interactive executive KPI dashboards"
+      track: "Data Analysis & Executive BI",
+      stack: ["Power BI", "Tableau", "Python", "SQL", "R", "SPSS"],
+      timeline: "Scoped during discovery",
+      deliverables: "Cleaned & validated datasets, SQL views, interactive executive KPI dashboards, metric dictionary"
     },
     {
-      track: "AI, ML & Workflow Automation",
-      stack: ["Python", "Pandas", "Scikit-Learn", "Excel VBA", "SQL"],
-      timeline: "3 – 14 Days",
-      deliverables: "Predictive forecasting models, automated Excel VBA macros, scheduled analytical report scripts"
+      track: "AI & Workflow Automation",
+      stack: ["Python", "Pandas", "Scikit-Learn", "Excel VBA", "REST APIs"],
+      timeline: "Scoped during discovery",
+      deliverables: "Automated Excel VBA workbooks, scheduled Python ETL report scripts, API/webhook workflows"
     },
     {
-      track: "Database Architecture & Governance",
-      stack: ["SQL Server", "MySQL", "MS Access", "SQL"],
-      timeline: "3 – 7 Days",
-      deliverables: "Relational schema design, multi-departmental data consistency checks, compliance auditing"
-    },
-    {
-      track: "Tech Tutorials & Staff Training",
-      stack: ["Python", "SQL", "Power BI", "Excel", "Git"],
+      track: "Tech Training & Mentorship",
+      stack: ["Python", "SQL", "Power BI", "Excel", "Git", "JavaScript"],
       timeline: "Flexible / Cohort",
-      deliverables: "Hands-on coding workshops, staff data entry standards training, guided capstone workflows"
+      deliverables: "Hands-on coding workshops, staff data entry standards training, guided capstone exercises"
     },
     {
-      track: "Graphic Design, Video & IT Support",
-      stack: ["Brand Design", "Video Suite", "IT Diagnostics", "CRM"],
-      timeline: "1 – 5 Days / Retainer",
-      deliverables: "Brand visuals, edited tutorial/promo videos, system setup, ongoing technical maintenance"
+      track: "Customer & IT Support",
+      stack: ["SQL Server", "MySQL", "MS Access", "Chatwoot", "CRM"],
+      timeline: "On-demand / Retainer",
+      deliverables: "Relational database maintenance, chat support workflows, workstation troubleshooting, backup checks"
+    },
+    {
+      track: "AI Content & Graphic Design",
+      stack: ["Design Suites", "Video Editing", "Presentation Layouts"],
+      timeline: "Scoped during discovery",
+      deliverables: "Brand visuals, executive report layouts, edited tutorial/demo videos, reusable templates"
     }
   ],
 
-  // CV Core Technical Proficiencies
   coreProficiencies: [
     {
       category: "Data Analysis & Science",
       accent: "lime",
-      skills: ["Python (Pandas, Machine Learning)", "R Programming", "SPSS", "Predictive Modeling", "Data Cleaning", "Data Validation", "Statistical Auditing"]
+      skills: ["Python (Pandas, Scikit-Learn)", "R Programming", "SPSS", "Predictive Modeling", "Data Cleaning", "Data Validation", "Statistical Auditing"]
     },
     {
       category: "Business Intelligence",
@@ -227,26 +300,25 @@ window.YOLETECH_DATA = {
     {
       category: "Database Management",
       accent: "lime",
-      skills: ["SQL", "SQL Server", "MySQL", "Microsoft Access", "Database Architecture", "Multi-Departmental Data Consistency"]
+      skills: ["SQL", "SQL Server", "MySQL", "SQLite", "Microsoft Access", "Database Architecture"]
     },
     {
       category: "Web Development",
       accent: "orange",
-      skills: ["Full-Stack Development", "React.js", "JavaScript (ES6+)", "HTML5 & CSS3", "WordPress", "Frontend & Backend System Implementation"]
+      skills: ["Full-Stack Development", "React.js", "Node.js", "JavaScript / TypeScript", "HTML5 & CSS3", "WordPress"]
     },
     {
       category: "AI & Machine Learning",
       accent: "lime",
-      skills: ["Introductory & Intermediate Machine Learning", "AI Ethics", "Game AI & Reinforcement Learning", "Workflow Automation"]
+      skills: ["Machine Learning (Scikit-Learn)", "AI Ethics", "Workflow Automation", "AI-Assisted Support Flows"]
     },
     {
-      category: "Workflow Automation & IT Support",
+      category: "IT Support & Technical Media",
       accent: "orange",
-      skills: ["Python ETL & Report Automation", "Excel VBA Macros", "REST API Integration", "IT Systems & Technical Support", "Technical Documentation & Training", "Brand & Video Media"]
+      skills: ["Python ETL & Report Automation", "REST API Integration", "IT Systems & Database Support", "Technical Documentation & Training", "Graphic Design & Video Editing"]
     }
   ],
 
-  // CV Professional Experience
   experience: [
     {
       role: "Data Analyst",
@@ -254,11 +326,11 @@ window.YOLETECH_DATA = {
       location: "Yenagoa, Bayelsa State, Nigeria",
       period: "May 2021 – October 2024",
       highlights: [
-        "Managed, cleaned, and analyzed complex datasets for client research projects, improving analytical accuracy and reporting speed.",
+        "Managed, cleaned, and analyzed complex datasets for client research projects, strengthening analytical accuracy and reporting clarity.",
         "Designed interactive Power BI and Tableau dashboards to communicate key performance metrics to executive stakeholders.",
         "Developed predictive models to forecast student performance outcomes and institutional resource allocation.",
-        "Executed regular data audits and validation checks to enforce strict data compliance and quality standards.",
-        "Trained and mentored over 200 interns in data analytics, programming languages (Python/SQL), and practical technical workflows."
+        "Executed regular data audits and validation checks to enforce data quality standards.",
+        "Trained and mentored interns in data analytics, Python/SQL querying, and practical technical workflows."
       ]
     },
     {
@@ -267,19 +339,18 @@ window.YOLETECH_DATA = {
       location: "Yenagoa, Bayelsa State, Nigeria",
       period: "June 2019 – February 2021",
       highlights: [
-        "Processed and managed high-volume datasets across multiple departments, maintaining strict data accuracy and reporting timelines.",
-        "Automated repetitive data processing workflows using Excel VBA and custom scripts, reducing manual report compilation time significantly.",
-        "Administered and updated SQL databases to guarantee data consistency and integrity across organizational units.",
+        "Processed and managed high-volume datasets across multiple departments while maintaining data accuracy and reporting timelines.",
+        "Automated repetitive data processing workflows using Excel VBA and custom scripts to cut manual report compilation effort.",
+        "Administered and updated SQL databases to maintain data consistency across organizational units.",
         "Generated scheduled analytical reports tracking student performance, enrollment trends, and academic research metrics.",
-        "Partnered with IT and administrative teams to deploy new data management systems and trained staff on data entry standards."
+        "Partnered with IT and administrative teams to deploy data management systems and train staff on data entry standards."
       ]
     }
   ],
 
-  // CV Education
   education: [
     {
-      degree: "M.Sc. in Information Technology",
+      degree: "M.Sc. in Information Technology (In Progress)",
       institution: "National Open University of Nigeria (NOUN)",
       period: "2025 – Present",
       badge: "Postgraduate"
@@ -304,8 +375,8 @@ window.YOLETECH_DATA = {
     }
   ],
 
-  // CV Certifications
   certifications: {
+    verificationPlaceholder: "TODO(owner): Add public verification URLs for Google / Coursera / Kaggle certificates",
     googleCoursera: [
       "Google Advanced Data Analytics Professional Certificate",
       "Google Business Intelligence Professional Certificate",
@@ -320,7 +391,6 @@ window.YOLETECH_DATA = {
     ]
   },
 
-  // CV Professional Competencies
   competencies: [
     {
       title: "Data Governance & Quality Control",
@@ -328,31 +398,30 @@ window.YOLETECH_DATA = {
     },
     {
       title: "Technical Instruction & Leadership",
-      description: "Software implementation team leadership, staff training on data management best practices, and mentoring technical personnel."
+      description: "Software implementation coordination, staff training on data management practices, and practical learner mentorship."
     },
     {
       title: "Cross-Functional Collaboration",
-      description: "Adept at working with IT teams, researchers, and executive stakeholders to translate raw datasets into clear strategic reports."
+      description: "Working alongside IT teams, researchers, and executive stakeholders to translate raw datasets into clear strategic reports."
     }
   ],
 
-  // Contact FAQ (matching Contact Reference 8917b911.jpg)
   faqs: [
     {
-      q: "Do you sign NDAs and enforce strict data confidentiality?",
-      a: "Yes. With over 5 years handling sensitive institutional, research, and multi-departmental datasets, I strictly adhere to data governance protocols and gladly sign Non-Disclosure Agreements (NDAs) prior to reviewing your data or codebase."
+      q: "Do you sign NDAs and maintain data confidentiality?",
+      a: "Yes. We treat client data and source code confidentially and gladly sign Non-Disclosure Agreements (NDAs) prior to reviewing sensitive datasets or repositories."
     },
     {
-      q: "Are you available for global remote projects and full-time/contract roles?",
-      a: "Yes! I am based in Yenagoa, Bayelsa State, Nigeria (GMT+1) and work with clients, research teams, and businesses worldwide via remote collaboration."
+      q: "Are you available for international and remote projects?",
+      a: "Yes. YOLETECH is based in Yenagoa, Bayelsa State, Nigeria (WAT / UTC+1) and collaborates remotely with organizations and learners worldwide."
     },
     {
-      q: "How fast do data analytics, dashboard, or web projects start?",
-      a: "After you submit your project brief or message me on WhatsApp (+234 802 552 6389), you will receive a response within 24 hours with a clear architecture scope and timeline—most projects kick off within 48 hours."
+      q: "How quickly will I receive a response after submitting an inquiry?",
+      a: "We respond to all project and training inquiries within 1 business day (24 hours on working days) with recommended next steps."
     },
     {
-      q: "Can you audit, clean, or repair existing broken spreadsheets, SQL databases, or web builds?",
-      a: "Absolutely. A core part of my work is statistical auditing, discrepancy resolution across messy Excel/SQL datasets, automating manual bottlenecks with VBA/Python, and modernizing web platforms."
+      q: "Can you audit, clean, or improve an existing spreadsheet, SQL database, or website?",
+      a: "Yes. We audit existing spreadsheets, SQL databases, Power BI dashboards, and web platforms to fix data inconsistencies and automate manual workflows."
     }
   ],
 
@@ -363,52 +432,61 @@ window.YOLETECH_DATA = {
       title: "Predicting Real Estate Prices with Python and Scikit-Learn",
       date: "2026-04-12",
       category: "Python & Machine Learning",
-      organization: "YOLETECH AI & Data Science",
+      organization: "YOLETECH Analytics Lab",
       period: "2026",
       preview_image: "/assets/blog/predicting-real-estate-prices-with-python-and-scikit-learn.png",
       demo_url: "https://house-price-prediction-system.streamlit.app/",
       live_url: "https://house-price-prediction-system.streamlit.app/",
-      impact_metrics: "Automated feature pipeline, ensemble regression & interactive valuation simulator",
+      problem: "Manual property valuation across multi-feature housing tables is inconsistent and slow to compare across neighborhoods.",
+      approach: "Built a reproducible Python and Scikit-Learn preprocessing and regression pipeline with feature engineering and an interactive Streamlit valuation interface.",
+      outcome: "Public interactive demo deployed on Streamlit. TODO(owner): Add confirmed validation metrics (MAE / RMSE / R²) from your notebook.",
+      impact_metrics: "Interactive Python & Scikit-Learn property valuation demo deployed on Streamlit",
       tech_stack: ["Python", "Scikit-Learn", "Pandas", "NumPy", "Streamlit"],
       featured: true,
-      summary: "Predictive analytics and regression modeling system built with Python and Scikit-Learn to estimate residential property market values from structural, neighborhood, and historical transaction features."
+      summary: "Predictive analytics and regression modeling system built with Python and Scikit-Learn to estimate residential property values from structural and neighborhood features."
     },
     {
-      id: "ow-to-automate-excel-reports-using-python-and-pandas",
-      slug: "ow-to-automate-excel-reports-using-python-and-pandas",
+      id: "automate-excel-reports-python-pandas",
+      slug: "automate-excel-reports-python-pandas",
       title: "How to Automate Excel Reports Using Python and Pandas",
       date: "2026-04-12",
       category: "AI & Workflow Automation",
-      organization: "YOLETECH Automation Engineering",
+      organization: "YOLETECH Automation Lab",
       period: "2026",
       preview_image: "/assets/blog/automate-excel-sales-reports-with-python-and-pandas.png",
       demo_url: "/blog/how-to-automate-excel-reports-using-python-and-pandas",
       live_url: "/blog/how-to-automate-excel-reports-using-python-and-pandas",
-      impact_metrics: "Eliminated 85% of manual copy-paste reporting time & zero formula-breakage errors",
+      problem: "Recurring multi-sheet spreadsheet consolidation relies on fragile copy-paste steps that introduce formula and schema errors.",
+      approach: "Implemented a scripted Python, Pandas, and OpenPyXL workflow that validates columns, computes summary tables, and exports formatted Excel reports.",
+      outcome: "Repeatable scripted reporting workflow documented as a full walkthrough. TODO(owner): Add real client before/after hours saved if approved for sharing.",
+      impact_metrics: "Repeatable Python, Pandas & OpenPyXL workbook generation workflow",
       tech_stack: ["Python", "Pandas", "OpenPyXL", "ETL Automation", "Excel"],
       featured: true,
-      summary: "Automated Python and Pandas reporting pipeline that ingests multi-sheet operational spreadsheets, validates schema integrity, computes executive summaries, and exports formatted Excel workbooks on schedule."
+      summary: "Automated Python and Pandas reporting pipeline that ingests operational spreadsheets, validates schema integrity, and exports formatted Excel workbooks."
     },
     {
-      id: "from-housing-data-to-an-interactive-ml-app-predicting-real-estate-prices-with-python-scikit-learn-and-streamlit",
-      slug: "from-housing-data-to-an-interactive-ml-app-predicting-real-estate-prices-with-python-scikit-learn-and-streamlit",
-      title: "From Housing Data to an Interactive ML App: Predicting Real Estate Prices with Python, Scikit-Learn and Streamlit",
+      id: "housing-price-ml-app-python-streamlit",
+      slug: "housing-price-ml-app-python-streamlit",
+      title: "Interactive Housing Price ML App with Python & Streamlit",
       date: "2026-04-12",
       category: "Python & Machine Learning",
-      organization: "YOLETECH AI & Data Science",
+      organization: "YOLETECH Analytics Lab",
       period: "2026",
       preview_image: "/assets/blog/real-estate-ml-model.png",
       demo_url: "https://house-price-prediction-system.streamlit.app/",
       live_url: "https://house-price-prediction-system.streamlit.app/",
-      impact_metrics: "R² > 0.88 validation accuracy with live sub-second Streamlit inference",
+      problem: "Trained machine learning notebooks are difficult for non-technical stakeholders to test with real property inputs.",
+      approach: "Packaged the trained Scikit-Learn pipeline into a responsive Streamlit web application with interactive input controls and visual diagnostics.",
+      outcome: "Live browser-accessible Streamlit ML demo. TODO(owner): Add verified model benchmark metrics and dataset attribution.",
+      impact_metrics: "Browser-based Scikit-Learn & Streamlit real estate prediction application",
       tech_stack: ["Python", "Scikit-Learn", "Streamlit", "Pandas", "Machine Learning"],
       featured: true,
-      summary: "End-to-end machine learning workflow that transforms raw housing market datasets into an interactive Streamlit web application for real-time property valuation and feature-importance exploration."
+      summary: "End-to-end machine learning workflow transforming housing datasets into an interactive Streamlit web app for property valuation exploration."
     },
     {
-      id: "build-an-interactive-sales-dashboard-with-python-and-streamlit",
-      slug: "build-an-interactive-sales-dashboard-with-python-and-streamlit",
-      title: "Build an Interactive Sales Dashboard with Python and Streamlit",
+      id: "sales-dashboard-python-streamlit",
+      slug: "sales-dashboard-python-streamlit",
+      title: "Interactive Sales Dashboard with Python and Streamlit",
       date: "2026-04-11",
       category: "Data Analytics & BI",
       organization: "YOLETECH Analytics Lab",
@@ -416,10 +494,13 @@ window.YOLETECH_DATA = {
       preview_image: "/assets/blog/streamlite-python-dashboard.png",
       demo_url: "https://sales-analytics-suite.streamlit.app/",
       live_url: "https://sales-analytics-suite.streamlit.app/",
-      impact_metrics: "Real-time KPI filtering, regional revenue cohort drilldowns & automated CSV/Excel ingestion",
+      problem: "Static monthly sales spreadsheets make it hard for managers to filter performance by region, product line, or time range.",
+      approach: "Engineered a Python, Pandas, Plotly, and Streamlit dashboard supporting CSV/Excel ingestion and multi-dimensional KPI filtering.",
+      outcome: "Live interactive sales intelligence demo deployed on Streamlit. TODO(owner): Add real client adoption note if applicable.",
+      impact_metrics: "Interactive multi-region KPI filtering & automated CSV/Excel ingestion",
       tech_stack: ["Python", "Streamlit", "Pandas", "Plotly", "Data Analytics"],
       featured: true,
-      summary: "Interactive web-based sales intelligence application built with Python, Pandas, and Streamlit—enabling executives and operations teams to filter multi-region revenue, profit margins, and product performance in real time."
+      summary: "Interactive web-based sales intelligence application built with Python, Pandas, and Streamlit for real-time revenue and margin filtering."
     },
     {
       id: "executive-business-intelligence-sales-forecasting-platform",
@@ -427,15 +508,18 @@ window.YOLETECH_DATA = {
       title: "Executive Business Intelligence & Sales Forecasting Platform",
       date: "2026-04-08",
       category: "Data Analytics & BI",
-      organization: "Enterprise Retail & Operations",
+      organization: "YOLETECH BI Reference Architecture",
       period: "2025 – 2026",
       preview_image: "/assets/blog/executive_bi_linkedin_carousel.png",
       demo_url: "https://sales-analytics-suite.streamlit.app/",
       live_url: "https://sales-analytics-suite.streamlit.app/",
-      impact_metrics: "40% faster executive reporting cycle & automated 90-day rolling revenue forecast",
+      problem: "Leadership teams reviewing disconnected spreadsheets lack a single view of KPIs and forward revenue trends.",
+      approach: "Combined SQL data modeling, automated Python ETL pipelines, and executive KPI dashboards with rolling time-series forecasting.",
+      outcome: "Reference BI and forecasting architecture deployed as an interactive demo. TODO(owner): Replace with verified client results once approved.",
+      impact_metrics: "SQL warehouse modeling, Python ETL & rolling forecast KPI scorecards",
       tech_stack: ["Power BI", "Python", "SQL", "Streamlit", "Time-Series Forecasting"],
       featured: true,
-      summary: "End-to-end executive Business Intelligence and revenue forecasting platform combining SQL warehouse modeling, automated Python ETL pipelines, and interactive KPI scorecards for leadership decision-making."
+      summary: "Executive Business Intelligence and revenue forecasting architecture combining SQL modeling, Python ETL pipelines, and interactive KPI scorecards."
     }
   ]
 };

@@ -841,13 +841,23 @@ function buildContactMainHtml() {
                   <label class="form-label" for="ssr-contact-message">Project Details *</label>
                   <textarea id="ssr-contact-message" name="message" rows="5" required class="form-control"></textarea>
                 </div>
+                <div class="learn-honeypot" aria-hidden="true">
+                  <label for="ssr-contact-website">Website</label>
+                  <input id="ssr-contact-website" name="website" type="text" tabindex="-1" autocomplete="off" />
+                </div>
+                <div class="form-group">
+                  <label class="learn-consent-label" for="ssr-contact-consent">
+                    <input id="ssr-contact-consent" name="consent" type="checkbox" required />
+                    <span>I agree to the <a href="/terms">Terms of Service</a> and <a href="/privacy">Privacy Policy</a>.</span>
+                  </label>
+                </div>
                 <button type="submit" class="btn btn-lime">Send Message →</button>
               </form>
             </div>
             <div class="glass-card">
               <h2>Direct Contact &amp; Business Hours</h2>
               <p><strong>Email:</strong> <a href="mailto:${OWNER.email}">${escapeHtml(OWNER.email)}</a></p>
-              <p><strong>Phone / WhatsApp:</strong> <a href="${OWNER.whatsappUrl}" target="_blank" rel="noopener noreferrer">${escapeHtml(OWNER.phoneDisplay)}</a></p>
+              <p><strong>Tap to Call / WhatsApp:</strong> <a href="tel:${OWNER.phoneE164}">${escapeHtml(OWNER.phoneDisplay)}</a> · <a href="${OWNER.whatsappUrl}" target="_blank" rel="noopener noreferrer">Open WhatsApp ↗</a></p>
               <p><strong>Business Hours:</strong> ${escapeHtml(OWNER.workingHours)}</p>
               <p><strong>Service Area:</strong> ${escapeHtml(OWNER.serviceArea)}</p>
               <p><strong>Discovery Call Booking:</strong> ${escapeHtml(OWNER.bookingUrlPlaceholder)}</p>

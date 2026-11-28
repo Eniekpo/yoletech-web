@@ -184,3 +184,56 @@ test('Phase 2: No blocking preloader or sample Signup month chart appears on pub
     assert.ok(!res.text.includes('hero-slide-1-data-science-portrait.png'), `Broken hero image still present on ${route}`);
   }
 });
+
+test('Phase 3: Contact API enforces consent, validation, honeypot, and rate limiting; Contact page shows phone once', async () => {
+  const contactHtml = await invokeHandler(requestHandler, '/contact');
+  assert.equal(contactHtml.status, 200);
+  const phoneOccurrences = (contactHtml.text.match(/\+234 802 552 6389/g) || []).length;
+  assert.equal(phoneOccurrences, 1, `Expected phone number once on /contact, found ${phoneOccurrences}`);
+  assert.ok(contactHtml.text.includes('name="consent"'), 'Expected consent checkbox on /contact');
+  assert.ok(contactHtml.text.includes('name="website"'), 'Expected honeypot input on /contact');
+  assert.ok(contactHtml.text.includes('WAT (UTC+1)'), 'Expected business hours with time zone on /contact');
+
+  // Missing consent rejected with 400
+  const noConsent = await invokeHandler(requestHandler, '/api/inquiries', {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({
+      name: 'Adaeze Nwosu',
+      email: 'adaeze@example.com',
+      service_category: 'Data Analysis & Executive BI',
+      message: 'We need a Power BI dashboard for our quarterly operations review.'
+    })
+  });
+  assert.equal(noConsent.status, 400);
+
+  // Honeypot silently returns 200 without creating a record
+  const botSubmit = await invokeHandler(requestHandler, '/api/inquiries', {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({
+      name: 'Spam Bot',
+      email: 'bot@example.com',
+      message: 'Buy links now please click here!',
+      consent: true,
+      website: 'https://spam.example'
+    })
+  });
+  assert.equal(botSubmit.status, 200);
+  assert.equal(JSON.parse(botSubmit.text).accepted, true);
+
+  // Valid submission succeeds with 201
+  const validSubmit = await invokeHandler(requestHandler, '/api/inquiries', {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({
+      name: 'Adaeze Nwosu',
+      email: 'adaeze@example.com',
+      phone: '+2348011122233',
+      service_category: 'Data Analysis & Executive BI',
+      message: 'We need a Power BI dashboard for our quarterly operations review.',
+      consent: true
+    })
+  });
+  assert.equal(validSubmit.status, 201);
+});

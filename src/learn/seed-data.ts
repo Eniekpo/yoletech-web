@@ -174,7 +174,7 @@ export const DEFAULT_LEARN_PAGE_CONTENT: LearnPageContentData = {
   headline: 'Build In-Demand Tech Skills. Learn by Doing.',
   subheadline:
     'Hands-on training in web development, data analytics, AI automation, and IT—guided step by step from day one.',
-  cta_label: 'Register Now',
+  cta_label: 'Enroll Now',
   faq: [
     {
       question: 'Who can register for a Yoletech training program?',

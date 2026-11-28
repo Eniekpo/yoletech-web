@@ -468,7 +468,7 @@ class YoletechApp {
               organization: meta.organization || 'YOLETECH',
               period: meta.period || '2026',
               summary: meta.summary || body.slice(0, 220),
-              impact_metrics: meta.impact_metrics || 'Verified production delivery',
+              impact_metrics: meta.impact_metrics || 'Production architecture & delivery',
               tech_stack: techStack,
               preview_image: this.resolvePortfolioImage(meta.preview_image, slug),
               demo_url: meta.demo_url || meta.live_url || '',
@@ -1743,25 +1743,25 @@ class YoletechApp {
         </div>
       </section>
 
-      <!-- IMPACT METRICS & 3 CORE VALUE PILLARS -->
+      <!-- GROUNDED CAPABILITY HIGHLIGHTS & 3 CORE VALUE PILLARS -->
       <section class="section">
         <div class="container">
           <div class="metrics-strip">
             <div class="metric-cell">
-              <div class="metric-number" data-kpi-target="5" data-kpi-suffix="+">5+</div>
-              <div class="metric-label">Years Data, BI &amp;<br/>Full-Stack Experience</div>
+              <div class="metric-number">7</div>
+              <div class="metric-label">Service &amp; Training<br/>Disciplines</div>
             </div>
             <div class="metric-cell">
-              <div class="metric-number" data-kpi-target="200" data-kpi-suffix="+">200+</div>
-              <div class="metric-label">Analytics Interns<br/>Trained &amp; Mentored</div>
+              <div class="metric-number">1 Day</div>
+              <div class="metric-label">Business-Day<br/>Inquiry Response</div>
             </div>
             <div class="metric-cell">
-              <div class="metric-number" data-kpi-target="8" data-kpi-suffix="+">8+</div>
-              <div class="metric-label">Google, Coursera &amp;<br/>Kaggle Certifications</div>
+              <div class="metric-number">WAT</div>
+              <div class="metric-label">Nigeria Based &amp;<br/>Remote Worldwide</div>
             </div>
             <div class="metric-cell">
-              <div class="metric-number" data-kpi-target="100" data-kpi-suffix="%">100%</div>
-              <div class="metric-label">Data Integrity &amp;<br/>Quality Commitment</div>
+              <div class="metric-number">AA</div>
+              <div class="metric-label">WCAG 2.1 Accessibility<br/>&amp; Clean Code Focus</div>
             </div>
           </div>
 
@@ -1871,7 +1871,7 @@ class YoletechApp {
                         : ''
                     }
                     <button class="btn btn-outline btn-sm" style="flex:1;" onclick="window.app.openPortfolioModal('${p.slug}')">
-                      Case Study →
+                      View Case Study →
                     </button>
                   </div>
                 </div>
@@ -1953,23 +1953,25 @@ class YoletechApp {
     const activeTab = tabs.some((tab) => tab.id === this.aboutTab) ? this.aboutTab : 'skills';
 
     return `
-      ${this.renderServicesTicker()}
       <section class="section">
         <div class="container">
           <div class="hero-slide-grid section-block-gap">
             <div>
               <div class="eyebrow"><span class="eyebrow-dot"></span> ABOUT YOLETECH</div>
               <h1 class="hero-title" style="font-size:clamp(32px,4vw,48px);">
-                The Developer, Analyst &amp; <span class="accent-lime">Automator Behind Your Project</span>
+                About ${D.owner.name} &amp; <span class="accent-lime">YOLETECH</span>
               </h1>
+              <p style="font-size:15px;font-weight:700;color:var(--yole-lime);margin-bottom:10px;">
+                ${D.owner.jobTitle} · ${D.owner.credentials}
+              </p>
               <p style="font-size:16px;color:var(--yole-text-muted);margin-bottom:26px;">
                 ${D.owner.summary}
               </p>
               <div class="hero-cta-row">
                 <button class="btn btn-lime" onclick="window.app.navigate('contact')">
-                  Let's Discuss Your Project →
+                  Book a Discovery Call →
                 </button>
-                <a href="/cv.html" target="_blank" class="btn btn-outline">
+                <a href="/cv.html" target="_blank" rel="noopener noreferrer" class="btn btn-outline">
                   View Curriculum Vitae
                 </a>
               </div>
@@ -1978,6 +1980,24 @@ class YoletechApp {
               ${C.renderPortraitHeroWidget('about')}
             </div>
           </div>
+
+          <section class="section-block-gap" aria-labelledby="about-founder-approach-heading">
+            <h2 id="about-founder-approach-heading" class="section-title" style="margin-bottom:18px;">Founder Story &amp; Engineering Approach</h2>
+            <div class="grid-2">
+              <article class="glass-card">
+                <h3 style="font-size:18px;font-weight:800;margin-bottom:8px;">Founder Story</h3>
+                <p style="font-size:14px;color:var(--yole-text-muted);">
+                  YOLETECH was founded by ${D.owner.name} (${D.owner.credentials}) in ${D.owner.serviceArea} to combine practical full-stack engineering, reliable SQL data architecture, and clear business intelligence dashboards.
+                </p>
+              </article>
+              <article class="glass-card">
+                <h3 style="font-size:18px;font-weight:800;margin-bottom:8px;">How We Approach Every Project</h3>
+                <p style="font-size:14px;color:var(--yole-text-muted);">
+                  Every engagement begins with data and requirements clarity, favors clean maintainable systems over bloat, and finishes with plain-language documentation so your team owns what we build.
+                </p>
+              </article>
+            </div>
+          </section>
 
           <section class="about-profile" aria-label="Professional profile">
             <header class="about-profile-heading">
@@ -2144,6 +2164,9 @@ class YoletechApp {
                         )
                         .join('')}
                     </div>
+                    <p style="font-size:12.5px;color:var(--yole-text-muted);margin-top:12px;">
+                      ${D.certifications.verificationPlaceholder || 'TODO(owner): Add public verification URLs for certificates'}
+                    </p>
                   </section>
                 </div>
               `
@@ -2185,23 +2208,23 @@ class YoletechApp {
   renderServicesPage() {
     const D = window.YOLETECH_DATA;
     const C = window.YOLETECH_COMPONENTS;
+    const processSteps = D.deliveryProcess || [];
 
     return `
-      ${this.renderServicesTicker()}
       <section class="section">
         <div class="container">
           <div class="hero-slide-grid section-block-gap">
             <div>
-              <div class="eyebrow"><span class="eyebrow-dot"></span> YOLETECH DIGITAL &amp; DATA SERVICES</div>
+              <div class="eyebrow"><span class="eyebrow-dot"></span> YOLETECH SERVICES</div>
               <h1 class="hero-title" style="font-size:clamp(32px,4vw,46px);">
-                Web Development, Data Analytics &amp; <span class="accent-lime">Automated Systems</span> for Growing Businesses
+                Data Analytics, BI, Automation &amp; <span class="accent-lime">Full-Stack Web Services</span>
               </h1>
               <p class="hero-subtitle">
-                Scalable full-stack web applications, interactive Power BI &amp; Tableau dashboards, predictive machine learning models, and technical training tailored to your organization.
+                Structured web engineering, interactive Power BI &amp; Tableau dashboards, workflow automation, IT &amp; customer support, creative media, and hands-on tech training.
               </p>
               <div class="hero-cta-row">
                 <button class="btn btn-lime" onclick="window.app.navigate('contact')">
-                  Schedule a Discovery Call →
+                  Book a Discovery Call →
                 </button>
                 <button class="btn btn-outline" onclick="window.app.navigate('portfolio')">
                   View Case Studies
@@ -2214,26 +2237,38 @@ class YoletechApp {
           </div>
 
           <div class="section-header">
-            <div class="eyebrow"><span class="eyebrow-dot"></span> OUR SERVICES</div>
-            <h2 class="section-title section-title-nowrap">Complete Service Tracks Under One Roof</h2>
-            <p class="section-desc">Select any service track below to start a tailored project inquiry.</p>
+            <div class="eyebrow"><span class="eyebrow-dot"></span> SERVICE CATALOG</div>
+            <h2 class="section-title section-title-nowrap">Services Tailored to Your Organization</h2>
+            <p class="section-desc">Each service includes clear scope, deliverables, tools, process, and answers to common questions.</p>
           </div>
 
           <div class="grid-2 section-block-gap">
             ${D.eightServicesStrip
               .map(
                 (srv) => `
-              <div class="glass-card" style="display:flex;flex-direction:column;justify-content:space-between;">
+              <article id="${srv.id}" class="glass-card" style="display:flex;flex-direction:column;justify-content:space-between;">
                 <div>
                   <h3 style="font-size:22px;font-weight:900;margin-bottom:6px;">${srv.title}</h3>
                   <div style="font-size:13px;font-weight:700;color:#C8E61E;margin-bottom:12px;">${srv.sub}</div>
-                  <p style="font-size:14px;color:var(--yole-text-muted);margin-bottom:16px;">${srv.description}</p>
+                  <p style="font-size:14px;color:var(--yole-text-muted);margin-bottom:14px;">${srv.description}</p>
+                  ${
+                    srv.process
+                      ? `<p style="font-size:13px;color:var(--yole-text-muted);margin-bottom:12px;"><strong>Process:</strong> ${srv.process}</p>`
+                      : ''
+                  }
+                  ${
+                    Array.isArray(srv.tools) && srv.tools.length
+                      ? `<div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px;">${srv.tools
+                          .map((t) => `<span class="tech-pill" style="font-size:11px;padding:3px 9px;">${t}</span>`)
+                          .join('')}</div>`
+                      : ''
+                  }
                 </div>
 
                 <div>
-                  <div style="border-top:1px solid rgba(255,255,255,0.1);padding-top:14px;margin-bottom:16px;">
+                  <div style="border-top:1px solid rgba(255,255,255,0.1);padding-top:14px;margin-bottom:14px;">
                     <div style="font-size:12px;font-weight:800;color:var(--yole-text-muted);text-transform:uppercase;margin-bottom:8px;">
-                      Key Deliverables:
+                      Key Deliverables
                     </div>
                     <div class="deliverables-grid">
                       ${srv.deliverables
@@ -2247,11 +2282,19 @@ class YoletechApp {
                         .join('')}
                     </div>
                   </div>
-                  <button class="btn btn-outline btn-sm" onclick="window.app.selectContactService('${srv.title}')">
-                    Request ${srv.title} →
+                  ${
+                    srv.faq
+                      ? `<details style="margin-bottom:14px;padding:10px 12px;border-radius:10px;border:1px solid var(--yole-border-subtle);">
+                          <summary style="font-size:13px;font-weight:700;cursor:pointer;">${srv.faq.q}</summary>
+                          <p style="font-size:13px;color:var(--yole-text-muted);margin-top:8px;">${srv.faq.a}</p>
+                        </details>`
+                      : ''
+                  }
+                  <button class="btn btn-lime btn-sm" onclick="window.app.selectContactService('${srv.title}')">
+                    Book a Discovery Call →
                   </button>
                 </div>
-              </div>
+              </article>
             `
               )
               .join('')}
@@ -2261,21 +2304,13 @@ class YoletechApp {
           <div class="section-header">
             <div class="eyebrow"><span class="eyebrow-dot"></span> TRANSPARENT EXECUTION</div>
             <h2 class="section-title">Service Overview &amp; Delivery Scope</h2>
-            <p class="section-desc">Select a service track tab below to view its core tech stack, timeline, and delivery standards.</p>
+            <p class="section-desc">Select a service track below to inspect its tools and delivery standards.</p>
           </div>
 
           <div class="scope-tabs-container section-block-gap">
             <div class="scope-tabs-nav" id="service-scope-tabs-nav" role="tablist">
               ${D.serviceScopeTable
                 .map((row, idx) => {
-                  const shortNames = [
-                    'Web Development',
-                    'Data Analytics & BI',
-                    'AI & Automation',
-                    'Database Governance',
-                    'Tutorials & Training',
-                    'Design, Video & IT'
-                  ];
                   const isActive = (this.serviceScopeTab || 0) === idx;
                   return `
                     <button
@@ -2287,7 +2322,7 @@ class YoletechApp {
                       onclick="window.app.setServiceScopeTab(${idx})"
                     >
                       <span class="scope-tab-num">0${idx + 1}</span>
-                      <span class="scope-tab-label">${shortNames[idx] || row.track}</span>
+                      <span class="scope-tab-label">${row.track}</span>
                     </button>
                   `;
                 })
@@ -2299,32 +2334,26 @@ class YoletechApp {
             </div>
           </div>
 
-${C.renderRoiCalculatorWidget ? C.renderRoiCalculatorWidget() : ""}
+          ${C.renderRoiCalculatorWidget ? C.renderRoiCalculatorWidget() : ''}
 
-          <!-- HOW WE WORK 4-STEP PROCESS -->
+          <!-- 4-STAGE DELIVERY PROCESS -->
           <div class="section-header">
-            <div class="eyebrow"><span class="eyebrow-dot"></span> PROVEN METHODOLOGY</div>
-            <h2 class="section-title">How We Work</h2>
-            <p class="section-desc">A structured 4-stage engineering and data governance workflow from discovery to deployment.</p>
+            <div class="eyebrow"><span class="eyebrow-dot"></span> DELIVERY PROCESS</div>
+            <h2 class="section-title">Discovery, Build, Delivery &amp; Support</h2>
+            <p class="section-desc">A clear 4-stage process from initial discovery through post-launch support.</p>
           </div>
 
           <div class="metrics-strip" style="margin-bottom:0;">
-            <div class="metric-cell" style="flex-direction:column;align-items:flex-start;text-align:left;">
-              <div style="font-size:18px;font-weight:900;">01. Discovery &amp; Data Audit</div>
-              <div style="font-size:13px;color:var(--yole-text-muted);">Assess requirements, audit existing datasets or systems, and define KPIs.</div>
-            </div>
-            <div class="metric-cell" style="flex-direction:column;align-items:flex-start;text-align:left;">
-              <div style="font-size:18px;font-weight:900;">02. Architecture &amp; Schema</div>
-              <div style="font-size:13px;color:var(--yole-text-muted);">Design SQL databases, clean pipelines, or full-stack web wireframes.</div>
-            </div>
-            <div class="metric-cell" style="flex-direction:column;align-items:flex-start;text-align:left;">
-              <div style="font-size:18px;font-weight:900;">03. Build &amp; Automate</div>
-              <div style="font-size:13px;color:var(--yole-text-muted);">Develop React/Web apps, Power BI/Tableau views, or Python/VBA scripts.</div>
-            </div>
-            <div class="metric-cell" style="flex-direction:column;align-items:flex-start;text-align:left;">
-              <div style="font-size:18px;font-weight:900;">04. Validation &amp; Launch</div>
-              <div style="font-size:13px;color:var(--yole-text-muted);">Statistical quality checks, staff handover training, and live support.</div>
-            </div>
+            ${processSteps
+              .map(
+                (p) => `
+              <div class="metric-cell" style="flex-direction:column;align-items:flex-start;text-align:left;">
+                <div style="font-size:18px;font-weight:900;">${p.step}. ${p.title}</div>
+                <div style="font-size:13px;color:var(--yole-text-muted);">${p.detail}</div>
+              </div>
+            `
+              )
+              .join('')}
           </div>
         </div>
       </section>
@@ -2468,7 +2497,7 @@ ${C.renderRoiCalculatorWidget ? C.renderRoiCalculatorWidget() : ""}
                 : ''
             }
             <button type="button" class="btn btn-outline btn-sm portfolio-project-action" onclick="window.app.openPortfolioModal('${p.slug}')">
-              Case Study
+              View Case Study
             </button>
             <button type="button" class="btn btn-outline btn-sm portfolio-project-action portfolio-project-action-wide" onclick="window.app.selectContactService('${p.category}')">
               Build Similar <span aria-hidden="true">→</span>
@@ -2540,18 +2569,27 @@ ${C.renderRoiCalculatorWidget ? C.renderRoiCalculatorWidget() : ""}
             <span><strong>Organization:</strong> ${project.organization || 'Client Partner'}</span>
             <span><strong>Timeline:</strong> ${project.period || 'Completed'}</span>
           </div>
-          <p style="font-size:15px;color:var(--yole-text-muted);line-height:1.65;margin-bottom:16px;">${project.summary || ''}</p>
-          ${
-            project.impact_metrics
-              ? `<div style="background:rgba(200,230,30,0.1);border-left:4px solid #C8E61E;padding:12px 16px;border-radius:0 10px 10px 0;margin-bottom:18px;font-size:13.5px;">
-                  <strong style="color:#C8E61E;">Verified Impact:</strong> ${project.impact_metrics}
-                </div>`
-              : ''
-          }
+          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin-bottom:18px;">
+            <div style="background:rgba(255,255,255,0.04);border:1px solid var(--yole-border-subtle);border-radius:10px;padding:12px 14px;">
+              <strong style="display:block;font-size:12px;text-transform:uppercase;color:#C8E61E;margin-bottom:4px;">Problem</strong>
+              <p style="font-size:13.5px;color:var(--yole-text-muted);margin:0;">${project.problem || 'TODO(owner): Document the business problem solved in this case study.'}</p>
+            </div>
+            <div style="background:rgba(255,255,255,0.04);border:1px solid var(--yole-border-subtle);border-radius:10px;padding:12px 14px;">
+              <strong style="display:block;font-size:12px;text-transform:uppercase;color:#C8E61E;margin-bottom:4px;">Approach</strong>
+              <p style="font-size:13.5px;color:var(--yole-text-muted);margin:0;">${project.approach || project.summary || 'TODO(owner): Describe the engineering or analytics approach.'}</p>
+            </div>
+            <div style="background:rgba(255,255,255,0.04);border:1px solid var(--yole-border-subtle);border-radius:10px;padding:12px 14px;">
+              <strong style="display:block;font-size:12px;text-transform:uppercase;color:#F7941D;margin-bottom:4px;">Outcome</strong>
+              <p style="font-size:13.5px;color:var(--yole-text-muted);margin:0;">${project.outcome || project.impact_metrics || 'TODO(owner): Add real client outcome or deployment summary.'}</p>
+            </div>
+          </div>
           ${
             techStack.length
-              ? `<div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:18px;">
-                  ${techStack.map((t) => `<span class="tech-pill lime" style="font-size:11.5px;padding:4px 10px;">${t}</span>`).join('')}
+              ? `<div style="margin-bottom:18px;">
+                  <div style="font-size:12px;font-weight:800;text-transform:uppercase;color:var(--yole-text-muted);margin-bottom:8px;">Tools</div>
+                  <div style="display:flex;flex-wrap:wrap;gap:8px;">
+                    ${techStack.map((t) => `<span class="tech-pill lime" style="font-size:11.5px;padding:4px 10px;">${t}</span>`).join('')}
+                  </div>
                 </div>`
               : ''
           }
@@ -2701,7 +2739,7 @@ ${C.renderRoiCalculatorWidget ? C.renderRoiCalculatorWidget() : ""}
       <div class="glass-card testimonial-slider-card is-revealed" style="display:flex;flex-direction:column;justify-content:space-between;padding:22px;">
         <div>
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;gap:8px;">
-            <span style="font-size:11px;font-weight:700;color:#C8E61E;">${t.service_track || 'Verified Client'}</span>
+            <span style="font-size:11px;font-weight:700;color:#C8E61E;">${t.service_track || 'Client Feedback'}</span>
             <span style="color:#F7941D;font-size:14px;letter-spacing:1.5px;flex-shrink:0;">
               ${'★'.repeat(Number(t.rating) || 5)}
             </span>
@@ -2825,7 +2863,7 @@ ${C.renderRoiCalculatorWidget ? C.renderRoiCalculatorWidget() : ""}
             <div class="eyebrow"><span class="eyebrow-dot"></span> CLIENT &amp; MENTEE ENDORSEMENTS</div>
             <h1 class="section-title">What Stakeholders, Clients &amp; Mentees Say</h1>
             <p class="section-desc">
-              Feedback from executive research stakeholders, departmental supervisors, and graduates of our <strong style="color:#C8E61E;" data-kpi-target="200" data-kpi-suffix="+">200+</strong> intern analytics mentorship program.
+              Client and learner feedback shared directly with YOLETECH.
             </p>
           </div>
 
@@ -2918,7 +2956,7 @@ ${C.renderRoiCalculatorWidget ? C.renderRoiCalculatorWidget() : ""}
                   Submit Testimonial →
                 </button>
                 <span style="font-size:13.5px;color:var(--yole-text-muted);">
-                  Verified testimonials are published directly to the endorsements wall and platform dashboard.
+                  Submitted testimonials are reviewed before appearing on the endorsements wall.
                 </span>
               </div>
               ${this.renderFormConfirmation('testimonial')}
@@ -3401,41 +3439,35 @@ ${C.renderRoiCalculatorWidget ? C.renderRoiCalculatorWidget() : ""}
 
   renderContactPage() {
     const D = window.YOLETECH_DATA;
-    const serviceCategories = [
-      'Web Development',
-      'Data Analysis & Analytics',
-      'AI Automation',
-      'Tech Tutorials',
-      'Graphic Design',
-      'Video Editing',
-      'Customer Support',
-      'IT Support'
-    ];
+    const serviceCategories = D.eightServicesStrip.map((s) => s.title);
+    const activeService = serviceCategories.includes(this.contactServiceSelected)
+      ? this.contactServiceSelected
+      : serviceCategories[0];
 
     return `
       <section class="section">
         <div class="container">
-          <div style="max-width:680px;margin-bottom:40px;">
-            <div class="eyebrow"><span class="eyebrow-dot"></span> GET IN TOUCH WITH YOLETECH</div>
+          <div style="max-width:680px;margin-bottom:36px;">
+            <div class="eyebrow"><span class="eyebrow-dot"></span> CONTACT YOLETECH</div>
             <h1 class="hero-title" style="font-size:clamp(32px,4vw,48px);margin-bottom:12px;">
-              Let's Build Something <span class="accent-lime">Great Together</span>
+              Start a Conversation About <span class="accent-lime">Your Project</span>
             </h1>
             <p style="font-size:16px;color:var(--yole-text-muted);">
-              Describe your project or tell me about your manual data bottlenecks. You'll get a direct response within 24 hours.
+              ${D.owner.responseTimeStatement}
             </p>
           </div>
 
           <div class="grid-2" style="align-items:start;">
-            <!-- LEFT COLUMN: INTERACTIVE PROJECT INQUIRY FORM -->
+            <!-- LEFT COLUMN: ACCESSIBLE PROJECT INQUIRY FORM -->
             <div class="glass-card" style="border-color:rgba(200,230,30,0.45);">
-              <h3 style="font-size:18px;font-weight:800;margin-bottom:12px;">What are we building?</h3>
-              <div class="service-selector-pills">
+              <h2 style="font-size:20px;font-weight:800;margin-bottom:12px;">Send a Project Inquiry</h2>
+              <div class="service-selector-pills" role="group" aria-label="Quick service selection">
                 ${serviceCategories
                   .map(
                     (pill) => `
                   <button type="button" class="selector-pill ${
-                    this.contactServiceSelected === pill ? 'active' : ''
-                  }" onclick="window.app.selectContactPill('${pill}', this)">
+                    activeService === pill ? 'active' : ''
+                  }" onclick="window.app.selectContactPill('${pill.replace(/'/g, "\\'")}', this)">
                     ${pill}
                   </button>
                 `
@@ -3443,36 +3475,42 @@ ${C.renderRoiCalculatorWidget ? C.renderRoiCalculatorWidget() : ""}
                   .join('')}
               </div>
 
-              <form novalidate onsubmit="window.app.handleContactSubmit(event)">
+              <form id="yoletech-contact-form" novalidate onsubmit="window.app.handleContactSubmit(event)">
+                <!-- Honeypot field for spam protection -->
+                <div class="learn-honeypot" aria-hidden="true">
+                  <label for="contact-website">Website</label>
+                  <input id="contact-website" type="text" name="website" tabindex="-1" autocomplete="off" />
+                </div>
+
                 <div class="form-group">
-                  <label class="form-label">Your Full Name *</label>
-                  <input type="text" name="name" required class="form-control" placeholder="Your Name" value="${
+                  <label class="form-label" for="contact-name">Your Full Name *</label>
+                  <input id="contact-name" type="text" name="name" required autocomplete="name" class="form-control" placeholder="Your Full Name" value="${
                     this.user ? this.user.name : ''
                   }" />
                 </div>
 
                 <div class="grid-2" style="gap:14px;">
                   <div class="form-group">
-                    <label class="form-label">Email Address *</label>
-                    <input type="email" name="email" required class="form-control" placeholder="you@company.com" value="${
+                    <label class="form-label" for="contact-email">Email Address *</label>
+                    <input id="contact-email" type="email" name="email" required autocomplete="email" class="form-control" placeholder="you@company.com" value="${
                       this.user ? this.user.email : ''
                     }" />
                   </div>
                   <div class="form-group">
-                    <label class="form-label">WhatsApp / Phone</label>
-                    <input type="text" name="phone" class="form-control" placeholder="+234 ..." value="${
+                    <label class="form-label" for="contact-phone">Phone / WhatsApp</label>
+                    <input id="contact-phone" type="tel" name="phone" autocomplete="tel" class="form-control" placeholder="+234 ..." value="${
                       this.user ? this.user.phone || '' : ''
                     }" />
                   </div>
                 </div>
 
                 <div class="form-group">
-                  <label class="form-label">Project Category *</label>
-                  <select name="service_category" class="form-control" onchange="window.app.selectContactPill(this.value)">
+                  <label class="form-label" for="contact-service">Service *</label>
+                  <select id="contact-service" name="service_category" required class="form-control" onchange="window.app.selectContactPill(this.value)">
                     ${serviceCategories
                       .map(
                         (cat) => `
-                      <option value="${cat}" ${this.contactServiceSelected === cat ? 'selected' : ''}>${cat}</option>
+                      <option value="${cat}" ${activeService === cat ? 'selected' : ''}>${cat}</option>
                     `
                       )
                       .join('')}
@@ -3480,54 +3518,69 @@ ${C.renderRoiCalculatorWidget ? C.renderRoiCalculatorWidget() : ""}
                 </div>
 
                 <div class="form-group">
-                  <label class="form-label">Project Details &amp; Goals *</label>
-                  <textarea name="message" rows="5" required class="form-control" placeholder="Tell me about your project, datasets, goals, or the manual problems you need solved..."></textarea>
+                  <label class="form-label" for="contact-message">Project Details &amp; Goals *</label>
+                  <textarea id="contact-message" name="message" rows="5" required class="form-control" placeholder="Describe your goals, data sources, or technical requirements..."></textarea>
+                </div>
+
+                <div class="form-group">
+                  <label class="learn-consent-label" for="contact-consent">
+                    <input id="contact-consent" type="checkbox" name="consent" required />
+                    <span>
+                      I agree to YOLETECH's
+                      <a href="/terms" onclick="event.preventDefault();window.app.navigate('terms');" style="text-decoration:underline;color:var(--yole-lime);">Terms of Service</a>
+                      and
+                      <a href="/privacy" onclick="event.preventDefault();window.app.navigate('privacy');" style="text-decoration:underline;color:var(--yole-lime);">Privacy Policy</a>
+                      so you can respond to my inquiry.
+                    </span>
+                  </label>
                 </div>
 
                 <button type="submit" id="contact-submit-btn" class="btn btn-lime" style="width:100%;font-size:15px;padding:14px;">
-                  Send Message to yoletech@yolestica.com →
+                  Send Message →
                 </button>
                 ${this.renderFormConfirmation('contact')}
               </form>
             </div>
 
-            <!-- RIGHT COLUMN: DISCOVERY CALL, DIRECT CONTACT & QUICK FAQ -->
+            <!-- RIGHT COLUMN: DIRECT CONTACT, HOURS, BOOKING & FAQ (NO SELF-LINKING CTA, PHONE SHOWN ONCE) -->
             <div style="display:flex;flex-direction:column;gap:22px;">
-              <div class="glass-card contact-discovery-card">
-                <div style="display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap;">
-                  <div>
-                    <h3 style="font-size:21px;font-weight:900;">Book a 15-Minute Discovery Call</h3>
-                    <p style="font-size:13.5px;margin-top:8px;">
-                      Connect directly on WhatsApp to scope your project requirements.
-                    </p>
-                  </div>
-                  <a href="${D.owner.whatsappUrl}" target="_blank" rel="noopener" class="btn btn-lime">
-                    Chat on WhatsApp →
-                  </a>
-                </div>
-              </div>
-
               <div class="glass-card">
-                <div style="display:flex;flex-direction:column;gap:14px;">
+                <h2 style="font-size:20px;font-weight:900;margin-bottom:14px;">Direct Contact &amp; Business Hours</h2>
+                <div style="display:flex;flex-direction:column;gap:16px;">
                   <div>
-                    <div style="font-size:12px;font-weight:800;color:#C8E61E;text-transform:uppercase;">Direct Email</div>
+                    <div style="font-size:12px;font-weight:800;color:#C8E61E;text-transform:uppercase;">Email</div>
                     <a href="mailto:${D.owner.email}" style="font-size:16px;font-weight:700;color:#FFFFFF;">${D.owner.email}</a>
                   </div>
                   <div>
-                    <div style="font-size:12px;font-weight:800;color:#F7941D;text-transform:uppercase;">WhatsApp &amp; Direct Line</div>
-                    <a href="${D.owner.whatsappUrl}" target="_blank" style="font-size:16px;font-weight:700;color:#FFFFFF;">${D.owner.phone}</a>
+                    <div style="font-size:12px;font-weight:800;color:#F7941D;text-transform:uppercase;">Tap to Call or Message on WhatsApp</div>
+                    <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:4px;">
+                      <a href="tel:${D.owner.phoneE164 || '+2348025526389'}" style="font-size:16px;font-weight:700;color:#FFFFFF;">${D.owner.phone}</a>
+                      <a href="${D.owner.whatsappUrl}" target="_blank" rel="noopener noreferrer" class="btn btn-outline btn-sm">Open WhatsApp ↗</a>
+                    </div>
                   </div>
                   <div>
-                    <div style="font-size:12px;font-weight:800;color:#C8E61E;text-transform:uppercase;">Working Hours &amp; Location</div>
+                    <div style="font-size:12px;font-weight:800;color:#C8E61E;text-transform:uppercase;">Business Hours &amp; Time Zone</div>
                     <div style="font-size:14px;color:var(--yole-text-muted);">
                       ${D.owner.workingHours}<br/>
-                      <a class="contact-location-link" href="${D.owner.locationUrl || `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(D.owner.location)}`}" target="_blank" rel="noopener noreferrer" aria-label="Open ${D.owner.location} in Google Maps">${D.owner.location} ↗</a>
+                      <a class="contact-location-link" href="${D.owner.locationUrl}" target="_blank" rel="noopener noreferrer">${D.owner.serviceArea} ↗</a>
                     </div>
+                  </div>
+                  <div>
+                    <div style="font-size:12px;font-weight:800;color:#C8E61E;text-transform:uppercase;">Discovery Call Scheduling</div>
+                    <p style="font-size:13.5px;color:var(--yole-text-muted);margin:4px 0 0;">
+                      ${D.owner.bookingUrlPlaceholder}
+                    </p>
+                  </div>
+                  <div>
+                    <div style="font-size:12px;font-weight:800;color:#C8E61E;text-transform:uppercase;">Response Time</div>
+                    <p style="font-size:13.5px;color:var(--yole-text-muted);margin:4px 0 0;">
+                      ${D.owner.responseTimeStatement}
+                    </p>
                   </div>
                 </div>
 
                 <div style="margin-top:18px;padding-top:16px;border-top:1px solid rgba(255,255,255,0.12);">
-                  <div style="font-size:12.5px;font-weight:800;margin-bottom:10px;">Find me on</div>
+                  <div style="font-size:12.5px;font-weight:800;margin-bottom:10px;">Official Profiles</div>
                   <div class="social-icon-row" style="margin-top:0;">
                     <a href="${D.owner.socials.github}" target="_blank" rel="noopener noreferrer" class="social-btn">
                       ${this.renderSocialIcon('github')}
@@ -3555,7 +3608,7 @@ ${C.renderRoiCalculatorWidget ? C.renderRoiCalculatorWidget() : ""}
 
               <!-- QUICK FAQ ACCORDION -->
               <div class="glass-card">
-                <h3 style="font-size:19px;font-weight:900;margin-bottom:14px;">Quick FAQ</h3>
+                <h2 style="font-size:19px;font-weight:900;margin-bottom:14px;">Frequently Asked Questions</h2>
                 <div style="display:flex;flex-direction:column;gap:10px;">
                   ${D.faqs
                     .map(
@@ -3588,15 +3641,26 @@ ${C.renderRoiCalculatorWidget ? C.renderRoiCalculatorWidget() : ""}
       { name: 'name', label: 'Full Name', required: true, minLength: 2 },
       { name: 'email', label: 'Email Address', required: true, type: 'email' },
       { name: 'phone', label: 'WhatsApp / Phone', required: false, type: 'phone' },
-      { name: 'service_category', label: 'Project Category', required: true },
+      { name: 'service_category', label: 'Service', required: true },
       { name: 'message', label: 'Project Details & Goals', required: true, minLength: 10 }
     ]);
     if (!isValid) return;
 
+    const consentBox = form.querySelector('input[name="consent"]');
+    if (consentBox && !consentBox.checked) {
+      this.setFormConfirmation('contact', {
+        type: 'error',
+        title: 'Consent Required',
+        message: 'Please tick the Terms of Service and Privacy Policy consent checkbox before submitting.'
+      });
+      consentBox.focus();
+      return;
+    }
+
     const submitBtn = document.getElementById('contact-submit-btn');
     if (submitBtn) {
       submitBtn.disabled = true;
-      submitBtn.textContent = `Sending to ${this.notifyEmail}...`;
+      submitBtn.textContent = 'Sending inquiry...';
     }
 
     const selectedCategory = form.service_category ? form.service_category.value : this.contactServiceSelected;
@@ -3605,15 +3669,17 @@ ${C.renderRoiCalculatorWidget ? C.renderRoiCalculatorWidget() : ""}
       email: form.email.value.trim(),
       phone: (form.phone.value || '').trim(),
       service_category: selectedCategory,
-      message: form.message.value.trim()
+      message: form.message.value.trim(),
+      consent: Boolean(consentBox ? consentBox.checked : true),
+      website: form.website ? form.website.value : ''
     };
 
     const subject = `[YOLETECH Project Inquiry] ${payload.service_category} — ${payload.name}`;
     const emailBody = [
       `Full Name: ${payload.name}`,
       `Email: ${payload.email}`,
-      `WhatsApp / Phone: ${payload.phone || 'N/A'}`,
-      `Project Category: ${payload.service_category}`,
+      `Phone / WhatsApp: ${payload.phone || 'N/A'}`,
+      `Service: ${payload.service_category}`,
       '',
       'Project Details & Goals:',
       payload.message
@@ -3623,64 +3689,31 @@ ${C.renderRoiCalculatorWidget ? C.renderRoiCalculatorWidget() : ""}
     const whatsappUrl = `https://wa.me/2348025526389?text=${encodeURIComponent(subject + '\n\n' + emailBody)}`;
 
     try {
-      let savedInquiry = null;
-      try {
-        const res = await this.api('/api/inquiries', {
-          method: 'POST',
-          body: JSON.stringify(payload)
-        });
-        savedInquiry = res.inquiry;
-      } catch (apiErr) {
-        console.warn('Saving inquiry locally as fallback:', apiErr.message);
-        savedInquiry = {
-          id: Date.now(),
-          user_id: this.user?.id || null,
-          ...payload,
-          status: 'NEW',
-          project_progress: 15,
-          admin_response: '',
-          created_at: new Date().toISOString().slice(0, 19).replace('T', ' ')
-        };
-      }
-
+      const res = await this.api('/api/inquiries', {
+        method: 'POST',
+        body: JSON.stringify(payload)
+      });
+      const savedInquiry = res.inquiry || null;
       if (savedInquiry) {
         this.saveLocalInquiry(savedInquiry);
       }
 
-      await this.sendEmailToYoletech({
-        subject,
-        replyTo: payload.email,
-        fields: {
-          'Client Name': payload.name,
-          'Client Email': payload.email,
-          'WhatsApp / Phone': payload.phone || 'Not provided',
-          'Project Category': payload.service_category,
-          'Project Details & Goals': payload.message
-        }
-      });
-
-      this.lastContactSubmission = {
-        ...payload,
-        mailtoUrl,
-        whatsappUrl
-      };
-
       form.reset();
       this.setFormConfirmation('contact', {
-        title: `Inquiry Sent & Confirmed (${this.notifyEmail})`,
-        message: `Thank you, <strong>${payload.name}</strong>! Your <strong>${payload.service_category}</strong> inquiry has been validated, logged, and emailed to <strong>${this.notifyEmail}</strong>. We will respond within 24 hours.`,
+        title: 'Inquiry Received',
+        message: `Thank you, <strong>${payload.name}</strong>! Your <strong>${payload.service_category}</strong> inquiry has been received. We respond within 1 business day.`,
         actionsHtml: `
           <div style="display:flex;gap:10px;flex-wrap:wrap;">
             <a href="${mailtoUrl}" class="btn btn-lime btn-sm">
-              ✉️ Open in Email App (${this.notifyEmail}) ↗
+              Open in Email App ↗
             </a>
-            <a href="${whatsappUrl}" target="_blank" rel="noopener" class="btn btn-outline btn-sm">
-              💬 Send Copy on WhatsApp ↗
+            <a href="${whatsappUrl}" target="_blank" rel="noopener noreferrer" class="btn btn-outline btn-sm">
+              Send Copy on WhatsApp ↗
             </a>
           </div>
         `
       });
-      this.showToast(`Inquiry sent to ${this.notifyEmail}! We will respond within 24 hours.`);
+      this.showToast('Inquiry received! We will respond within 1 business day.');
       this.render();
     } catch (err) {
       this.setFormConfirmation('contact', {
@@ -3691,7 +3724,7 @@ ${C.renderRoiCalculatorWidget ? C.renderRoiCalculatorWidget() : ""}
       this.showToast(err.message || 'Could not send message.', 'error');
       if (submitBtn) {
         submitBtn.disabled = false;
-        submitBtn.textContent = `Send Message to ${this.notifyEmail} →`;
+        submitBtn.textContent = 'Send Message →';
       }
     }
   }
@@ -4757,9 +4790,9 @@ ${C.renderRoiCalculatorWidget ? C.renderRoiCalculatorWidget() : ""}
                     <button type="button" class="btn btn-outline btn-sm" onclick="window.app.navigate('dashboard')">Open Live Dashboard →</button>
                   </div>
                   <div class="portal-resource-card">
-                    <strong>Verified Case Studies &amp; Architectures</strong>
-                    <p>Review production Power BI, Streamlit ML, Python automation, and full-stack deployments.</p>
-                    <button type="button" class="btn btn-outline btn-sm" onclick="window.app.navigate('portfolio')">Browse Case Studies →</button>
+                    <strong>Case Studies &amp; Architectures</strong>
+                    <p>Review Power BI, Streamlit ML, Python automation, and full-stack deployments.</p>
+                    <button type="button" class="btn btn-outline btn-sm" onclick="window.app.navigate('portfolio')">View Case Studies →</button>
                   </div>
                   <div class="portal-resource-card">
                     <strong>Technical Guides &amp; Tutorials</strong>
@@ -4789,7 +4822,7 @@ ${C.renderRoiCalculatorWidget ? C.renderRoiCalculatorWidget() : ""}
 
                 <form novalidate onsubmit="window.app.handleProfileUpdateSubmit(event)">
                   <div class="form-group">
-                    <label class="form-label">Registered Email Address (Verified)</label>
+                    <label class="form-label">Registered Email Address</label>
                     <input type="email" class="form-control" value="${escHtml(this.user.email || '')}" readonly disabled style="opacity:0.75;cursor:not-allowed;" />
                   </div>
                   <div class="grid-2" style="gap:12px;">
@@ -6611,7 +6644,7 @@ ${C.renderRoiCalculatorWidget ? C.renderRoiCalculatorWidget() : ""}
     return `
       <div class="grid-2" style="align-items:start;">
         <div class="glass-card">
-          <h3 style="font-size:20px;font-weight:900;margin-bottom:14px;">+ Add Verified Testimonial</h3>
+          <h3 style="font-size:20px;font-weight:900;margin-bottom:14px;">+ Add Client Testimonial</h3>
           <form onsubmit="window.app.handleTestimonialSubmit(event)">
             <div class="form-group">
               <label class="form-label">Client / Mentee Full Name *</label>
@@ -6886,19 +6919,19 @@ ${C.renderRoiCalculatorWidget ? C.renderRoiCalculatorWidget() : ""}
     const stages = [
       {
         text: '<strong style="color:#C8E61E;">Stage 00 — Source Ingestion:</strong> Pulling departmental REST APIs, Excel workbooks &amp; relational SQL tables.',
-        metric: '99.9% Schema Match'
+        metric: 'Illustrative Preview'
       },
       {
         text: '<strong style="color:#C8E61E;">Stage 01 — Data Validation &amp; Audit:</strong> Running automated Pandas, R, SPSS &amp; Excel VBA quality rules.',
-        metric: '0.00% Null Drift'
+        metric: 'Schema Checks Active'
       },
       {
         text: '<strong style="color:#F7941D;">Stage 02 — Webhooks &amp; ETL Sync:</strong> Streaming validated records into SQL Server, MySQL &amp; MS Access.',
-        metric: '0.03ms Query Latency'
+        metric: 'Automated Pipeline'
       },
       {
-        text: '<strong style="color:#C8E61E;">Stage 03 — Python ML &amp; Executive BI:</strong> Publishing live KPIs and forecasts to Power BI, Tableau &amp; React.',
-        metric: 'Live Auto-Refresh'
+        text: '<strong style="color:#C8E61E;">Stage 03 — Python ML &amp; Executive BI:</strong> Publishing KPIs and forecasts to Power BI, Tableau &amp; React.',
+        metric: 'Scheduled Refresh'
       }
     ];
 
@@ -6985,13 +7018,13 @@ ${C.renderRoiCalculatorWidget ? C.renderRoiCalculatorWidget() : ""}
         schemaType: 'CollectionPage'
       },
       testimonials: {
-        title: 'Client & Mentee Testimonials | Verified Reviews — YOLETECH',
-        description:
-          'Read verified client testimonials and endorsements from executive stakeholders, research partners, and 200+ data analytics mentees trained by YOLETECH.',
+        title: 'Client Testimonials | YOLETECH',
+        description: 'Client feedback and endorsements submitted to YOLETECH.',
         path: '/testimonials',
         type: 'website',
         image: siteLogoUrl,
-        schemaType: 'CollectionPage'
+        schemaType: 'CollectionPage',
+        noindex: true
       },
       blog: {
         title: 'Blog & Tutorials | Data Analytics, Power BI, SQL, Python & Web Engineering — YOLETECH',
