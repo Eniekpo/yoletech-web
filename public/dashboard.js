@@ -201,12 +201,22 @@
             })
             .join('')}`;
       }
+      const srRows = months
+        .map((m, i) => {
+          const stackCells = stacks.map((st) => `<td>${st.values[i]}</td>`).join('');
+          const cumCell = cumulative ? `<td>${cumulative[i]}</td>` : '';
+          return `<tr><th scope="row">${esc(monthLabel(m))}</th>${stackCells}${cumCell}</tr>`;
+        })
+        .join('');
+      const srTable = `<details class="dash-a11y-table"><summary>View chart data as table</summary><div class="table-responsive"><table><thead><tr><th scope="col">Month</th>${stacks
+        .map((st) => `<th scope="col">${esc(st.label)}</th>`)
+        .join('')}${cumulative ? '<th scope="col">Cumulative</th>' : ''}</tr></thead><tbody>${srRows}</tbody></table></div></details>`;
       return `<svg viewBox="0 0 ${W} ${H}" class="dash-svg" role="img" aria-label="${esc(ariaLabel)}">
           ${grid}${bars}${line}
           <text x="${L + pw / 2}" y="${H - 6}" text-anchor="middle" class="dash-axis-title">Signup month</text>
           <text transform="translate(12 ${T + ph / 2}) rotate(-90)" text-anchor="middle" class="dash-axis-title">New clients</text>
           ${cumulative ? `<text transform="translate(${W - 6} ${T + ph / 2}) rotate(90)" text-anchor="middle" class="dash-axis-title">Cumulative</text>` : ''}
-        </svg>`;
+        </svg>${srTable}`;
     },
 
     lines(months, series, { yTitle = '', ariaLabel = '' } = {}) {
@@ -241,11 +251,20 @@
               .join('')}`;
         })
         .join('');
+      const lineRows = months
+        .map(
+          (m, i) =>
+            `<tr><th scope="row">${esc(monthLabel(m))}</th>${series.map((s) => `<td>${s.values[i]}</td>`).join('')}</tr>`
+        )
+        .join('');
+      const lineTable = `<details class="dash-a11y-table"><summary>View chart data as table</summary><div class="table-responsive"><table><thead><tr><th scope="col">Month</th>${series
+        .map((s) => `<th scope="col">${esc(s.label)}</th>`)
+        .join('')}</tr></thead><tbody>${lineRows}</tbody></table></div></details>`;
       return `<svg viewBox="0 0 ${W} ${H}" class="dash-svg" role="img" aria-label="${esc(ariaLabel)}">
           ${grid}${xLabels}${paths}
           <text x="${L + pw / 2}" y="${H - 6}" text-anchor="middle" class="dash-axis-title">Month</text>
           <text transform="translate(12 ${T + ph / 2}) rotate(-90)" text-anchor="middle" class="dash-axis-title">${esc(yTitle)}</text>
-        </svg>`;
+        </svg>${lineTable}`;
     },
 
     // Horizontal HTML bars: items [{label, value, color, note}]

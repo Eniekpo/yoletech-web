@@ -170,3 +170,17 @@ test('Phase 1: Unknown routes return genuine HTTP 404 on both server and Vercel 
     assert.match(vercelRes.text, /Page Not Found/i);
   }
 });
+
+test('Phase 2: No blocking preloader or sample Signup month chart appears on public routes', async () => {
+  const routes = ['/', '/about', '/services', '/portfolio', '/learn', '/blog', '/contact'];
+  for (const route of routes) {
+    const res = await invokeHandler(requestHandler, route);
+    assert.equal(res.status, 200);
+    assert.ok(!res.text.includes('yoletech-preloader'), `Preloader still present on ${route}`);
+    assert.ok(!res.text.includes('preloader-active'), `preloader-active class still present on ${route}`);
+    assert.ok(!res.text.includes('Loading Executive Analytics'), `Blocking loader text still present on ${route}`);
+    assert.ok(!res.text.includes('Signup month'), `Sample chart still present on ${route}`);
+    assert.ok(!res.text.includes('New clients'), `Sample chart Y-axis still present on ${route}`);
+    assert.ok(!res.text.includes('hero-slide-1-data-science-portrait.png'), `Broken hero image still present on ${route}`);
+  }
+});
