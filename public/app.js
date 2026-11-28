@@ -6948,59 +6948,58 @@ class YoletechApp {
       typeof window !== 'undefined' &&
       window.location &&
       /^https?:/i.test(window.location.origin) &&
-      !/localhost|127\.0\.0\.1/.test(window.location.hostname)
+      /localhost|127\.0\.0\.1/.test(window.location.hostname)
         ? window.location.origin
-        : 'https://yolestica.com';
+        : 'https://www.yolestica.com';
     const siteLogoUrl = `${baseOrigin}/assets/yoletech-social-logo.png`;
     const seoMap = {
       home: {
-        title: 'YOLETECH | Executive Business Intelligence, Analytics & Full-Stack Solutions',
+        title: 'YOLETECH | Data Analytics, BI & Full-Stack Web Services',
         description:
-          'YOLETECH — Executive Business Intelligence, Interactive Power BI & Tableau Dashboards, SQL Data Pipelines & Full-Stack Web Development by John Oruebi Eniekpo, B.Sc.',
+          'YOLETECH builds full-stack web apps, Power BI & Tableau dashboards, Python/SQL automation, and practical tech training.',
         path: '/',
         type: 'website',
         image: siteLogoUrl,
         schemaType: 'WebPage'
       },
       dashboard: {
-        title: 'Executive BI & Client Operations Dashboard | YOLETECH',
-        description:
-          'Interactive Executive Business Intelligence Dashboard showcasing real-time client metrics, conversion funnels, service distribution, and analytics performance.',
+        title: 'Analytics Dashboard | YOLETECH',
+        description: 'Authenticated YOLETECH client and operations analytics dashboard.',
         path: '/dashboard',
         type: 'website',
         image: siteLogoUrl,
-        schemaType: 'WebPage'
+        schemaType: 'WebPage',
+        noindex: true
       },
       about: {
-        title: 'About John Oruebi Eniekpo | Data Analyst, BI Specialist & Full-Stack Developer — YOLETECH',
+        title: 'About John Oruebi Eniekpo | YOLETECH',
         description:
-          'Learn about John Oruebi Eniekpo, B.Sc., Lead Data Analyst, Business Intelligence Specialist, and Full-Stack Web Developer behind YOLETECH in Yenagoa, Bayelsa State, Nigeria.',
+          'Meet John Oruebi Eniekpo, Data Analyst, BI Specialist, and Full-Stack Web Developer behind YOLETECH in Nigeria and remote.',
         path: '/about',
         type: 'profile',
         image: siteLogoUrl,
         schemaType: 'AboutPage'
       },
       services: {
-        title: 'Data Analytics, Power BI, Automation & Full-Stack Web Services | YOLETECH',
+        title: 'Data Analytics, BI, Automation & Web Services | YOLETECH',
         description:
-          'Explore YOLETECH services: Full-Stack Web Development, Power BI & Tableau Dashboards, Python & Excel VBA Workflow Automation, SQL Database Governance, and Tech Mentorship.',
+          'Explore YOLETECH services: full-stack web development, Power BI & Tableau BI, AI workflow automation, IT support, and training.',
         path: '/services',
         type: 'website',
         image: siteLogoUrl,
         schemaType: 'CollectionPage'
       },
       learn: {
-        title: 'Learn with YOLETECH | Practical Tech Training Programs & Registration',
+        title: 'Learn Tech Skills & Training Programs | YOLETECH',
         description:
-          this._learnState?.content?.subheadline ||
-          'Explore YOLETECH training programs across Full-Stack Web Development, Data Analysis and Business Intelligence, AI Automation, Customer Support Solutions, IT Support, Graphic Design, and Tech Tutorials.',
+          'Hands-on training in web development, data analytics, AI automation, and IT—guided step by step from day one.',
         path: '/learn',
         type: 'website',
         image: siteLogoUrl,
         schemaType: 'CollectionPage'
       },
       'learn-dashboard': {
-        title: 'Learner Dashboard | YOLETECH',
+        title: 'Learner Portal | YOLETECH',
         description: 'View your YOLETECH learner profile and course enrollment status.',
         path: '/learn/dashboard',
         type: 'website',
@@ -7009,9 +7008,9 @@ class YoletechApp {
         noindex: true
       },
       portfolio: {
-        title: 'Portfolio & Case Studies | Data Analytics, BI & Full-Stack Web Projects — YOLETECH',
+        title: 'Portfolio & Case Studies | YOLETECH',
         description:
-          'Explore verified case studies and portfolio projects delivered by YOLETECH across Power BI, Tableau, Python Machine Learning, Streamlit, React.js, and SQL databases.',
+          'Explore YOLETECH case studies across Power BI dashboards, Python machine learning apps, workflow automation, and web platforms.',
         path: '/portfolio',
         type: 'website',
         image: siteLogoUrl,
@@ -7027,26 +7026,50 @@ class YoletechApp {
         noindex: true
       },
       blog: {
-        title: 'Blog & Tutorials | Data Analytics, Power BI, SQL, Python & Web Engineering — YOLETECH',
+        title: 'Blog & Tech Tutorials | YOLETECH',
         description:
-          'Practical technical guides, SQL and Python tutorials, Power BI and Tableau dashboard architecture walkthroughs, and full-stack engineering articles by John Oruebi Eniekpo.',
+          'Practical tutorials and guides on Power BI, SQL, Python automation, machine learning, and full-stack web engineering.',
         path: '/blog',
         type: 'website',
         image: siteLogoUrl,
         schemaType: 'CollectionPage'
       },
       contact: {
-        title: 'Contact YOLETECH | Book a Discovery Call or Request a Project Proposal',
+        title: 'Contact YOLETECH | Book a Discovery Call',
         description:
-          'Contact John Oruebi Eniekpo at YOLETECH (yoletech@yolestica.com | +234 802 552 6389) for Full-Stack Web Development, Power BI Dashboards, SQL Pipelines, and Automation.',
+          'Contact YOLETECH for full-stack web development, BI dashboards, SQL pipelines, automation, or training. Responses in 1 business day.',
         path: '/contact',
         type: 'website',
         image: siteLogoUrl,
         schemaType: 'ContactPage'
       },
+      privacy: {
+        title: 'Privacy Policy | YOLETECH',
+        description: 'How YOLETECH collects, uses, and protects your personal data under the Nigeria Data Protection Act (NDPA).',
+        path: '/privacy',
+        type: 'website',
+        image: siteLogoUrl,
+        schemaType: 'WebPage'
+      },
+      terms: {
+        title: 'Terms of Service | YOLETECH',
+        description: 'Terms governing YOLETECH digital services, client portal accounts, and training program registrations.',
+        path: '/terms',
+        type: 'website',
+        image: siteLogoUrl,
+        schemaType: 'WebPage'
+      },
+      cookies: {
+        title: 'Cookie Notice | YOLETECH',
+        description: 'Details on essential cookies, session storage, and optional analytics consent on YOLETECH.',
+        path: '/cookies',
+        type: 'website',
+        image: siteLogoUrl,
+        schemaType: 'WebPage'
+      },
       login: {
-        title: 'Client Portal Login & Registration | YOLETECH',
-        description: 'Sign in or register for the YOLETECH Client Portal to track project deliverables, data pipelines, and support inquiries.',
+        title: 'Sign In | YOLETECH Portal',
+        description: 'Sign in to your YOLETECH Client Portal or Learner Portal.',
         path: '/login',
         type: 'website',
         image: siteLogoUrl,
@@ -7054,8 +7077,8 @@ class YoletechApp {
         noindex: true
       },
       register: {
-        title: 'Register for the YOLETECH Client Portal | YOLETECH',
-        description: 'Create a YOLETECH Client Portal account to track project deliverables, data pipelines, and support inquiries.',
+        title: 'Create Account | YOLETECH Client Portal',
+        description: 'Create a YOLETECH Client Portal account to request projects and track deliverables.',
         path: '/register',
         type: 'website',
         image: siteLogoUrl,
@@ -7073,7 +7096,7 @@ class YoletechApp {
       },
       'admin-dashboard': {
         title: 'Admin Dashboard | YOLETECH',
-        description: 'YOLETECH administrative CRM and content management console.',
+        description: 'Authenticated YOLETECH administration workspace.',
         path: '/admin-dashboard',
         type: 'website',
         image: siteLogoUrl,

@@ -16,6 +16,14 @@ module.exports = (req, res) => {
   }
 
   const hostHeader = String(req.headers['x-forwarded-host'] || req.headers.host || '').split(',')[0].trim();
+  const bareHost = hostHeader.toLowerCase().replace(/:\d+$/, '');
+  if (bareHost === 'yolestica.com') {
+    const dest = `https://www.yolestica.com${req.url.startsWith('/api/blog-page') ? new URL(req.url, 'https://www.yolestica.com').searchParams.get('route') || '/' : req.url}`;
+    res.setHeader('Location', dest);
+    res.statusCode = 301;
+    res.end();
+    return;
+  }
   const protoHeader = String(req.headers['x-forwarded-proto'] || 'https').split(',')[0].trim();
   const reqOrigin = hostHeader ? `${protoHeader}://${hostHeader}` : undefined;
 

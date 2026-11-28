@@ -24,8 +24,8 @@ commit_messages:
 logo_url: https://decapbridge.com/decapcms-with-bridge.svg
 
 # Add site links in Decap CMS (optional)
-site_url: https://yolestica.com
-display_url: https://yolestica.com
+site_url: https://www.yolestica.com
+display_url: https://www.yolestica.com
 
 media_folder: "public/assets/blog"
 public_folder: "/assets/blog"

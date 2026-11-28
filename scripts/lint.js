@@ -66,6 +66,24 @@ for (const jsonRel of ['package.json', 'vercel.json', 'tsconfig.json']) {
   }
 }
 
+// SEO Metadata Checks (Phase 4)
+const { ROUTE_SEO_CONFIG } = require(path.join(ROOT, 'server', 'blog-page.js'));
+for (const [route, cfg] of Object.entries(ROUTE_SEO_CONFIG)) {
+  if (cfg.title.length > 60) {
+    errors.push(`SEO title exceeds 60 chars (${cfg.title.length}) on ${route}: ${cfg.title}`);
+  }
+  if (cfg.description.length > 155) {
+    errors.push(`SEO description exceeds 155 chars (${cfg.description.length}) on ${route}: ${cfg.description}`);
+  }
+}
+const indexHtml = fs.readFileSync(path.join(ROOT, 'public', 'index.html'), 'utf8');
+if (/<meta\s+name="keywords"/i.test(indexHtml)) {
+  errors.push('Obsolete <meta name="keywords"> found in public/index.html');
+}
+if (!indexHtml.includes('rel="canonical" href="https://www.yolestica.com/"')) {
+  errors.push('Canonical URL in public/index.html must point to https://www.yolestica.com/');
+}
+
 if (errors.length > 0) {
   console.error('Lint failed:\n' + errors.map((e) => `- ${e}`).join('\n'));
   process.exit(1);

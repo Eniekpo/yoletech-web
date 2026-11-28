@@ -1083,6 +1083,13 @@ const requestHandler = async (req, res) => {
   const pathname = parsedUrl.pathname;
   const clientIp = (req.headers['x-forwarded-for'] || '').split(',')[0].trim() || req.socket?.remoteAddress || '127.0.0.1';
 
+  // Enforce single canonical host https://www.yolestica.com (301 redirect apex -> www)
+  const rawHost = String(req.headers['x-forwarded-host'] || req.headers.host || '').split(',')[0].trim().toLowerCase().replace(/:\d+$/, '');
+  if (rawHost === 'yolestica.com') {
+    res.writeHead(301, { Location: `https://www.yolestica.com${req.url}` });
+    return res.end();
+  }
+
   // Direct Sitemap, RSS Feed & Robots routes
   if (pathname === '/sitemap.xml') {
     const hostHeader = String(req.headers['x-forwarded-host'] || req.headers.host || '').split(',')[0].trim();

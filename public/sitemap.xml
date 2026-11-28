@@ -1,167 +1,178 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>https://yolestica.com/</loc>
+    <loc>https://www.yolestica.com/</loc>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
   </url>
   <url>
-    <loc>https://yolestica.com/services</loc>
+    <loc>https://www.yolestica.com/services</loc>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
-    <loc>https://yolestica.com/portfolio</loc>
+    <loc>https://www.yolestica.com/portfolio</loc>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
-    <loc>https://yolestica.com/about</loc>
-    <changefreq>monthly</changefreq>
-    <priority>0.85</priority>
+    <loc>https://www.yolestica.com/learn</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
   </url>
   <url>
-    <loc>https://yolestica.com/blog</loc>
-    <lastmod>2026-11-18</lastmod>
+    <loc>https://www.yolestica.com/blog</loc>
+    <lastmod>2026-11-24</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.85</priority>
   </url>
   <url>
-    <loc>https://yolestica.com/testimonials</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
+    <loc>https://www.yolestica.com/about</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.85</priority>
   </url>
   <url>
-    <loc>https://yolestica.com/dashboard</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://yolestica.com/contact</loc>
+    <loc>https://www.yolestica.com/contact</loc>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://yolestica.com/cv.html</loc>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
+    <loc>https://www.yolestica.com/privacy</loc>
+    <changefreq>yearly</changefreq>
+    <priority>0.3</priority>
   </url>
   <url>
-    <loc>https://yolestica.com/blog/mark-zuckerberg-the-programmer-who-co-created-facebook</loc>
+    <loc>https://www.yolestica.com/terms</loc>
+    <changefreq>yearly</changefreq>
+    <priority>0.3</priority>
+  </url>
+  <url>
+    <loc>https://www.yolestica.com/cookies</loc>
+    <changefreq>yearly</changefreq>
+    <priority>0.3</priority>
+  </url>
+  <url>
+    <loc>https://www.yolestica.com/blog/guido-van-rossum-the-developer-behind-python</loc>
+    <lastmod>2026-11-24</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://www.yolestica.com/blog/mark-zuckerberg-the-programmer-who-co-created-facebook</loc>
     <lastmod>2026-11-18</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://yolestica.com/blog/thomas-edison-the-inventor-who-made-electric-lighting-practical-for-the-modern-world</loc>
+    <loc>https://www.yolestica.com/blog/thomas-edison-the-inventor-who-made-electric-lighting-practical-for-the-modern-world</loc>
     <lastmod>2026-11-17</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://yolestica.com/blog/frances-allen-the-computer-scientist-who-helped-make-software-run-faster</loc>
+    <loc>https://www.yolestica.com/blog/frances-allen-the-computer-scientist-who-helped-make-software-run-faster</loc>
     <lastmod>2026-11-16</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://yolestica.com/blog/web-design-trends-2026-what-actually-matters-now</loc>
+    <loc>https://www.yolestica.com/blog/broken-attribution-is-quietly-killing-your-roas</loc>
     <lastmod>2026-11-15</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://yolestica.com/blog/broken-attribution-is-quietly-killing-your-roas</loc>
+    <loc>https://www.yolestica.com/blog/web-design-trends-2026-what-actually-matters-now</loc>
     <lastmod>2026-11-15</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://yolestica.com/blog/yoletech-tech-news-13-november-2026</loc>
+    <loc>https://www.yolestica.com/blog/yoletech-tech-news-13-november-2026</loc>
     <lastmod>2026-11-13</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://yolestica.com/blog/technology-updates-12-november-2026</loc>
+    <loc>https://www.yolestica.com/blog/margaret-hamilton-the-software-engineer-whose-code-helped-take-humans-to-the-moon</loc>
     <lastmod>2026-11-12</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://yolestica.com/blog/stop-tracking-business-performance-manually-use-power-dax</loc>
+    <loc>https://www.yolestica.com/blog/radia-perlman-the-engineer-who-solved-one-of-ethernets-biggest-networking-problems</loc>
     <lastmod>2026-11-12</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://yolestica.com/blog/radia-perlman-the-engineer-who-solved-one-of-ethernets-biggest-networking-problems</loc>
+    <loc>https://www.yolestica.com/blog/stop-tracking-business-performance-manually-use-power-dax</loc>
     <lastmod>2026-11-12</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://yolestica.com/blog/margaret-hamilton-the-software-engineer-whose-code-helped-take-humans-to-the-moon</loc>
+    <loc>https://www.yolestica.com/blog/technology-updates-12-november-2026</loc>
     <lastmod>2026-11-12</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://yolestica.com/blog/build-rest-apis-with-python-and-fast-api</loc>
+    <loc>https://www.yolestica.com/blog/build-a-token-bucket-rate-limiter-with-python-and-redis</loc>
     <lastmod>2026-11-11</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://yolestica.com/blog/build-a-token-bucket-rate-limiter-with-python-and-redis</loc>
+    <loc>https://www.yolestica.com/blog/build-rest-apis-with-python-and-fast-api</loc>
     <lastmod>2026-11-11</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://yolestica.com/blog/mastering-sql-window-functions-for-fast-financial-reporting</loc>
+    <loc>https://www.yolestica.com/blog/mastering-sql-window-functions-for-fast-financial-reporting</loc>
     <lastmod>2026-11-01</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://yolestica.com/blog/predicting-real-estate-prices-with-python-and-scikit-learn</loc>
+    <loc>https://www.yolestica.com/blog/build-an-interactive-sales-dashboard-with-python-and-streamlit</loc>
     <lastmod>2026-10-31</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://yolestica.com/blog/how-to-automate-excel-reports-using-python-and-pandas</loc>
+    <loc>https://www.yolestica.com/blog/from-housing-data-to-an-interactive-ml-app-predicting-real-estate-prices-with-python-scikit-learn-and-streamlit</loc>
     <lastmod>2026-10-31</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://yolestica.com/blog/from-housing-data-to-an-interactive-ml-app-predicting-real-estate-prices-with-python-scikit-learn-and-streamlit</loc>
+    <loc>https://www.yolestica.com/blog/how-to-automate-excel-reports-using-python-and-pandas</loc>
     <lastmod>2026-10-31</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://yolestica.com/blog/build-an-interactive-sales-dashboard-with-python-and-streamlit</loc>
+    <loc>https://www.yolestica.com/blog/predicting-real-estate-prices-with-python-and-scikit-learn</loc>
     <lastmod>2026-10-31</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://yolestica.com/blog/building-a-fast-client-booking-portal-with-next-js-and-supabase</loc>
+    <loc>https://www.yolestica.com/blog/automating-customer-support-node-js-whatsapp-and-email-alerts</loc>
     <lastmod>2026-10-30</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://yolestica.com/blog/automating-customer-support-node-js-whatsapp-and-email-alerts</loc>
+    <loc>https://www.yolestica.com/blog/building-a-fast-client-booking-portal-with-next-js-and-supabase</loc>
     <lastmod>2026-10-30</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://yolestica.com/blog/designing-executive-power-bi-tableau-dashboards</loc>
+    <loc>https://www.yolestica.com/blog/designing-executive-power-bi-tableau-dashboards</loc>
     <lastmod>2026-10-15</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>

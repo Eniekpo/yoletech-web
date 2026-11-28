@@ -8,6 +8,14 @@
       "includeFiles": "{content/**,server/**,public/**}"
     }
   },
+  "redirects": [
+    {
+      "source": "/:path*",
+      "has": [{ "type": "host", "value": "yolestica.com" }],
+      "destination": "https://www.yolestica.com/:path*",
+      "permanent": true
+    }
+  ],
   "rewrites": [
     { "source": "/api/(.*)", "destination": "/api/index.js" },
     { "source": "/sitemap.xml", "destination": "/api/blog-page?sitemap=1" },

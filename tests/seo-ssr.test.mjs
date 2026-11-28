@@ -237,3 +237,54 @@ test('Phase 3: Contact API enforces consent, validation, honeypot, and rate limi
   });
   assert.equal(validSubmit.status, 201);
 });
+
+test('Phase 4: Canonical host 301 redirect, SEO limits, JSON-LD, sitemap.xml, and robots.txt', async () => {
+  // Apex domain 301 redirect -> https://www.yolestica.com
+  const apexRes = await invokeHandler(requestHandler, '/services', { host: 'yolestica.com' });
+  assert.equal(apexRes.status, 301);
+  assert.equal(apexRes.headers.location, 'https://www.yolestica.com/services');
+
+  const vercelApexRes = await invokeHandler(vercelBlogHandler, '/api/blog-page?route=/about', { host: 'yolestica.com' });
+  assert.equal(vercelApexRes.status, 301);
+  assert.equal(vercelApexRes.headers.location, 'https://www.yolestica.com/about');
+
+  // Verify SEO limits, canonical URL, OG image dimensions, and valid JSON-LD on public routes
+  const routes = ['/', '/about', '/services', '/portfolio', '/learn', '/blog', '/contact', '/privacy', '/terms', '/cookies'];
+  for (const route of routes) {
+    const res = await invokeHandler(requestHandler, route);
+    assert.equal(res.status, 200);
+    const title = extractTitle(res.text).replace(/&amp;/g, '&');
+    assert.ok(title.length <= 60, `Title too long (${title.length} chars) on ${route}: ${title}`);
+
+    const descMatch = res.text.match(/<meta\s+name="description"\s+content="([^"]*)"/i);
+    assert.ok(descMatch, `Missing meta description on ${route}`);
+    const desc = descMatch[1].replace(/&amp;/g, '&');
+    assert.ok(desc.length <= 155, `Description too long (${desc.length} chars) on ${route}: ${desc}`);
+
+    const expectedCanonical = route === '/' ? 'https://www.yolestica.com/' : `https://www.yolestica.com${route}`;
+    assert.ok(
+      res.text.includes(`<link rel="canonical" href="${expectedCanonical}" />`),
+      `Expected canonical ${expectedCanonical} on ${route}`
+    );
+    assert.ok(res.text.includes('property="og:image:width" content="1200"'));
+    assert.ok(res.text.includes('property="og:image:height" content="630"'));
+
+    const ldMatches = [...res.text.matchAll(/<script[^>]*type="application\/ld\+json"[^>]*>([\s\S]*?)<\/script>/gi)];
+    assert.ok(ldMatches.length >= 2, `Expected base + dynamic JSON-LD on ${route}`);
+    for (const m of ldMatches) {
+      const parsed = JSON.parse(m[1].trim());
+      assert.equal(parsed['@context'], 'https://schema.org');
+    }
+  }
+
+  // Sitemap contains only canonical www indexable routes
+  const sitemap = await invokeHandler(requestHandler, '/sitemap.xml');
+  assert.equal(sitemap.status, 200);
+  assert.ok(sitemap.text.includes('https://www.yolestica.com/services'));
+  assert.ok(sitemap.text.includes('https://www.yolestica.com/learn'));
+  assert.ok(!sitemap.text.includes('https://yolestica.com/'));
+  assert.ok(!sitemap.text.includes('/dashboard'));
+  assert.ok(!sitemap.text.includes('/testimonials'));
+  assert.ok(!sitemap.text.includes('/admin'));
+  assert.ok(!sitemap.text.includes('/login'));
+});

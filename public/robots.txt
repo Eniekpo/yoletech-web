@@ -2,7 +2,13 @@ User-agent: *
 Allow: /
 Disallow: /admin/
 Disallow: /admin-dashboard
+Disallow: /dashboard
 Disallow: /portal
+Disallow: /login
+Disallow: /register
+Disallow: /signup
+Disallow: /learn/dashboard
+Disallow: /testimonials
 Disallow: /api/
 
-Sitemap: https://yolestica.com/sitemap.xml
+Sitemap: https://www.yolestica.com/sitemap.xml
